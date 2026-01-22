@@ -1,1 +1,300 @@
-Hello World
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบลงเวลาพนักงาน</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
+        .container { background: white; width: 100%; max-width: 420px; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); min-height: 100vh; box-sizing: border-box; }
+        
+        /* Utils */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .full-width { width: 100%; }
+        .mt-4 { margin-top: 20px; }
+        
+        /* Components */
+        .profile-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-bottom: 10px; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        
+        /* Buttons */
+        .btn { padding: 15px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; margin-bottom: 10px; color: white; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-primary { background-color: #007bff; }
+        .btn-success { background-color: #28a745; box-shadow: 0 4px 0 #1e7e34; }
+        .btn-success:active { transform: translateY(4px); box-shadow: none; }
+        .btn-danger { background-color: #dc3545; box-shadow: 0 4px 0 #bd2130; }
+        .btn-danger:active { transform: translateY(4px); box-shadow: none; }
+
+        /* Time & History */
+        .clock-display { font-size: 3rem; font-weight: bold; color: #333; margin: 20px 0; font-variant-numeric: tabular-nums; }
+        .history-list { list-style: none; padding: 0; margin-top: 20px; text-align: left; }
+        .history-item { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 5px; display: flex; justify-content: space-between; border-left: 5px solid #ccc; }
+        .history-item.in { border-left-color: #28a745; }
+        .history-item.out { border-left-color: #dc3545; }
+    </style>
+</head>
+<body>
+
+    <div class="container text-center">
+        
+        <div id="loadingPage">
+            <div style="margin-top: 40vh;">
+                <div style="font-size: 24px;">⏳</div>
+                <p>กำลังเชื่อมต่อระบบ...</p>
+            </div>
+        </div>
+
+        <div id="registerPage" class="hidden">
+            <h3>ลงทะเบียนพนักงานใหม่</h3>
+            <img id="regisProfileImg" src="" class="profile-img">
+            <p id="regisName" style="color:#666;"></p>
+            
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>รหัสพนักงาน</label>
+                    <input type="text" id="empId" class="form-control" placeholder="เช่น EMP001" required>
+                </div>
+                <div class="form-group">
+                    <label>ชื่อ-นามสกุลจริง</label>
+                    <input type="text" id="fullName" class="form-control" placeholder="ชื่อ นามสกุล" required>
+                </div>
+                <div class="form-group">
+                    <label>แผนก</label>
+                    <select id="department" class="form-control">
+                        <option value="IT">IT / Programmer</option>
+                        <option value="HR">HR / Admin</option>
+                        <option value="Sales">Sales / Marketing</option>
+                        <option value="Operation">Operation</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mt-4">บันทึกข้อมูล</button>
+            </form>
+        </div>
+
+        <div id="mainPage" class="hidden">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <div style="text-align: left;">
+                    <h3 id="showName" style="margin: 0;">...</h3>
+                    <small id="showEmpId" style="color: gray;">...</small>
+                </div>
+                <img id="mainProfileImg" src="" style="width: 50px; height: 50px; border-radius: 50%;">
+            </div>
+
+            <hr>
+            <div id="currentDate" style="color: gray; margin-top: 10px;">...</div>
+            <div id="clock" class="clock-display">00:00:00</div>
+
+            <button onclick="recordTime('เข้างาน')" class="btn btn-success">เข้างาน (Clock In)</button>
+            <button onclick="recordTime('ออกงาน')" class="btn btn-danger">ออกงาน (Clock Out)</button>
+
+            <div style="margin-top: 30px; text-align: left;">
+                <strong>ประวัติวันนี้</strong>
+                <ul id="historyList" class="history-list">
+                    </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp, Timestamp } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- CONFIG ZONE (แก้ตรงนี้) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
+            authDomain: "in-out-dashboard.firebaseapp.com",
+            projectId: "in-out-dashboard",
+            storageBucket: "in-out-dashboard.firebasestorage.app",
+            messagingSenderId: "846266395224",
+            appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
+            measurementId: "G-WN14VJSG17"
+        };
+        const LIFF_ID = "YOUR_LIFF_ID"; 
+        // ------------------------------
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ตัวแปรเก็บข้อมูล User ปัจจุบัน
+        let currentUser = {
+            lineUserId: "",
+            pictureUrl: "",
+            displayName: "", // ชื่อในไลน์
+            realName: "",    // ชื่อจริงที่ลงทะเบียน
+            empId: "",       // รหัสพนักงาน
+            dept: ""         // แผนก
+        };
+
+        // เริ่มต้นทำงาน
+        async function main() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                
+                const profile = await liff.getProfile();
+                currentUser.lineUserId = profile.userId;
+                currentUser.pictureUrl = profile.pictureUrl;
+                currentUser.displayName = profile.displayName;
+
+                // เช็คว่ามีข้อมูลใน Database หรือยัง?
+                checkUserInFirestore();
+
+            } catch (err) {
+                alert("LIFF Init Error: " + err);
+            }
+        }
+        main();
+
+        // เช็ค User ใน Firestore
+        async function checkUserInFirestore() {
+            const userRef = doc(db, "users", currentUser.lineUserId);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                // เคยสมัครแล้ว -> ไปหน้า Main
+                const data = userSnap.data();
+                currentUser.realName = data.name;
+                currentUser.empId = data.empId;
+                currentUser.dept = data.dept;
+                showMainPage();
+            } else {
+                // ยังไม่เคย -> ไปหน้า Register
+                showRegisterPage();
+            }
+        }
+
+        // --- UI Logic ---
+        function showRegisterPage() {
+            document.getElementById('loadingPage').classList.add('hidden');
+            document.getElementById('registerPage').classList.remove('hidden');
+            
+            document.getElementById('regisProfileImg').src = currentUser.pictureUrl;
+            document.getElementById('regisName').innerText = currentUser.displayName;
+        }
+
+        function showMainPage() {
+            document.getElementById('loadingPage').classList.add('hidden');
+            document.getElementById('registerPage').classList.add('hidden');
+            document.getElementById('mainPage').classList.remove('hidden');
+
+            document.getElementById('showName').innerText = currentUser.realName;
+            document.getElementById('showEmpId').innerText = `รหัส: ${currentUser.empId} | แผนก: ${currentUser.dept}`;
+            document.getElementById('mainProfileImg').src = currentUser.pictureUrl;
+
+            startClock();
+            loadTodayHistory();
+        }
+
+        // --- Register Logic ---
+        window.handleRegister = async (e) => {
+            e.preventDefault();
+            const empId = document.getElementById('empId').value;
+            const fullName = document.getElementById('fullName').value;
+            const dept = document.getElementById('department').value;
+
+            if(!empId || !fullName) return alert("กรุณากรอกข้อมูลให้ครบ");
+
+            try {
+                // บันทึกข้อมูลลง Collection "users" โดยใช้ Line User ID เป็น Document ID
+                await setDoc(doc(db, "users", currentUser.lineUserId), {
+                    empId: empId,
+                    name: fullName,
+                    dept: dept,
+                    lineUserId: currentUser.lineUserId,
+                    pictureUrl: currentUser.pictureUrl,
+                    registeredAt: serverTimestamp()
+                });
+                
+                alert("ลงทะเบียนสำเร็จ!");
+                // อัปเดตตัวแปร local แล้วไปหน้าหลัก
+                currentUser.empId = empId;
+                currentUser.realName = fullName;
+                currentUser.dept = dept;
+                showMainPage();
+
+            } catch (err) {
+                console.error(err);
+                alert("เกิดข้อผิดพลาด: " + err.message);
+            }
+        }
+
+        // --- Clock Logic ---
+        function startClock() {
+            const dateElem = document.getElementById('currentDate');
+            const clockElem = document.getElementById('clock');
+            
+            setInterval(() => {
+                const now = new Date();
+                dateElem.innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
+                clockElem.innerText = now.toLocaleTimeString('th-TH', { hour12: false });
+            }, 1000);
+        }
+
+        window.recordTime = async (type) => {
+            if(!confirm(`ยืนยันการ ${type}?`)) return;
+
+            try {
+                await addDoc(collection(db, "attendance"), {
+                    lineUserId: currentUser.lineUserId,
+                    name: currentUser.realName,
+                    empId: currentUser.empId,
+                    dept: currentUser.dept,
+                    type: type,
+                    timestamp: serverTimestamp(),
+                    userAgent: navigator.userAgent
+                });
+
+                alert(`บันทึก ${type} เรียบร้อย`);
+                loadTodayHistory(); // โหลดประวัติใหม่
+
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+        // โหลดประวัติวันนี้มาแสดง
+        async function loadTodayHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = ""; // เคลียร์ของเก่า
+
+            // หาวันที่เริ่มต้นของวันนี้ (00:00) และสิ้นสุดวันนี้ (23:59) เพื่อ Query
+            const startOfDay = new Date();
+            startOfDay.setHours(0,0,0,0);
+            const endOfDay = new Date();
+            endOfDay.setHours(23,59,59,999);
+
+            const q = query(
+                collection(db, "attendance"),
+                where("lineUserId", "==", currentUser.lineUserId),
+                where("timestamp", ">=", startOfDay),
+                where("timestamp", "<=", endOfDay)
+            );
+
+            const querySnapshot = await getDocs(q);
+            
+            // เรียงลำดับตามเวลา (client side sorting for simplicity)
+            const docs = [];
+            querySnapshot.forEach(doc => docs.push(doc.data()));
+            docs.sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+            docs.forEach(data => {
+                const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}) : "...";
+                const li = document.createElement('li');
+                li.className = `history-item ${data.type === 'เข้างาน' ? 'in' : 'out'}`;
+                li.innerHTML = `<span>${data.type}</span> <strong>${time}</strong>`;
+                list.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
