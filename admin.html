@@ -13,7 +13,11 @@
         .hidden { display: none !important; }
         .nav-tabs .nav-link { cursor: pointer; color: #495057; }
         .nav-tabs .nav-link.active { font-weight: bold; color: #0d6efd; border-bottom: 3px solid #0d6efd; }
-        .profile-thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #dee2e6; }
+        
+        /* Profile Image Styles */
+        .profile-thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .profile-thumb-lg { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+        .user-cell { display: flex; align-items: center; gap: 10px; }
     </style>
 </head>
 <body>
@@ -51,19 +55,24 @@
                     <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
                     <button onclick="exportCSV()" class="btn btn-success ms-auto">📥 Export</button>
                 </div>
-                <div class="card-body p-0 table-responsive"><table class="table table-hover mb-0 align-middle"><tbody id="tableBody"></tbody></table></div>
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light"><tr><th>เวลา</th><th>พนักงาน</th><th>แผนก</th><th>สถานะ</th><th>ประเภท</th></tr></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <div id="tabSchedule" class="hidden">
             <div class="row">
                 <div class="col-md-4 mb-4"><div class="card p-3"><h5>✍️ สร้างเวร</h5><form onsubmit="createSchedule(event)"><select id="userSelect" class="form-select mb-2" required></select><input type="date" id="schedDate" class="form-control mb-2" required><select id="schedType" class="form-select mb-3"><option>เช้า (08:00 - 17:00)</option><option>บ่าย (13:00 - 22:00)</option><option>ดึก (22:00 - 07:00)</option><option>หยุด (Day Off)</option></select><button type="submit" class="btn btn-primary w-100">บันทึก</button></form></div></div>
-                <div class="col-md-8"><div class="card p-3"><table class="table table-sm table-bordered"><tbody id="schedTableBody"></tbody></table></div></div>
+                <div class="col-md-8"><div class="card p-3"><table class="table table-sm table-bordered align-middle"><tbody id="schedTableBody"></tbody></table></div></div>
             </div>
         </div>
 
         <div id="tabLeave" class="hidden">
-            <div class="card"><div class="card-header bg-warning">⏳ รายการรออนุมัติ</div><div class="card-body p-0 table-responsive"><table class="table table-hover mb-0"><tbody id="leaveTableBody"></tbody></table></div></div>
+            <div class="card"><div class="card-header bg-warning">⏳ รายการรออนุมัติ</div><div class="card-body p-0 table-responsive"><table class="table table-hover mb-0 align-middle"><tbody id="leaveTableBody"></tbody></table></div></div>
         </div>
 
         <div id="tabCalendar" class="hidden"><div id='calendar'></div></div>
@@ -73,7 +82,7 @@
                 <div class="col-md-6 mb-4">
                     <div class="card border-danger">
                         <div class="card-header bg-danger text-white"><h5>⏳ รออนุมัติ (Pending)</h5></div>
-                        <div class="card-body p-0 table-responsive"><table class="table table-hover mb-0"><tbody id="pendingUsersTable"></tbody></table></div>
+                        <div class="card-body p-0 table-responsive"><table class="table table-hover mb-0 align-middle"><tbody id="pendingUsersTable"></tbody></table></div>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -94,31 +103,14 @@
     <div class="modal fade" id="editUserModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">✏️ แก้ไขข้อมูลพนักงาน</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
+                <div class="modal-header"><h5 class="modal-title">✏️ แก้ไขข้อมูล</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
+                    <div class="text-center mb-3"><img id="editUserImg" src="" class="profile-thumb-lg"></div>
                     <input type="hidden" id="editUserId">
-                    <div class="mb-3">
-                        <label>ชื่อ-นามสกุล</label>
-                        <input type="text" id="editUserName" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label>แผนก/ตำแหน่ง (Role)</label>
-                        <select id="editUserDept" class="form-select">
-                            <option value="General">General (ทั่วไป)</option>
-                            <option value="Pharmacy">Pharmacy (เภสัชกรรม)</option>
-                            <option value="IT">IT / Support</option>
-                            <option value="Admin">Admin (ธุรการ)</option>
-                            <option value="Sales">Sales (การตลาด)</option>
-                        </select>
-                    </div>
+                    <div class="mb-2"><label>ชื่อ-สกุล</label><input type="text" id="editUserName" class="form-control"></div>
+                    <div class="mb-2"><label>แผนก</label><select id="editUserDept" class="form-select"><option value="General">General</option><option value="Pharmacy">Pharmacy</option><option value="IT">IT</option><option value="Admin">Admin</option><option value="Sales">Sales</option></select></div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="button" class="btn btn-primary" onclick="saveEditUser()">บันทึกการเปลี่ยนแปลง</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary" onclick="saveEditUser()">บันทึก</button></div>
             </div>
         </div>
     </div>
@@ -126,10 +118,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        // เพิ่ม updateDoc เข้ามา
         import { getFirestore, collection, query, where, getDocs, setDoc, updateDoc, deleteDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- 🔴 แก้ไข CONFIG ตรงนี้เหมือนเดิม ---
+        // --- 🔴 CONFIG ---
          const firebaseConfig = {
 
     apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
@@ -152,27 +143,47 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
         let calendarObj = null;
-        let editModal = null; // ตัวแปรคุม Modal
+        let editModal = null;
+        let userProfileMap = {}; // ตัวแปรเก็บรูปภาพพนักงาน
 
-        // AUTH & INIT
-        onAuthStateChanged(auth, (user) => {
+        // AUTH
+        onAuthStateChanged(auth, async (user) => {
             if (user && user.email === ADMIN_EMAIL) {
                 document.getElementById('loginPage').classList.add('hidden');
                 document.getElementById('dashboardPage').classList.remove('hidden');
                 document.getElementById('adminEmailDisplay').innerText = user.email;
+                
+                await cacheUserProfiles(); // โหลดรูปมารอก่อนเลย
                 loadInitialData();
-                // เตรียม Modal ไว้ใช้งาน
                 editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
             } else {
                 if (isSignInWithEmailLink(auth, window.location.href)) {
-                    let e = localStorage.getItem('emailForSignIn'); if(!e) e = prompt('ยืนยันอีเมล:');
+                    let e = localStorage.getItem('emailForSignIn') || prompt('ยืนยันอีเมล:');
                     signInWithEmailLink(auth, e, window.location.href).then(() => { localStorage.removeItem('emailForSignIn'); history.replaceState({},'',location.pathname); });
                 } else document.getElementById('loginPage').classList.remove('hidden');
             }
         });
 
-        // LOADERS
+        // --- IMAGE CACHING SYSTEM ---
+        async function cacheUserProfiles() {
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    // เก็บรูปโดยใช้ userId เป็น Key
+                    userProfileMap[d.lineUserId] = d.pictureUrl || "https://via.placeholder.com/40";
+                });
+            } catch (e) { console.error("Cache profile error", e); }
+        }
+
+        function getProfileImg(uid) {
+            const url = userProfileMap[uid] || "https://via.placeholder.com/40";
+            return `<img src="${url}" class="profile-thumb">`;
+        }
+
+        // --- LOADERS ---
         function loadInitialData() { 
             document.getElementById('filterDate').valueAsDate = new Date();
             loadData(); loadUsersList(); loadPendingUsers(); 
@@ -188,74 +199,99 @@
             if(tab==='users') { loadPendingUsers(); loadAllUsers(); }
         };
 
-        // --- USER MANAGEMENT (เพิ่มฟังก์ชันแก้ไข) ---
+        // --- ATTENDANCE (เพิ่มรูป) ---
+        window.loadData = async () => {
+            const d = document.getElementById('filterDate').value;
+            const s = new Date(d); s.setHours(0,0,0,0);
+            const e = new Date(d); e.setHours(23,59,59,999);
+            const snap = await getDocs(query(collection(db,"attendance"), where("timestamp",">=",s), where("timestamp","<=",e)));
+            let h = ""; window.currentData = [];
+            
+            snap.forEach(doc => {
+                const v = doc.data();
+                window.currentData.push(v);
+                const img = getProfileImg(v.userId); // ดึงรูปจาก Map
+                h += `<tr>
+                    <td>${new Date(v.timestamp.seconds*1000).toLocaleTimeString('th-TH')}</td>
+                    <td><div class="user-cell">${img} <span>${v.name}</span></div></td>
+                    <td>${v.dept}</td>
+                    <td><span class="${v.type==='เข้างาน'?'text-success':'text-danger'} fw-bold">${v.type}</span></td>
+                    <td>Mobile</td>
+                </tr>`;
+            });
+            document.getElementById('tableBody').innerHTML = h || "<tr><td colspan='5'>ไม่พบข้อมูล</td></tr>";
+        };
+
+        // --- LEAVE (เพิ่มรูป) ---
+        window.loadLeaveRequests = async () => {
+            const snap = await getDocs(query(collection(db,"leave_requests"), where("status","==","Pending")));
+            let h = "";
+            snap.forEach(doc => {
+                const d = doc.data();
+                const img = getProfileImg(d.userId);
+                h += `<tr>
+                    <td><div class="user-cell">${img} <div>${d.name}<br><small class="text-muted">${d.dept}</small></div></div></td>
+                    <td><span class="badge bg-info text-dark">${d.type}</span></td>
+                    <td>${d.startDate} - ${d.endDate}</td>
+                    <td>${d.reason}</td>
+                    <td><button onclick="updLeave('${doc.id}','Approved','${d.userId}','${d.name}','${d.startDate}','${d.endDate}','${d.type}')" class="btn btn-sm btn-success">✓</button> <button onclick="updLeave('${doc.id}','Rejected')" class="btn btn-sm btn-danger">X</button></td>
+                </tr>`;
+            });
+            document.getElementById('leaveTableBody').innerHTML = h || "<tr><td colspan='5'>ไม่มีคำขอ</td></tr>";
+        };
+
+        // --- USERS (เพิ่มรูป & แก้ไข) ---
         window.loadAllUsers = async () => {
-            const tbody = document.getElementById('allUsersTable');
-            const q = query(collection(db, "users"), where("status", "==", "Approved"));
-            const snap = await getDocs(q);
-            let html = "";
+            const snap = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
+            let h = "";
             snap.forEach(doc => {
                 const u = doc.data();
-                // เพิ่มปุ่มแก้ไข (✏️) และส่งค่า id, name, dept เข้าไปในฟังก์ชัน
-                html += `<tr>
-                    <td>${u.name}</td>
+                h += `<tr>
+                    <td><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"> <span>${u.name}</span></div></td>
                     <td><span class="badge bg-secondary">${u.dept}</span></td>
                     <td>
-                        <button onclick="openEditUser('${doc.id}', '${u.name}', '${u.dept}')" class="btn btn-sm btn-outline-primary">✏️ แก้ไข</button>
-                        <button onclick="delUser('${doc.id}')" class="btn btn-sm btn-outline-danger">ลบ</button>
+                        <button onclick="openEditUser('${doc.id}', '${u.name}', '${u.dept}', '${u.pictureUrl}')" class="btn btn-sm btn-outline-primary">✏️</button>
+                        <button onclick="delUser('${doc.id}')" class="btn btn-sm btn-outline-danger">🗑️</button>
                     </td>
                 </tr>`;
             });
-            tbody.innerHTML = html;
+            document.getElementById('allUsersTable').innerHTML = h;
         };
 
-        // 1. เปิดหน้าต่างแก้ไข
-        window.openEditUser = (id, name, dept) => {
+        window.openEditUser = (id, name, dept, pic) => {
             document.getElementById('editUserId').value = id;
             document.getElementById('editUserName').value = name;
             document.getElementById('editUserDept').value = dept;
+            document.getElementById('editUserImg').src = pic || "https://via.placeholder.com/60";
             editModal.show();
         };
 
-        // 2. บันทึกการแก้ไข
         window.saveEditUser = async () => {
             const id = document.getElementById('editUserId').value;
-            const newName = document.getElementById('editUserName').value;
-            const newDept = document.getElementById('editUserDept').value;
-
-            if(!newName) return alert("กรุณากรอกชื่อ");
-
             try {
                 await updateDoc(doc(db, "users", id), {
-                    name: newName,
-                    dept: newDept
+                    name: document.getElementById('editUserName').value,
+                    dept: document.getElementById('editUserDept').value
                 });
-                alert("✅ แก้ไขข้อมูลสำเร็จ");
-                editModal.hide();
-                loadAllUsers(); // รีโหลดตาราง
-            } catch(e) {
-                alert("Error: " + e.message);
-            }
+                alert("✅ แก้ไขสำเร็จ"); editModal.hide(); loadAllUsers();
+                cacheUserProfiles(); // อัปเดต Cache ใหม่
+            } catch(e) { alert(e.message); }
         };
 
-        // ... (ฟังก์ชันอื่นๆ คงเดิม ย่อไว้เพื่อประหยัดพื้นที่) ...
+        // --- OTHER FUNCTIONS (ย่อ) ---
         window.sendLoginLink = ()=>{const e=document.getElementById('email').value; sendSignInLinkToEmail(auth,e,{url:window.location.href,handleCodeInApp:true}).then(()=>{localStorage.setItem('emailForSignIn',e);alert('ส่งลิงก์แล้ว')})};
         window.logout=()=>signOut(auth);
-        window.loadData=async()=>{const d=document.getElementById('filterDate').value;const s=new Date(d);s.setHours(0,0,0,0);const e=new Date(d);e.setHours(23,59,59,999);const sn=await getDocs(query(collection(db,"attendance"),where("timestamp",">=",s),where("timestamp","<=",e)));let h="";window.currentData=[];sn.forEach(doc=>{const v=doc.data();window.currentData.push(v);h+=`<tr><td>${new Date(v.timestamp.seconds*1000).toLocaleTimeString('th-TH')}</td><td>${v.name}</td><td>${v.dept}</td><td>${v.type}</td><td>Mobile</td></tr>`});document.getElementById('tableBody').innerHTML=h||"<tr><td colspan='5'>ไม่พบข้อมูล</td></tr>"};
         window.exportCSV=()=>{if(!window.currentData?.length)return alert('ไม่มีข้อมูล');let c="Time,Name,Type\n"+window.currentData.map(r=>`${new Date(r.timestamp.seconds*1000).toLocaleTimeString('th-TH')},${r.name},${r.type}`).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURI(c);a.download="export.csv";a.click()};
         window.loadUsersList=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h='<option value="">เลือก</option>';s.forEach(d=>h+=`<option value="${d.data().lineUserId}" data-name="${d.data().name}">${d.data().name}</option>`);document.getElementById('userSelect').innerHTML=h};
         window.createSchedule=async(e)=>{e.preventDefault();const u=document.getElementById('userSelect');await setDoc(doc(db,"schedules",`${u.value}_${document.getElementById('schedDate').value}`),{userId:u.value,name:u.options[u.selectedIndex].text,date:document.getElementById('schedDate').value,shiftDetail:document.getElementById('schedType').value});alert('บันทึกแล้ว');loadSchedules()};
-        window.loadSchedules=async()=>{const s=await getDocs(query(collection(db,"schedules"),orderBy("date","desc")));let h="";s.forEach(d=>h+=`<tr><td>${d.data().date}</td><td>${d.data().name}</td><td>${d.data().shiftDetail}</td><td><button onclick="delSched('${d.id}')" class="btn btn-sm btn-danger">ลบ</button></td></tr>`);document.getElementById('schedTableBody').innerHTML=h};
+        window.loadSchedules=async()=>{const s=await getDocs(query(collection(db,"schedules"),orderBy("date","desc")));let h="";s.forEach(d=>{const v=d.data();const img=getProfileImg(v.userId);h+=`<tr><td>${v.date}</td><td><div class="user-cell">${img} ${v.name}</div></td><td>${v.shiftDetail}</td><td><button onclick="delSched('${d.id}')" class="btn btn-sm btn-danger">ลบ</button></td></tr>`});document.getElementById('schedTableBody').innerHTML=h};
         window.delSched=async(id)=>{if(confirm('ลบ?'))await deleteDoc(doc(db,"schedules",id));loadSchedules()};
-        window.loadLeaveRequests=async()=>{const s=await getDocs(query(collection(db,"leave_requests"),where("status","==","Pending")));let h="";s.forEach(d=>h+=`<tr><td>${d.data().name}</td><td>${d.data().type}</td><td>${d.data().startDate}</td><td>${d.data().reason}</td><td><button onclick="updLeave('${d.id}','Approved','${d.data().userId}','${d.data().name}','${d.data().startDate}','${d.data().endDate}','${d.data().type}')" class="btn btn-sm btn-success">✓</button><button onclick="updLeave('${d.id}','Rejected')" class="btn btn-sm btn-danger">X</button></td></tr>`);document.getElementById('leaveTableBody').innerHTML=h||"<tr><td colspan='5'>ไม่มีคำขอ</td></tr>"};
         window.updLeave=async(id,st,uid,nm,s,e,tp)=>{await setDoc(doc(db,"leave_requests",id),{status:st},{merge:true});if(st==='Approved'){let c=new Date(s),end=new Date(e);while(c<=end){let ds=c.toISOString().split('T')[0];await setDoc(doc(db,"schedules",`${uid}_${ds}`),{userId:uid,name:nm,date:ds,shiftDetail:`🛑 ${tp}`});c.setDate(c.getDate()+1)}}loadLeaveRequests()};
         function initCalendar(){if(calendarObj){calendarObj.render();return}calendarObj=new FullCalendar.Calendar(document.getElementById('calendar'),{initialView:'dayGridMonth',events:async(i,s)=>{const sp=await getDocs(collection(db,"schedules"));let ev=[];sp.forEach(d=>ev.push({title:d.data().name,start:d.data().date,color:d.data().shiftDetail.includes('หยุด')?'#dc3545':'#0d6efd'}));s(ev)}});calendarObj.render()};
-        window.loadPendingUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Pending")));let h="";s.forEach(d=>h+=`<tr><td><img src="${d.data().pictureUrl}" class="profile-thumb"></td><td>${d.data().name}</td><td><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success">อนุมัติ</button></td></tr>`);document.getElementById('pendingUsersTable').innerHTML=h};
+        window.loadPendingUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Pending")));let h="";s.forEach(d=>h+=`<tr><td><div class="user-cell"><img src="${d.data().pictureUrl}" class="profile-thumb"> <span>${d.data().name}</span></div></td><td>${d.data().dept}</td><td><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success">อนุมัติ</button></td></tr>`);document.getElementById('pendingUsersTable').innerHTML=h};
         window.appUser=async(id)=>{await setDoc(doc(db,"users",id),{status:"Approved"},{merge:true});loadPendingUsers();loadAllUsers()};
         window.delUser=async(id)=>{if(confirm('ลบ?'))await deleteDoc(doc(db,"users",id));loadAllUsers()};
 
-        // Export functions
-        window.loadData=loadData;window.exportCSV=exportCSV;window.loadUsersList=loadUsersList;window.createSchedule=createSchedule;window.loadSchedules=loadSchedules;window.delSched=delSched;window.loadLeaveRequests=loadLeaveRequests;window.updLeave=updLeave;window.loadPendingUsers=loadPendingUsers;window.loadAllUsers=loadAllUsers;window.appUser=appUser;window.delUser=delUser;window.openEditUser=openEditUser;window.saveEditUser=saveEditUser;window.sendLoginLink=sendLoginLink;window.logout=logout;
     </script>
 </body>
 </html>
