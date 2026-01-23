@@ -3,258 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - ระบบลงเวลา</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>ระบบลงเวลาพนักงาน</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { background-color: #f8f9fa; }
-        .container { max-width: 1200px; margin-top: 30px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
+        .container { background: white; width: 100%; max-width: 420px; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); min-height: 100vh; box-sizing: border-box; }
         .hidden { display: none !important; }
-        .profile-thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .status-in { color: #198754; font-weight: bold; }
-        .status-out { color: #dc3545; font-weight: bold; }
+        
+        /* Buttons */
+        .btn { padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; color: white; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-primary { background-color: #007bff; }
+        .btn-success { background-color: #28a745; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        
+        /* Forms & Profile */
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
+        .profile-img { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .history-item { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 5px; border-left: 4px solid #ccc; font-size: 0.9em; display: flex; justify-content: space-between; }
+        .status-pending { background-color: #fff3cd; color: #856404; padding: 30px 20px; border-radius: 10px; text-align: center; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="loginPage" class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
-        <div class="card p-4 shadow" style="width: 400px; text-align: center;">
-            <h3 class="mb-3">Admin Login</h3>
-            <p class="text-muted small">ระบบจะส่งลิงก์ล็อกอินไปที่อีเมลแอดมิน</p>
-            
-            <div class="mb-3 text-start">
-                <label>Email</label>
-                <input type="email" id="email" class="form-control" value="medlifeplus@gmail.com" readonly>
-            </div>
-            
-            <button onclick="sendLoginLink()" id="btnSend" class="btn btn-primary w-100">
-                ส่งลิงก์เข้าอีเมล (Magic Link)
-            </button>
-            <div id="loginMsg" class="mt-3 text-success small"></div>
-        </div>
-    </div>
-
-    <div id="dashboardPage" class="container hidden">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2>📅 Admin Dashboard</h2>
-                <span class="badge bg-info text-dark" id="adminEmailDisplay">...</span>
-            </div>
-            <button onclick="logout()" class="btn btn-outline-danger btn-sm">ออกจากระบบ</button>
+    <div class="container text-center">
+        
+        <div id="loadingPage" style="margin-top: 40vh;">
+            <div style="font-size: 30px;">⏳</div>
+            <p>กำลังเชื่อมต่อระบบ...</p>
         </div>
 
-        <div class="card shadow-sm">
-            <div class="card-header bg-white py-3">
-                <div class="d-flex gap-2 align-items-center flex-wrap">
-                    <label>เลือกวันที่:</label>
-                    <input type="date" id="filterDate" class="form-control" style="width: auto;">
-                    <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
-                </div>
-                <button onclick="exportCSV()" class="btn btn-success mt-2 mt-md-0">📥 Export Excel</button>
+        <div id="registerPage" class="hidden">
+            <h3>ลงทะเบียนพนักงานใหม่</h3>
+            <img id="regisProfileImg" src="" class="profile-img">
+            <p id="regisName" style="color:#666; margin-bottom: 20px;"></p>
+            <form onsubmit="handleRegister(event)">
+                <input type="text" id="empId" class="form-control" placeholder="รหัสพนักงาน (เช่น EMP001)" required>
+                <input type="text" id="fullName" class="form-control" placeholder="ชื่อ-นามสกุลจริง" required>
+                <select id="department" class="form-control">
+                    <option value="General">ทั่วไป</option>
+                    <option value="Pharmacy">เภสัชกรรม</option>
+                    <option value="IT">IT / Support</option>
+                    <option value="Admin">ธุรการ</option>
+                    <option value="Sales">การตลาด/ขาย</option>
+                </select>
+                <button type="submit" class="btn btn-primary">ลงทะเบียนใช้งาน</button>
+            </form>
+        </div>
+
+        <div id="pendingPage" class="hidden">
+            <div class="status-pending">
+                <h1>⏳ รออนุมัติ</h1>
+                <p>ข้อมูลของคุณถูกส่งแล้ว<br>กรุณารอแอดมินยืนยันสิทธิ์เข้าใช้งาน</p>
+                <img id="pendingImg" src="" class="profile-img">
+                <p id="pendingName" style="font-weight:bold;"></p>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>เวลา</th>
-                                <th>รูป</th>
-                                <th>รหัส</th>
-                                <th>ชื่อ-สกุล</th>
-                                <th>แผนก</th>
-                                <th>สถานะ</th>
-                                <th>อุปกรณ์</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
+        </div>
+
+        <div id="mainPage" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="text-align: left;">
+                    <h3 id="showName" style="margin: 0; font-size: 1.2rem;">User</h3>
+                    <small id="showEmpId" style="color: gray;">ID</small>
                 </div>
-                <div id="noData" class="p-4 text-center text-muted hidden">ไม่พบข้อมูลในวันที่เลือก</div>
+                <img id="mainProfileImg" src="" style="width: 50px; height: 50px; border-radius: 50%;">
+            </div>
+            <hr>
+            
+            <div id="currentDate" style="color: gray; font-size: 0.9rem;">...</div>
+            <div id="clock" style="font-size: 3rem; font-weight: bold; margin: 10px 0; color: #333;">00:00:00</div>
+
+            <button onclick="recordTime('เข้างาน')" class="btn btn-success">เข้างาน (Clock In)</button>
+            <button onclick="recordTime('ออกงาน')" class="btn btn-danger">ออกงาน (Clock Out)</button>
+            
+            <button onclick="toggleLeaveForm()" class="btn btn-warning">📝 แจ้งลาหยุด / ดูสถานะ</button>
+
+            <div id="leaveFormSection" class="hidden" style="background: #fffbe6; padding: 15px; border-radius: 8px; margin-top: 10px; text-align: left; border: 1px solid #ffeeba;">
+                <h4 style="margin-top:0;">แบบฟอร์มขอลาหยุด</h4>
+                <label>ประเภท:</label>
+                <select id="leaveType" class="form-control">
+                    <option value="ลาป่วย">🤒 ลาป่วย</option>
+                    <option value="ลากิจ">ธุระ ลากิจ</option>
+                    <option value="ลาพักร้อน">🏖️ ลาพักร้อน</option>
+                </select>
+                <label>ตั้งแต่วันที่:</label> <input type="date" id="leaveStart" class="form-control">
+                <label>ถึงวันที่:</label> <input type="date" id="leaveEnd" class="form-control">
+                <label>เหตุผล:</label> <input type="text" id="leaveReason" class="form-control" placeholder="ระบุเหตุผล...">
+                
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="submitLeaveRequest()" class="btn btn-primary" style="margin:0;">ส่งคำขอ</button>
+                    <button onclick="toggleLeaveForm()" class="btn" style="background:#ddd; color:black; margin:0;">ปิด</button>
+                </div>
+
+                <hr>
+                <strong>ประวัติการลาล่าสุด</strong>
+                <ul id="myLeaveList" style="padding-left: 0; list-style: none; margin-top: 5px;"></ul>
+            </div>
+
+            <div style="margin-top: 25px; text-align: left;">
+                <strong>📅 ตารางเวรของฉัน</strong>
+                <div id="scheduleList" style="margin-top: 5px;"></div>
+            </div>
+            
+            <div style="margin-top: 25px; text-align: left;">
+                <strong>ประวัติวันนี้</strong>
+                <ul id="historyList" style="padding-left: 0; list-style: none; margin-top: 5px;"></ul>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, onAuthStateChanged } 
-        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs } 
+        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIG ZONE ---
+        // --- 🔴 CONFIGURATION ZONE (แก้ไขตรงนี้) ---
         const firebaseConfig = {
-            apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
-            authDomain: "in-out-dashboard.firebaseapp.com",
-            projectId: "in-out-dashboard",
-            storageBucket: "in-out-dashboard.firebasestorage.app",
-            messagingSenderId: "846266395224",
-            appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
-            measurementId: "G-WN14VJSG17"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
         };
-        const ADMIN_EMAIL = "medlifeplus@gmail.com"; // อีเมลที่อนุญาตให้เข้าใช้งาน
-        // -------------------
+        const LIFF_ID = "YOUR_LIFF_ID"; 
+        // ------------------------------------------
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
+        let currentUser = {};
 
-        document.getElementById('filterDate').valueAsDate = new Date();
-
-        // 1. ตรวจสอบสถานะ User เมื่อโหลดหน้าเว็บ
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // เช็คว่าเป็นเมล Admin ตัวจริงไหม
-                if(user.email !== ADMIN_EMAIL) {
-                    alert("อีเมลนี้ไม่มีสิทธิ์เข้าถึง (Access Denied)");
-                    signOut(auth);
-                    return;
-                }
-                showDashboard(user);
-            } else {
-                // ถ้ายังไม่ล็อกอิน ให้เช็คว่าเป็นเคส "กดลิงก์จากเมลกลับมา" หรือไม่
-                checkIfComingFromEmailLink();
-            }
-        });
-
-        // 2. ฟังก์ชันส่งลิงก์ (Magic Link)
-        window.sendLoginLink = () => {
-            const email = document.getElementById('email').value;
-            
-            if (email !== ADMIN_EMAIL) {
-                return alert("ระบบอนุญาตเฉพาะแอดมินเท่านั้น");
-            }
-
-            const actionCodeSettings = {
-                url: window.location.href, // ให้เด้งกลับมาที่หน้าปัจจุบัน
-                handleCodeInApp: true
-            };
-
-            const btn = document.getElementById('btnSend');
-            btn.disabled = true;
-            btn.innerText = "กำลังส่ง...";
-
-            sendSignInLinkToEmail(auth, email, actionCodeSettings)
-                .then(() => {
-                    window.localStorage.setItem('emailForSignIn', email);
-                    document.getElementById('loginMsg').innerText = `✅ ส่งลิงก์ไปที่ ${email} แล้ว! กรุณาเช็ค Inbox หรือ Junk Mail`;
-                    btn.innerText = "ส่งลิงก์สำเร็จ";
-                })
-                .catch((error) => {
-                    console.error(error);
-                    alert("เกิดข้อผิดพลาด: " + error.message);
-                    btn.disabled = false;
-                    btn.innerText = "ส่งลิงก์เข้าอีเมล";
-                });
-        };
-
-        // 3. ฟังก์ชันตรวจสอบเมื่อกดลิงก์จากเมลกลับมา
-        function checkIfComingFromEmailLink() {
-            if (isSignInWithEmailLink(auth, window.location.href)) {
-                let email = window.localStorage.getItem('emailForSignIn');
-                if (!email) {
-                    email = window.prompt('เพื่อความปลอดภัย กรุณายืนยันอีเมลของคุณอีกครั้ง:');
-                }
-                
-                signInWithEmailLink(auth, email, window.location.href)
-                    .then((result) => {
-                        window.localStorage.removeItem('emailForSignIn');
-                        // เคลียร์ URL ไม่ให้รกรุงรัง
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                        // onAuthStateChanged จะทำงานต่อเองอัตโนมัติ
-                    })
-                    .catch((error) => {
-                        alert("ลิงก์หมดอายุหรือมีปัญหา กรุณากดขอลิงก์ใหม่");
-                        console.error(error);
-                    });
-            } else {
-                // ถ้าไม่ได้กดมาจากลิงก์ และยังไม่ล็อกอิน -> แสดงหน้า Login
-                document.getElementById('loginPage').classList.remove('hidden');
-                document.getElementById('dashboardPage').classList.add('hidden');
-            }
-        }
-
-        // 4. แสดงหน้า Dashboard
-        function showDashboard(user) {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('dashboardPage').classList.remove('hidden');
-            document.getElementById('adminEmailDisplay').innerText = user.email;
-            loadData();
-        }
-
-        window.logout = () => signOut(auth);
-
-        // 5. โหลดข้อมูล (เหมือนเดิม)
-        window.loadData = async () => {
-            const dateVal = document.getElementById('filterDate').value;
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">กำลังโหลด...</td></tr>';
-            document.getElementById('noData').classList.add('hidden');
-
-            const start = new Date(dateVal); start.setHours(0,0,0,0);
-            const end = new Date(dateVal); end.setHours(23,59,59,999);
-
+        // 1. Initial System
+        async function main() {
             try {
-                const q = query(
-                    collection(db, "attendance"),
-                    where("timestamp", ">=", start),
-                    where("timestamp", "<=", end)
-                );
-                const querySnapshot = await getDocs(q);
-                let html = "";
-                let rawData = [];
-
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    rawData.push(data);
-                });
-                rawData.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-
-                if(rawData.length === 0) {
-                    tbody.innerHTML = "";
-                    document.getElementById('noData').classList.remove('hidden');
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
                     return;
                 }
+                const profile = await liff.getProfile();
+                currentUser = { 
+                    lineUserId: profile.userId, 
+                    pictureUrl: profile.pictureUrl, 
+                    displayName: profile.displayName 
+                };
+                checkUserInFirestore();
+            } catch (err) {
+                alert("LIFF Error: " + err);
+            }
+        }
+        main();
 
-                rawData.forEach(item => {
-                    const time = item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "-";
-                    const statusClass = item.type === 'เข้างาน' ? 'status-in' : 'status-out';
-                    
-                    html += `
-                        <tr>
-                            <td>${time}</td>
-                            <td>${item.lineUserId ? `<img src="${item.pictureUrl}" class="profile-thumb">` : '-'}</td>
-                            <td>${item.empId || '-'}</td>
-                            <td>${item.name}</td>
-                            <td>${item.dept || '-'}</td>
-                            <td class="${statusClass}">${item.type}</td>
-                            <td class="text-muted small">${item.userAgent.includes("Mobile") ? "Mobile" : "PC"}</td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-                window.currentData = rawData; 
+        // 2. Check User Status
+        async function checkUserInFirestore() {
+            try {
+                const docRef = doc(db, "users", currentUser.lineUserId);
+                const docSnap = await getDoc(docRef);
 
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.status === 'Pending') {
+                        showPage('pendingPage');
+                        document.getElementById('pendingImg').src = currentUser.pictureUrl;
+                        document.getElementById('pendingName').innerText = data.name;
+                    } else if (data.status === 'Approved') {
+                        // Merge data from DB to local user object
+                        currentUser.name = data.name;
+                        currentUser.empId = data.empId;
+                        currentUser.dept = data.dept;
+                        showMainPage();
+                    } else {
+                        alert("บัญชีของคุณถูกระงับ กรุณาติดต่อ Admin");
+                    }
+                } else {
+                    // New User
+                    showPage('registerPage');
+                    document.getElementById('regisProfileImg').src = currentUser.pictureUrl;
+                    document.getElementById('regisName').innerText = currentUser.displayName;
+                }
             } catch (err) {
                 console.error(err);
-                tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">Error: ${err.message}</td></tr>`;
+                alert("Database connect error: " + err.message);
+            }
+        }
+
+        // Helper to switch pages
+        function showPage(pageId) {
+            ['loadingPage','registerPage','pendingPage','mainPage'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+        }
+
+        // 3. Register Function
+        window.handleRegister = async (e) => {
+            e.preventDefault();
+            const empId = document.getElementById('empId').value.trim();
+            const fullName = document.getElementById('fullName').value.trim();
+            const dept = document.getElementById('department').value;
+
+            if(!empId || !fullName) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+
+            const btn = e.target.querySelector('button');
+            btn.disabled = true;
+            btn.innerText = "กำลังบันทึก...";
+
+            try {
+                await setDoc(doc(db, "users", currentUser.lineUserId), {
+                    lineUserId: currentUser.lineUserId,
+                    pictureUrl: currentUser.pictureUrl,
+                    empId: empId,
+                    name: fullName,
+                    dept: dept,
+                    status: "Pending", // Default status
+                    registeredAt: serverTimestamp()
+                });
+                alert("ลงทะเบียนสำเร็จ! กรุณารอการอนุมัติจาก Admin");
+                window.location.reload();
+            } catch (err) {
+                alert("Error: " + err.message);
+                btn.disabled = false;
+                btn.innerText = "ลงทะเบียนใช้งาน";
             }
         };
 
-        // 6. Export Excel (เหมือนเดิม)
-        window.exportCSV = () => {
-            if (!window.currentData || window.currentData.length === 0) return alert("ไม่มีข้อมูล");
-            let csvContent = "data:text/csv;charset=utf-8,Date,Time,EmpID,Name,Type\n";
-            window.currentData.forEach(row => {
-                const date = row.timestamp ? new Date(row.timestamp.seconds * 1000).toLocaleDateString('th-TH') : "-";
-                const time = row.timestamp ? new Date(row.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "-";
-                csvContent += `${date},${time},"${row.empId}","${row.name}",${row.type}\r\n`;
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `report_${document.getElementById('filterDate').value}.csv`);
-            document.body.appendChild(link);
-            link.click();
+        // 4. Main Page Logic
+        function showMainPage() {
+            showPage('mainPage');
+            document.getElementById('showName').innerText = currentUser.name;
+            document.getElementById('showEmpId').innerText = `${currentUser.empId} | ${currentUser.dept}`;
+            document.getElementById('mainProfileImg').src = currentUser.pictureUrl;
+            
+            // Start Clock
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
+                document.getElementById('currentDate').innerText = now.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+            }, 1000);
+            
+            loadTodayHistory();
+            loadMySchedule();
+        }
+
+        // 5. Clock In/Out Function (with LIFF Message)
+        window.recordTime = async (type) => {
+            if(!confirm(`ยืนยันการ ${type}?`)) return;
+
+            const btn = event.target;
+            btn.disabled = true;
+
+            try {
+                // Save to Firestore
+                await addDoc(collection(db, "attendance"), {
+                    userId: currentUser.lineUserId,
+                    name: currentUser.name,
+                    empId: currentUser.empId,
+                    dept: currentUser.dept,
+                    type: type,
+                    timestamp: serverTimestamp(),
+                    userAgent: navigator.userAgent
+                });
+
+                // --- NEW: Send Message to LINE Group ---
+                if (liff.isInClient()) {
+                    try {
+                        const icon = type === 'เข้างาน' ? '🟢' : '🔴';
+                        await liff.sendMessages([{
+                            type: 'text',
+                            text: `${icon} ลงเวลา: ${type}\n👤 ${currentUser.name}\n⏰ ${new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})} น.`
+                        }]);
+                    } catch (msgErr) {
+                        console.log("Send msg failed (not in chat?):", msgErr);
+                    }
+                }
+                // ---------------------------------------
+
+                alert(`บันทึก ${type} เรียบร้อย`);
+                loadTodayHistory();
+
+            } catch (err) {
+                alert("เกิดข้อผิดพลาด: " + err.message);
+            } finally {
+                btn.disabled = false;
+            }
         };
+
+        async function loadTodayHistory() {
+            const start = new Date(); start.setHours(0,0,0,0);
+            const q = query(collection(db, "attendance"), where("userId","==",currentUser.lineUserId), where("timestamp",">=",start), orderBy("timestamp"));
+            const snap = await getDocs(q);
+            const list = document.getElementById('historyList');
+            list.innerHTML = "";
+            snap.forEach(d => {
+                const v = d.data();
+                const time = v.timestamp ? new Date(v.timestamp.seconds*1000).toLocaleTimeString('th-TH') : "..";
+                const color = v.type === 'เข้างาน' ? '#28a745' : '#dc3545';
+                list.innerHTML += `<li class="history-item" style="border-left-color:${color}"><span>${v.type}</span> <strong>${time}</strong></li>`;
+            });
+        }
+
+        async function loadMySchedule() {
+            const today = new Date().toISOString().split('T')[0];
+            const q = query(collection(db, "schedules"), where("userId","==",currentUser.lineUserId), where("date",">=",today), orderBy("date"));
+            const snap = await getDocs(q);
+            const div = document.getElementById('scheduleList');
+            div.innerHTML = snap.empty ? "<p class='text-muted' style='font-size:0.9em'>ไม่มีตารางเวรเร็วๆ นี้</p>" : "";
+            
+            snap.forEach(d => {
+                const v = d.data();
+                const dThai = new Date(v.date).toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short'});
+                let color = '#007bff';
+                if(v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) color = '#dc3545';
+                
+                div.innerHTML += `
+                    <div style="background:white; border-left:4px solid ${color}; padding:10px; margin-bottom:5px; box-shadow:0 1px 2px rgba(0,0,0,0.1); border-radius:4px;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${dThai}</strong>
+                            <span style="color:${color}; font-weight:bold; font-size:0.9em;">${v.shiftDetail}</span>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // 6. Leave System (with LIFF Message)
+        window.toggleLeaveForm = () => {
+            const el = document.getElementById('leaveFormSection');
+            el.classList.toggle('hidden');
+            if(!el.classList.contains('hidden')) loadMyLeaves();
+        };
+
+        window.submitLeaveRequest = async () => {
+            const type = document.getElementById('leaveType').value;
+            const start = document.getElementById('leaveStart').value;
+            const end = document.getElementById('leaveEnd').value;
+            const reason = document.getElementById('leaveReason').value;
+
+            if(!start || !end) return alert("กรุณาระบุวันที่ให้ครบ");
+            if(start > end) return alert("วันที่เริ่มต้องมาก่อนวันสิ้นสุด");
+            
+            if(!confirm("ยืนยันส่งคำขอลา?")) return;
+
+            try {
+                // Save DB
+                await addDoc(collection(db, "leave_requests"), {
+                    userId: currentUser.lineUserId,
+                    name: currentUser.name,
+                    dept: currentUser.dept,
+                    type, startDate: start, endDate: end, reason,
+                    status: "Pending",
+                    requestedAt: serverTimestamp()
+                });
+
+                // --- NEW: Send Message to LINE Group ---
+                if (liff.isInClient()) {
+                    try {
+                        await liff.sendMessages([{
+                            type: 'text',
+                            text: `📝 ขอลาหยุด (${currentUser.name})\n📌 ประเภท: ${type}\n📅 วันที่: ${start} ถึง ${end}\n💬 เหตุผล: ${reason || '-'}`
+                        }]);
+                    } catch (msgErr) {
+                        console.log("Send msg failed:", msgErr);
+                    }
+                }
+                // ---------------------------------------
+
+                alert("ส่งคำขอเรียบร้อย");
+                toggleLeaveForm();
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        };
+
+        async function loadMyLeaves() {
+            const q = query(collection(db, "leave_requests"), where("userId","==",currentUser.lineUserId), orderBy("startDate","desc"));
+            const snap = await getDocs(q);
+            const list = document.getElementById('myLeaveList');
+            list.innerHTML = "";
+            snap.forEach(d => {
+                const v = d.data();
+                let color = 'orange'; let status = 'รออนุมัติ';
+                if(v.status==='Approved') { color='green'; status='อนุมัติ'; }
+                if(v.status==='Rejected') { color='red'; status='ไม่อนุมัติ'; }
+                
+                list.innerHTML += `<li style="margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:5px; font-size:0.9em;">
+                    <span style="color:${color}; font-weight:bold;">${status}</span> : ${v.type}<br>
+                    <span style="color:#666; font-size:0.85em;">${v.startDate} - ${v.endDate}</span>
+                </li>`;
+            });
+        }
     </script>
 </body>
 </html>
