@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - MedLife Plus</title>
+    <title>Admin Dashboard - MLP</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -19,6 +19,7 @@
             --color-in: #198754; --color-out: #dc3545; --color-leave: #6c757d;
             --bg-body: #f4f6f9; --color-primary: #0d6efd;
             --color-shift-am: #0d6efd; --color-shift-pm: #fd7e14; --color-shift-night: #6f42c1;
+            --color-work-actual: #157347; /* สีเขียวเข้มสำหรับชั่วโมงงานจริง */
         }
 
         body { background-color: var(--bg-body); font-family: 'Sarabun', sans-serif; font-size: 0.95rem; }
@@ -52,6 +53,10 @@
         .btn-google { background-color: #fff; border: 1px solid #ddd; color: #333; font-weight: 600; }
         .btn-google:hover { background-color: #f8f9fa; }
         .btn-google img { width: 20px; margin-right: 10px; }
+
+        /* Calendar Tweaks */
+        .fc-event { cursor: pointer; border: none; font-size: 0.85rem; padding: 2px 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .fc-daygrid-event-dot { display: none; } /* ซ่อนจุด default */
     </style>
 </head>
 <body>
@@ -60,10 +65,10 @@
         <div class="login-card text-center">
             <div class="mb-4">
                 <i class="bi bi-hospital-fill text-primary" style="font-size: 4rem;"></i>
-                <h3 class="mt-3 fw-bold text-dark">MedLife Plus</h3>
+                <h3 class="mt-3 fw-bold text-dark">MLP-JYP</h3>
                 <p class="text-muted">Admin Portal</p>
             </div>
-            <div class="alert alert-info small text-start"><i class="bi bi-info-circle me-1"></i> เฉพาะบัญชี <b>medlifeplus@gmail.com</b></div>
+            <div class="alert alert-info small text-start"><i class="bi bi-info-circle me-1"></i> <b> เฉพาะบัญชี </b></div>
             <button onclick="loginWithGoogle()" class="btn btn-google btn-lg w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> เข้าสู่ระบบด้วย Google
             </button>
@@ -72,7 +77,7 @@
 
     <div id="dashboardPage" class="hidden">
         <nav class="navbar navbar-light bg-white border-bottom px-4 py-3 sticky-top">
-            <div class="d-flex align-items-center gap-3"><i class="bi bi-hospital-fill text-primary fs-3"></i><h5 class="mb-0 fw-bold d-none d-md-block">MedLife Plus <span class="text-muted fw-normal fs-6">| Admin</span></h5></div>
+            <div class="d-flex align-items-center gap-3"><i class="bi bi-hospital-fill text-primary fs-3"></i><h5 class="mb-0 fw-bold d-none d-md-block">MLP <span class="text-muted fw-normal fs-6">| Admin</span></h5></div>
             <div class="dropdown">
                 <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3" data-bs-toggle="dropdown">
                     <img id="adminProfilePic" src="https://via.placeholder.com/30" class="rounded-circle" style="width: 30px; height: 30px;">
@@ -94,7 +99,7 @@
                 <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')"><i class="bi bi-clock me-2"></i>เวลาเข้า-ออก</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('schedule')"><i class="bi bi-calendar-check me-2"></i>จัดตารางเวร</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('leave')"><i class="bi bi-send me-2"></i>คำขอลา</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('report')"><i class="bi bi-graph-up me-2"></i>รายงาน & กราฟ</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('report')"><i class="bi bi-graph-up me-2"></i>รายงาน & ปฏิทิน</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('users')"><i class="bi bi-person-gear me-2"></i>พนักงาน</a></li>
             </ul>
 
@@ -114,8 +119,17 @@
             </div>
 
             <div id="tabReport" class="tab-section hidden">
-                <div class="card shadow-sm border-0 mb-4"><div class="card-body"><h5 class="fw-bold mb-3">ปฏิทินงาน</h5><div id='calendar'></div></div></div>
-                <div class="card shadow-sm border-0"><div class="card-header bg-white fw-bold py-3">กราฟชั่วโมงทำงาน</div><div class="card-body"><div class="d-flex gap-2 mb-3"><input type="month" id="chartMonth" class="form-control" style="width: 200px;"><button onclick="renderCharts()" class="btn btn-dark">แสดงกราฟ</button></div><canvas id="workHoursChart" style="max-height: 300px;"></canvas></div></div>
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">ปฏิทินงาน & ชั่วโมงทำงาน</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary">ตารางเวร</span>
+                            <span class="badge" style="background-color: var(--color-work-actual);">⏱️ ชั่วโมงทำงานจริง</span>
+                        </div>
+                    </div>
+                    <div class="card-body"><div id='calendar'></div></div>
+                </div>
+                <div class="card shadow-sm border-0"><div class="card-header bg-white fw-bold py-3">กราฟชั่วโมงทำงานรายเดือน</div><div class="card-body"><div class="d-flex gap-2 mb-3"><input type="month" id="chartMonth" class="form-control" style="width: 200px;"><button onclick="renderCharts()" class="btn btn-dark">แสดงกราฟ</button></div><canvas id="workHoursChart" style="max-height: 300px;"></canvas></div></div>
             </div>
 
             <div id="tabUsers" class="tab-section hidden">
@@ -202,7 +216,6 @@
         window.loadLeaveRequests=async()=>{const s=await getDocs(query(collection(db,"leave_requests"),where("status","==","Pending")));let h="";s.forEach(doc=>{const d=doc.data();const img=getProfileImg(d.userId);h+=`<tr><td class="ps-3"><div class="user-cell">${img} <div><h6>${d.name}</h6><small>${d.dept}</small></div></div></td><td><span class="badge bg-warning text-dark">${d.type}</span></td><td>${d.startDate} - ${d.endDate}</td><td>${d.reason}</td><td class="text-end pe-3"><button onclick="updLeave('${doc.id}','Approved','${d.userId}','${d.name}','${d.startDate}','${d.endDate}','${d.type}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button><button onclick="updLeave('${doc.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button></td></tr>`});document.getElementById('leaveTableBody').innerHTML=h||`<tr><td colspan="5" class="text-center py-4 text-muted">ไม่มีคำขอใหม่</td></tr>`; document.getElementById('statLeave').innerText = s.size; };
         window.updLeave=async(id,st,uid,nm,s,e,tp)=>{await setDoc(doc(db,"leave_requests",id),{status:st},{merge:true});if(st==='Approved'){let c=new Date(s),end=new Date(e);while(c<=end){let ds=c.toISOString().split('T')[0];await setDoc(doc(db,"schedules",`${uid}_${ds}`),{userId:uid,name:nm,date:ds,shiftDetail:`🛑 ${tp}`});c.setDate(c.getDate()+1)}}Toast.fire({icon:'success',title:'เรียบร้อย'});loadLeaveRequests();};
         window.renderCharts=async()=>{const m=document.getElementById('chartMonth').value; if(!m)return; const start=new Date(m+"-01"); start.setHours(0,0,0,0); const end=new Date(m+"-01"); end.setMonth(end.getMonth()+1); end.setDate(0); end.setHours(23,59,59,999); const snap=await getDocs(query(collection(db,"attendance"),where("timestamp",">=",start),where("timestamp","<=",end))); let uH={}; snap.forEach(d=>{const v=d.data(); if(!uH[v.name])uH[v.name]={logs:[]}; uH[v.name].logs.push({t:v.type,time:v.timestamp.seconds})}); let lbs=[],dts=[]; Object.keys(uH).forEach(n=>{const l=uH[n].logs.sort((a,b)=>a.time-b.time); let ms=0,last=null; l.forEach(x=>{if(x.t==='เข้างาน')last=x.time;else if(x.t==='ออกงาน'&&last){ms+=(x.time-last);last=null}}); if(ms>0){lbs.push(n);dts.push((ms/3600).toFixed(1))}}); if(barChart)barChart.destroy(); barChart=new Chart(document.getElementById('workHoursChart'),{type:'bar',data:{labels:lbs,datasets:[{label:'ชั่วโมงทำงาน',data:dts,backgroundColor:'#0d6efd'}]},options:{responsive:true}});};
-        function initCalendar(){if(calendarObj){calendarObj.render();return}calendarObj=new FullCalendar.Calendar(document.getElementById('calendar'),{initialView:'dayGridMonth',locale:'th',height:'auto',events:async(info,s,f)=>{try{let ev=[]; const sn=await getDocs(collection(db,"schedules")); sn.forEach(d=>{const v=d.data(); let c='var(--color-shift-am)'; if(v.shiftDetail.includes('บ่าย'))c='var(--color-shift-pm)'; if(v.shiftDetail.includes('ดึก'))c='var(--color-shift-night)'; if(v.shiftDetail.includes('หยุด')||v.shiftDetail.includes('ลา'))c='var(--color-leave)'; ev.push({title:`${v.name}`,start:v.date,color:c})}); s(ev);}catch(e){f(e)}}}); calendarObj.render();}
         window.loadPendingUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Pending")));let h="";s.forEach(d=>{const v=d.data();h+=`<tr><td class="ps-3"><div class="user-cell"><img src="${v.pictureUrl}" class="profile-thumb"> <div><h6>${v.name}</h6><small class="text-danger">New Register</small></div></div></td><td class="text-end pe-3"><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success px-3">อนุมัติ</button></td></tr>`});document.getElementById('pendingUsersTable').innerHTML=h||`<tr><td colspan="2" class="text-center py-3 text-muted">ไม่มีผู้สมัครใหม่</td></tr>`; document.getElementById('statNewUsers').innerText=s.size;};
         window.loadAllUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h="";s.forEach(d=>{const u=d.data();h+=`<tr><td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"><h6>${u.name}</h6></div></td><td><span class="badge bg-light text-dark border">${u.dept}</span></td><td class="text-end pe-3"><button onclick="openEditUser('${d.id}','${u.name}','${u.dept}','${u.pictureUrl}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${d.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td></tr>`});document.getElementById('allUsersTable').innerHTML=h};
         window.appUser=async(id)=>{await setDoc(doc(db,"users",id),{status:"Approved"},{merge:true});Toast.fire({icon:'success',title:'อนุมัติแล้ว'});loadPendingUsers();loadAllUsers();};
@@ -213,7 +226,78 @@
         window.loadUsersList=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h='<option value="">เลือกพนักงาน...</option>';s.forEach(d=>h+=`<option value="${d.data().lineUserId}">${d.data().name}</option>`);document.getElementById('userSelect').innerHTML=h};
         window.exportCSV=()=>{if(!window.currentData?.length)return Toast.fire({icon:'warning',title:'ไม่มีข้อมูล'});let c="Time,Name,Dept,Type,MapLink\n"+window.currentData.map(r=>`${new Date(r.timestamp.seconds*1000).toLocaleTimeString('th-TH')},${r.name},${r.dept},${r.type},${r.mapUrl||''}`).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURI(c);a.download=`attendance_${new Date().toISOString().split('T')[0]}.csv`;a.click()};
 
-        // GLOBAL SCOPE
+        // --- 🟢 NEW: CALENDAR WITH WORK HOURS (LOGIC) ---
+        function initCalendar(){
+            if(calendarObj){calendarObj.render();return}
+            calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'),{
+                initialView:'dayGridMonth', locale:'th', height:'auto',
+                events: async(info, success, failure) => {
+                    try {
+                        let events = [];
+                        
+                        // 1. ตารางเวร (Shift)
+                        const schedSnap = await getDocs(collection(db,"schedules"));
+                        schedSnap.forEach(d => {
+                            const v = d.data();
+                            let color = 'var(--color-shift-am)';
+                            if(v.shiftDetail.includes('บ่าย')) color = 'var(--color-shift-pm)';
+                            if(v.shiftDetail.includes('ดึก')) color = 'var(--color-shift-night)';
+                            if(v.shiftDetail.includes('หยุด')||v.shiftDetail.includes('ลา')) color = 'var(--color-leave)';
+                            events.push({ title: `${v.name} (${v.shiftDetail.split('(')[0]})`, start: v.date, color: color });
+                        });
+
+                        // 2. ชั่วโมงทำงานจริง (Actual Hours)
+                        const attSnap = await getDocs(collection(db, "attendance"));
+                        let workMap = {}; // Key: userId_date
+
+                        attSnap.forEach(doc => {
+                            const d = doc.data();
+                            // แปลง Timestamp เป็น YYYY-MM-DD
+                            const dateStr = new Date(d.timestamp.seconds * 1000).toISOString().split('T')[0];
+                            const key = `${d.userId}_${dateStr}`;
+
+                            if (!workMap[key]) workMap[key] = { name: d.name, logs: [] };
+                            workMap[key].logs.push({ type: d.type, time: d.timestamp.seconds * 1000 });
+                        });
+
+                        // คำนวณชั่วโมง
+                        Object.keys(workMap).forEach(key => {
+                            const item = workMap[key];
+                            item.logs.sort((a,b) => a.time - b.time); // เรียงตามเวลา
+
+                            let totalMs = 0;
+                            let lastIn = null;
+
+                            item.logs.forEach(log => {
+                                if (log.type === 'เข้างาน') {
+                                    lastIn = log.time;
+                                } else if (log.type === 'ออกงาน' && lastIn) {
+                                    totalMs += (log.time - lastIn);
+                                    lastIn = null;
+                                }
+                            });
+
+                            const hours = (totalMs / (1000 * 60 * 60)).toFixed(1);
+                            if (hours > 0) {
+                                // ดึงวันที่จาก Key (เช่น user123_2023-10-25 -> 2023-10-25)
+                                const dateStr = key.split('_')[1];
+                                events.push({
+                                    title: `⏱️ ${item.name}: ${hours} ชม.`,
+                                    start: dateStr,
+                                    color: 'var(--color-work-actual)', // สีเขียวเข้ม
+                                    display: 'block'
+                                });
+                            }
+                        });
+
+                        success(events);
+                    } catch (e) { failure(e); }
+                }
+            });
+            calendarObj.render();
+        }
+
+        // Global Scope
         window.loginWithGoogle=loginWithGoogle; window.logout=logout; window.loadData=loadData; window.exportCSV=exportCSV; window.switchTab=switchTab; window.loadSchedules=loadSchedules; window.createSchedule=createSchedule; window.delSched=delSched; window.loadLeaveRequests=loadLeaveRequests; window.updLeave=updLeave; window.renderCharts=renderCharts; window.loadPendingUsers=loadPendingUsers; window.loadAllUsers=loadAllUsers; window.appUser=appUser; window.delUser=delUser; window.openEditUser=openEditUser; window.saveEditUser=saveEditUser;
     </script>
 </body>
