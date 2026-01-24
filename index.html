@@ -3,19 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบลงเวลาพนักงาน</title>
+    <title>ระบบลงเวลาพนักงาน (GPS Forced)</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
         .container { background: white; width: 100%; max-width: 420px; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); min-height: 100vh; box-sizing: border-box; }
         .hidden { display: none !important; }
+        
+        /* Buttons */
         .btn { padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; color: white; transition: 0.2s; }
-        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background-color: #007bff; }
         .btn-success { background-color: #28a745; }
         .btn-danger { background-color: #dc3545; }
         .btn-warning { background-color: #ffc107; color: black; }
-        .btn-primary { background-color: #007bff; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-size: 16px; box-sizing: border-box;}
+        
+        /* Form & Profile */
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-size: 16px; box-sizing: border-box; }
         .profile-img { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .history-item { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 5px; border-left: 4px solid #ccc; font-size: 0.9em; display: flex; justify-content: space-between; }
         .status-pending { background-color: #fff3cd; color: #856404; padding: 30px 20px; border-radius: 10px; text-align: center; margin-top: 20px; }
@@ -50,7 +55,7 @@
         <div id="pendingPage" class="hidden">
             <div class="status-pending">
                 <h1>⏳ รออนุมัติ</h1>
-                <p>ข้อมูลส่งเรียบร้อยแล้ว<br>กรุณารอแอดมินยืนยันสิทธิ์</p>
+                <p>ข้อมูลถูกส่งแล้ว<br>กรุณารอแอดมินยืนยันสิทธิ์</p>
                 <img id="pendingImg" src="" class="profile-img">
                 <p id="pendingName" style="font-weight:bold;"></p>
             </div>
@@ -85,6 +90,7 @@
                 <label>ตั้งแต่วันที่:</label> <input type="date" id="leaveStart" class="form-control">
                 <label>ถึงวันที่:</label> <input type="date" id="leaveEnd" class="form-control">
                 <label>เหตุผล:</label> <input type="text" id="leaveReason" class="form-control" placeholder="ระบุเหตุผล...">
+                
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     <button onclick="submitLeaveRequest()" class="btn btn-primary" style="margin:0;">ส่งคำขอ</button>
                     <button onclick="toggleLeaveForm()" class="btn" style="background:#ddd; color:black; margin:0;">ปิด</button>
@@ -96,8 +102,9 @@
 
             <div style="margin-top: 25px; text-align: left;">
                 <strong>📅 ตารางเวรของฉัน</strong>
-                <div id="scheduleList" style="margin-top: 5px;">กำลังโหลด...</div>
+                <div id="scheduleList" style="margin-top: 5px; font-size: 0.9rem; color: #666;">กำลังโหลด...</div>
             </div>
+            
             <div style="margin-top: 25px; text-align: left;">
                 <strong>ประวัติวันนี้</strong>
                 <ul id="historyList" style="padding-left: 0; list-style: none; margin-top: 5px;">กำลังโหลด...</ul>
@@ -110,7 +117,7 @@
         import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- 🔴 CONFIGURATION ZONE ---
+        // --- 🔴 CONFIGURATION ZONE (แก้ไขตรงนี้) ---
          const firebaseConfig = {
 
     apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
@@ -129,12 +136,13 @@
 
   };
         const LIFF_ID = "2008951813-KgjInNxK"; 
-        // -----------------------------
+        // ------------------------------------------
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let currentUser = {};
 
+        // 1. Init
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
@@ -165,7 +173,7 @@
                     document.getElementById('regisProfileImg').src = currentUser.pictureUrl;
                     document.getElementById('regisName').innerText = currentUser.displayName;
                 }
-            } catch (err) { alert("Database error: " + err.message); }
+            } catch (err) { alert("Connect Error: " + err.message); }
         }
 
         function showPage(pageId) {
@@ -202,39 +210,79 @@
             loadMySchedule();
         }
 
+        // --- 🟢 ฟังก์ชันลงเวลา (บังคับ GPS + ซ่อนลิงก์ในไลน์) ---
         window.recordTime = async (type) => {
             if(!confirm(`ยืนยันการ ${type}?`)) return;
-            const btn = event.target; const originalText = btn.innerText; btn.disabled = true; btn.innerText = "📍 กำลังระบุพิกัด...";
-            
+
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "📍 กำลังระบุพิกัด...";
+
             const saveToFirestore = async (lat, lng) => {
                 try {
                     btn.innerText = "⏳ กำลังบันทึก...";
-                    let locationData = null; let mapLink = "";
-                    if (lat && lng) { locationData = { lat: lat, lng: lng }; mapLink = `https://www.google.com/maps?q=${lat},${lng}`; }
+                    
+                    // เตรียมข้อมูลพิกัด (ส่งไปเก็บหลังบ้าน)
+                    const locationData = { lat: lat, lng: lng };
+                    const mapLink = `http://maps.google.com/?q=${lat},${lng}`;
+
+                    // บันทึก Firebase
                     await addDoc(collection(db, "attendance"), {
-                        userId: currentUser.lineUserId, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
-                        type: type, timestamp: serverTimestamp(), location: locationData, mapUrl: mapLink, userAgent: navigator.userAgent
+                        userId: currentUser.lineUserId,
+                        name: currentUser.name,
+                        empId: currentUser.empId,
+                        dept: currentUser.dept,
+                        type: type,
+                        timestamp: serverTimestamp(),
+                        location: locationData, // ✅ เก็บพิกัดให้แอดมินดู
+                        mapUrl: mapLink,        // ✅ เก็บลิงก์ให้แอดมินดู
+                        userAgent: navigator.userAgent
                     });
+
+                    // ส่งเข้าไลน์ (❌ ไม่ใส่ mapLink)
                     if (liff.isInClient()) {
                         const icon = type === 'เข้างาน' ? '🟢' : '🔴';
-                        let msg = `${icon} ลงเวลา: ${type}\n👤 ${currentUser.name}\n⏰ ${new Date().toLocaleTimeString('th-TH')}`;
-                        if(mapLink) msg += `\n📍 ${mapLink}`;
+                        // ข้อความคลีนๆ
+                        const msg = `${icon} ลงเวลา: ${type}\n👤 ${currentUser.name}\n⏰ ${new Date().toLocaleTimeString('th-TH')}`;
                         await liff.sendMessages([{ type: 'text', text: msg }]).catch(e => console.log(e));
                     }
-                    alert(`บันทึก ${type} เรียบร้อย!`); loadTodayHistory();
-                } catch (err) { alert("Error: " + err.message); } finally { btn.disabled = false; btn.innerText = originalText; }
+
+                    alert(`บันทึก ${type} เรียบร้อย!`);
+                    loadTodayHistory();
+
+                } catch (err) {
+                    alert("Error: " + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
             };
 
+            // บังคับขอ GPS
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => { saveToFirestore(position.coords.latitude, position.coords.longitude); },
-                    (error) => { console.error("GPS Error:", error); if(confirm("ไม่พบพิกัด GPS ต้องการลงเวลาโดย 'ไม่มีพิกัด' หรือไม่?")) saveToFirestore(null, null); else { btn.disabled = false; btn.innerText = originalText; } },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                    (position) => {
+                        // ได้พิกัด -> ไปบันทึก
+                        saveToFirestore(position.coords.latitude, position.coords.longitude);
+                    },
+                    (error) => {
+                        console.error("GPS Error:", error);
+                        // ⛔️ ไม่ได้พิกัด -> หยุดและแจ้งเตือน
+                        alert("⚠️ ไม่สามารถลงเวลาได้\n\nระบบบังคับให้เปิด GPS เพื่อระบุตำแหน่ง\nกรุณากด 'Allow' หรือเปิด GPS แล้วลองใหม่");
+                        btn.disabled = false;
+                        btn.innerText = originalText;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
-            } else { alert("Browser ไม่รองรับ GPS"); saveToFirestore(null, null); }
+            } else {
+                alert("Browser ไม่รองรับ GPS ไม่สามารถลงเวลาได้");
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
         };
 
-        // --- แก้ไข: เพิ่ม try-catch ดัก Error Index ---
+        // --- โหลดประวัติ (พร้อมดัก Error Index) ---
         async function loadTodayHistory() {
             try {
                 const start = new Date(); start.setHours(0,0,0,0);
@@ -242,7 +290,7 @@
                 const snap = await getDocs(q);
                 const list = document.getElementById('historyList'); list.innerHTML = "";
                 
-                if(snap.empty) { list.innerHTML = "<li style='color:#999;'>ยังไม่มีประวัติวันนี้</li>"; return; }
+                if(snap.empty) { list.innerHTML = "<li style='color:#999; font-size:0.9em;'>ยังไม่มีประวัติวันนี้</li>"; return; }
                 
                 snap.forEach(d => {
                     const v = d.data();
@@ -251,15 +299,12 @@
                     list.innerHTML += `<li class="history-item" style="border-left-color:${color}"><span>${v.type}</span> <strong>${time}</strong></li>`;
                 });
             } catch (err) {
-                console.error(err);
-                if(err.message.includes("index")) {
-                    alert("⚠️ ระบบแจ้งเตือน: Database ยังไม่ได้สร้าง Index\nกรุณาแจ้ง Admin ให้สร้าง Index ใน Firebase Console");
-                }
-                document.getElementById('historyList').innerHTML = `<li style="color:red; font-size:0.8em;">Error: ${err.message}</li>`;
+                if(err.message.includes("index")) alert("⚠️ ระบบแจ้งเตือน: Database ยังไม่ได้สร้าง Index\nกรุณาแจ้ง Admin ให้สร้าง Index ใน Firebase Console");
+                document.getElementById('historyList').innerHTML = `<li style="color:red; font-size:0.8em;">Error Index: ${err.message}</li>`;
             }
         }
 
-        // --- แก้ไข: เพิ่ม try-catch ดัก Error Index ---
+        // --- โหลดตารางเวร (พร้อมดัก Error Index) ---
         async function loadMySchedule() {
             try {
                 const today = new Date().toISOString().split('T')[0];
@@ -278,7 +323,7 @@
                 });
             } catch (err) {
                 console.error(err);
-                document.getElementById('scheduleList').innerHTML = `<p style="color:red; font-size:0.8em;">Error: ${err.message}</p>`;
+                document.getElementById('scheduleList').innerHTML = `<p style="color:red; font-size:0.8em;">Error Index: ${err.message}</p>`;
             }
         }
 
