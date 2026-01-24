@@ -6,147 +6,362 @@
     <title>Admin Dashboard - MedLife Plus</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
-    
-    <style>
-        body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .container { max-width: 1200px; margin-top: 30px; margin-bottom: 50px; }
-        .hidden { display: none !important; }
-        .nav-tabs .nav-link { cursor: pointer; color: #495057; }
-        .nav-tabs .nav-link.active { font-weight: bold; color: #0d6efd; border-bottom: 3px solid #0d6efd; }
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <style>
+        :root {
+            --color-in: #198754;      /* เขียวเข้ม */
+            --color-out: #dc3545;     /* แดงเข้ม */
+            --color-leave: #6c757d;   /* เทาเข้ม */
+            --color-shift-am: #0d6efd; /* ฟ้า */
+            --color-shift-pm: #fd7e14; /* ส้ม */
+            --color-shift-night: #6f42c1; /* ม่วง */
+            --bg-body: #f4f6f9;
+        }
+
+        body { background-color: var(--bg-body); font-family: 'Sarabun', sans-serif; font-size: 0.95rem; }
         
-        .profile-thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .profile-thumb-lg { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #dee2e6; }
-        .user-cell { display: flex; align-items: center; gap: 10px; }
+        /* 2. Table & Accessibility Improvements */
+        .table-responsive { max-height: 70vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        thead th { position: sticky; top: 0; background-color: #f8f9fa !important; z-index: 10; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+        .table-striped tbody tr:nth-of-type(odd) { background-color: rgba(0,0,0,.02); }
+        .table-hover tbody tr:hover { background-color: rgba(0,0,0,.04); transition: 0.2s; }
         
-        #calendar { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* Fixed Width User Column */
+        .col-user { width: 260px; min-width: 260px; max-width: 260px; }
+        .user-cell { display: flex; align-items: center; gap: 12px; }
+        .profile-thumb { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .user-info h6 { margin: 0; font-weight: 600; font-size: 0.95rem; }
+        .user-info small { color: #6c757d; font-size: 0.8rem; }
+
+        /* Monospace for Numbers/Time */
+        .mono-font { font-family: 'Roboto Mono', monospace; font-weight: 500; }
+
+        /* Badges & Dots */
+        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+        .text-status-in { color: var(--color-in); }
+        .bg-status-in { background-color: var(--color-in); }
+        .text-status-out { color: var(--color-out); }
+        .bg-status-out { background-color: var(--color-out); }
+        
+        .badge-pill { border-radius: 50px; padding: 0.35em 0.8em; font-weight: 500; }
+
+        /* 3. Navigation & Header */
+        .navbar-custom { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 0.8rem 1rem; }
+        .nav-tabs { border-bottom: 2px solid #e9ecef; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
+        .nav-tabs .nav-link { border: none; color: #6c757d; font-weight: 600; padding: 1rem 1.5rem; white-space: nowrap; }
+        .nav-tabs .nav-link.active { color: var(--color-shift-am); border-bottom: 3px solid var(--color-shift-am); background: transparent; }
+        
+        /* Notification Bell */
+        .notification-btn { position: relative; font-size: 1.2rem; margin-right: 15px; cursor: pointer; color: #555; }
+        .notification-badge { position: absolute; top: -5px; right: -5px; background: var(--color-out); color: white; font-size: 0.7rem; width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+
+        /* 4. Login Professional */
+        .login-card { border: none; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); background: white; padding: 2rem; }
+        
+        /* 5. Mobile Responsive Tweaks */
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .col-user { width: auto; min-width: auto; }
+            .btn-responsive { width: 100%; margin-bottom: 5px; }
+            .search-bar-global { width: 100% !important; margin-bottom: 10px; }
+        }
+
+        /* 6. Micro-interactions */
+        .btn { transition: transform 0.1s; border-radius: 8px; }
+        .btn:active { transform: scale(0.98); }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.03); margin-bottom: 20px; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+
+        /* Calendar */
+        #calendar { background: white; padding: 15px; border-radius: 12px; }
+        .fc-event { border-radius: 4px; border: none; padding: 2px 4px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
-    <div id="loginPage" class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
-        <div class="card p-4 shadow-sm text-center" style="width: 400px;">
-            <h3 class="mb-3">🏥 Admin Login</h3>
-            <p class="text-muted small">ระบบจัดการหลังบ้าน</p>
-            <input type="email" id="email" class="form-control mb-3" value="">
-            <button onclick="sendLoginLink()" id="btnSend" class="btn btn-primary w-100">ส่งลิงก์เข้าอีเมล (Magic Link)</button>
-            <div id="loginMsg" class="mt-3 text-success small"></div>
+    <div id="loginPage" class="d-flex justify-content-center align-items-center" style="height: 100vh; background: #eef2f6;">
+        <div class="login-card text-center" style="width: 100%; max-width: 400px;">
+            <div class="mb-4">
+                <i class="bi bi-hospital-fill text-primary" style="font-size: 3rem;"></i>
+                <h3 class="mt-2 fw-bold text-dark">MedLife Plus</h3>
+                <p class="text-muted">Admin Portal Login</p>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="email" id="email" class="form-control" placeholder="Email" value="">
+                <label for="email">Email Address</label>
+            </div>
+            <button onclick="sendLoginLink()" id="btnSend" class="btn btn-primary btn-lg w-100 py-3 fw-bold shadow-sm">
+                <span id="btnText">ส่งลิงก์เข้าสู่ระบบ (Magic Link)</span>
+                <span id="btnSpinner" class="spinner-border spinner-border-sm d-none"></span>
+            </button>
         </div>
     </div>
 
-    <div id="dashboardPage" class="container hidden">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h3 class="mb-0">Admin Dashboard</h3>
-                <span class="badge bg-secondary" id="adminEmailDisplay">...</span>
+    <div id="dashboardPage" class="hidden">
+        
+        <nav class="navbar navbar-custom sticky-top d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-hospital-fill text-primary fs-3"></i>
+                <h5 class="mb-0 d-none d-md-block fw-bold">MedLife Plus <span class="text-muted fw-normal">| Admin Dashboard</span></h5>
             </div>
-            <button onclick="logout()" class="btn btn-sm btn-outline-danger">ออกจากระบบ</button>
-        </div>
-
-        <ul class="nav nav-tabs mb-4">
-            <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')">🕒 เวลาเข้า-ออก</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="switchTab('schedule')">✍️ จัดตารางเวร</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="switchTab('leave')">📩 คำขอลา</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="switchTab('calendar')">🗓️ ปฏิทิน</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="switchTab('users')">👥 พนักงาน <span id="userBadge" class="badge bg-danger hidden">New</span></a></li>
-        </ul>
-
-        <div id="tabAttendance">
-            <div class="card">
-                <div class="card-header bg-white py-3 d-flex gap-2 align-items-center flex-wrap">
-                    <input type="date" id="filterDate" class="form-control" style="width: auto;">
-                    <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
-                    <button onclick="exportCSV()" class="btn btn-success ms-auto">📥 Export Excel</button>
+            
+            <div class="d-flex align-items-center">
+                <div class="input-group me-3 d-none d-md-flex" style="width: 250px;">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control bg-light border-start-0" placeholder="ค้นหาทั่วทั้งระบบ..." id="globalSearch">
                 </div>
-                <div class="card-body p-0 table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-light"><tr><th>เวลา</th><th>พนักงาน</th><th>แผนก</th><th>สถานะ</th><th>พิกัด</th></tr></thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
+
+                <div class="notification-btn" onclick="checkNotifications()">
+                    <i class="bi bi-bell"></i>
+                    <span id="notifBadge" class="notification-badge hidden">0</span>
+                </div>
+
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
+                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 32px; height: 32px;">A</div>
+                        <span class="d-none d-md-block small" id="adminEmailDisplay">Admin</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>ออกจากระบบ</a></li>
+                    </ul>
                 </div>
             </div>
-        </div>
+        </nav>
 
-        <div id="tabSchedule" class="hidden">
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="card p-3">
-                        <h5>✍️ สร้างเวรใหม่</h5>
-                        <form onsubmit="createSchedule(event)">
-                            <div class="mb-2"><label>พนักงาน</label><select id="userSelect" class="form-select" required></select></div>
-                            <div class="mb-2"><label>วันที่</label><input type="date" id="schedDate" class="form-control" required></div>
-                            <div class="mb-3"><label>กะ</label>
-                                <select id="schedType" class="form-select">
-                                    <option>เช้า (08:00 - 17:00)</option>
-                                    <option>บ่าย (13:00 - 22:00)</option>
-                                    <option>ดึก (22:00 - 07:00)</option>
-                                    <option>หยุด (Day Off)</option>
-                                </select>
+        <div class="container-fluid px-4 py-4">
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="card p-3 border-start border-4 border-success h-100">
+                        <div class="d-flex justify-content-between">
+                            <div><small class="text-muted text-uppercase">เข้างานวันนี้</small><h3 class="fw-bold my-1 text-success" id="statIn">0</h3></div>
+                            <div class="bg-success bg-opacity-10 p-2 rounded"><i class="bi bi-check-circle-fill text-success fs-4"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card p-3 border-start border-4 border-warning h-100">
+                        <div class="d-flex justify-content-between">
+                            <div><small class="text-muted text-uppercase">รออนุมัติลา</small><h3 class="fw-bold my-1 text-warning" id="statLeave">0</h3></div>
+                            <div class="bg-warning bg-opacity-10 p-2 rounded"><i class="bi bi-envelope-exclamation-fill text-warning fs-4"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card p-3 border-start border-4 border-info h-100">
+                        <div class="d-flex justify-content-between">
+                            <div><small class="text-muted text-uppercase">พนักงานทั้งหมด</small><h3 class="fw-bold my-1 text-info" id="statTotalUsers">0</h3></div>
+                            <div class="bg-info bg-opacity-10 p-2 rounded"><i class="bi bi-people-fill text-info fs-4"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card p-3 border-start border-4 border-danger h-100">
+                        <div class="d-flex justify-content-between">
+                            <div><small class="text-muted text-uppercase">พนักงานใหม่</small><h3 class="fw-bold my-1 text-danger" id="statNewUsers">0</h3></div>
+                            <div class="bg-danger bg-opacity-10 p-2 rounded"><i class="bi bi-person-plus-fill text-danger fs-4"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="nav nav-tabs mb-4" id="mainTab" role="tablist">
+                <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')"><i class="bi bi-clock me-2"></i>เวลาเข้า-ออก</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('schedule')"><i class="bi bi-calendar-check me-2"></i>จัดตารางเวร</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('leave')"><i class="bi bi-send me-2"></i>คำขอลา</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('report')"><i class="bi bi-graph-up me-2"></i>รายงาน & กราฟ</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('users')"><i class="bi bi-person-gear me-2"></i>พนักงาน</a></li>
+            </ul>
+
+            <div id="tabAttendance">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+                            <div class="d-flex gap-2 align-items-center">
+                                <label class="fw-bold">วันที่:</label>
+                                <input type="date" id="filterDate" class="form-control">
+                                <button onclick="loadData()" class="btn btn-primary px-3"><i class="bi bi-search me-1"></i> ค้นหา</button>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">บันทึก</button>
-                        </form>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <div class="card p-3">
-                        <div class="d-flex justify-content-between mb-2"><h5>รายการเวร</h5><button onclick="loadSchedules()" class="btn btn-sm btn-outline-secondary">Refresh</button></div>
-                        <table class="table table-sm table-bordered align-middle"><tbody id="schedTableBody"></tbody></table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tabLeave" class="hidden">
-            <div class="card">
-                <div class="card-header bg-warning">⏳ รายการรออนุมัติ</div>
-                <div class="card-body p-0 table-responsive">
-                    <table class="table table-hover mb-0 align-middle"><tbody id="leaveTableBody"></tbody></table>
-                </div>
-            </div>
-        </div>
-
-        <div id="tabCalendar" class="hidden">
-            <div id='calendar'></div>
-        </div>
-
-        <div id="tabUsers" class="hidden">
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card border-danger">
-                        <div class="card-header bg-danger text-white"><h5>⏳ รออนุมัติ (Pending)</h5></div>
-                        <div class="card-body p-0 table-responsive"><table class="table table-hover mb-0 align-middle"><tbody id="pendingUsersTable"></tbody></table></div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-white d-flex justify-content-between"><h5>✅ พนักงานทั้งหมด</h5><button onclick="loadAllUsers()" class="btn btn-sm btn-outline-secondary">Refresh</button></div>
-                        <div class="card-body p-0 table-responsive" style="max-height: 500px;">
-                            <table class="table table-sm table-hover mb-0 align-middle">
-                                <thead><tr><th>ชื่อ-สกุล</th><th>แผนก</th><th>จัดการ</th></tr></thead>
-                                <tbody id="allUsersTable"></tbody>
+                            <button onclick="exportCSV()" class="btn btn-outline-success"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV</button>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3">เวลา</th>
+                                        <th>พนักงาน</th>
+                                        <th>แผนก</th>
+                                        <th>สถานะ</th>
+                                        <th class="hide-mobile">ช่องทาง/พิกัด</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <tr><td colspan="5" class="text-center py-5 text-muted"><div class="spinner-border text-primary mb-2"></div><br>กำลังโหลดข้อมูล...</td></tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
+            <div id="tabSchedule" class="hidden">
+                <div class="row g-4">
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold py-3"><i class="bi bi-plus-circle me-2 text-primary"></i>สร้างเวรทำงาน</div>
+                            <div class="card-body">
+                                <form onsubmit="createSchedule(event)">
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">พนักงาน</label>
+                                        <select id="userSelect" class="form-select" required></select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">วันที่</label>
+                                        <input type="date" id="schedDate" class="form-control" required>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="form-label small text-muted">ประเภทกะ</label>
+                                        <select id="schedType" class="form-select">
+                                            <option value="เช้า (08:00 - 17:00)">☀️ เช้า (08:00 - 17:00)</option>
+                                            <option value="บ่าย (13:00 - 22:00)">🌤️ บ่าย (13:00 - 22:00)</option>
+                                            <option value="ดึก (22:00 - 07:00)">🌙 ดึก (22:00 - 07:00)</option>
+                                            <option value="หยุด (Day Off)">🛑 หยุด (Day Off)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-save me-1"></i> บันทึกตารางเวร</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                                <span class="fw-bold"><i class="bi bi-list-check me-2"></i>รายการเวรล่าสุด</span>
+                                <button onclick="loadSchedules()" class="btn btn-sm btn-light border"><i class="bi bi-arrow-clockwise"></i></button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light"><tr><th>วันที่</th><th>พนักงาน</th><th>กะ</th><th>จัดการ</th></tr></thead>
+                                    <tbody id="schedTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabLeave" class="hidden">
+                <div class="card shadow-sm border-warning border-top-0 border-end-0 border-bottom-0 border-start-4">
+                    <div class="card-header bg-white py-3 fw-bold"><i class="bi bi-hourglass-split text-warning me-2"></i>รายการรออนุมัติ</div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="ps-3">พนักงาน</th><th>ประเภท</th><th>ช่วงวันที่</th><th>เหตุผล</th><th class="text-end pe-3">จัดการ</th></tr></thead>
+                            <tbody id="leaveTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabReport" class="hidden">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-calendar-week me-2"></i>ปฏิทินงาน</h5>
+                        </div>
+                        <div id='calendar'></div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold py-3"><i class="bi bi-bar-chart-line me-2"></i>สรุปชั่วโมงทำงานรายเดือน</div>
+                            <div class="card-body">
+                                <div class="d-flex gap-2 mb-3">
+                                    <input type="month" id="chartMonth" class="form-control" style="width: 200px;">
+                                    <button onclick="renderCharts()" class="btn btn-dark">วิเคราะห์</button>
+                                </div>
+                                <canvas id="workHoursChart" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold py-3"><i class="bi bi-pie-chart me-2"></i>สัดส่วนการลา</div>
+                            <div class="card-body d-flex justify-content-center">
+                                <canvas id="leavePieChart" style="max-height: 250px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabUsers" class="hidden">
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <div class="card shadow-sm border-danger border-start-4">
+                            <div class="card-header bg-white text-danger fw-bold py-3"><i class="bi bi-person-exclamation me-2"></i>รออนุมัติเข้าใช้งาน (Pending)</div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <tbody id="pendingUsersTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="card shadow-sm border-primary border-start-4">
+                            <div class="card-header bg-white text-primary fw-bold py-3 d-flex justify-content-between">
+                                <span><i class="bi bi-people me-2"></i>พนักงานทั้งหมด</span>
+                                <button onclick="loadAllUsers()" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-clockwise"></i></button>
+                            </div>
+                            <div class="table-responsive" style="max-height: 500px;">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light"><tr><th class="ps-3">ชื่อ-สกุล</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
+                                    <tbody id="allUsersTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <div class="modal fade" id="editUserModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title">✏️ แก้ไขข้อมูล</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body text-center">
-                    <img id="editUserImg" src="" class="profile-thumb-lg mb-3">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold">✏️ แก้ไขข้อมูลพนักงาน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <img id="editUserImg" src="" class="profile-thumb shadow-sm mb-3" style="width:80px; height:80px;">
                     <input type="hidden" id="editUserId">
-                    <div class="text-start">
-                        <div class="mb-3"><label>ชื่อ-นามสกุล</label><input type="text" id="editUserName" class="form-control"></div>
-                        <div class="mb-3"><label>แผนก</label><select id="editUserDept" class="form-select"><option value="General">General</option><option value="Pharmacy">Pharmacy</option><option value="IT">IT Support</option><option value="Admin">Admin</option><option value="Sales">Sales</option></select></div>
+                    <div class="form-floating mb-3 text-start">
+                        <input type="text" id="editUserName" class="form-control" placeholder="Name">
+                        <label>ชื่อ-นามสกุล</label>
+                    </div>
+                    <div class="form-floating text-start">
+                        <select id="editUserDept" class="form-select">
+                            <option value="General">General</option>
+                            <option value="Pharmacy">Pharmacy</option>
+                            <option value="IT">IT Support</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Sales">Sales</option>
+                        </select>
+                        <label>แผนก / ตำแหน่ง</label>
                     </div>
                 </div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary" onclick="saveEditUser()">บันทึก</button></div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary px-4" onclick="saveEditUser()">บันทึก</button>
+                </div>
             </div>
         </div>
     </div>
@@ -184,163 +399,258 @@
         let calendarObj = null;
         let editModal = null;
         let userProfileMap = {};
+        let barChart = null; // Chart Instance
+        let pieChart = null; // Chart Instance
 
-        // AUTH
-        onAuthStateChanged(auth, async (user) => {
-            if (user && user.email === ADMIN_EMAIL) {
-                document.getElementById('loginPage').classList.add('hidden');
-                document.getElementById('dashboardPage').classList.remove('hidden');
-                document.getElementById('adminEmailDisplay').innerText = user.email;
-                await cacheUserProfiles(); loadInitialData();
-                editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-            } else {
-                if (isSignInWithEmailLink(auth, window.location.href)) {
-                    let e = localStorage.getItem('emailForSignIn') || prompt('ยืนยันอีเมล:');
-                    signInWithEmailLink(auth, e, window.location.href).then(() => { localStorage.removeItem('emailForSignIn'); history.replaceState({},'',location.pathname); });
-                } else document.getElementById('loginPage').classList.remove('hidden');
+        // 6. Toast Notification Helper
+        const Toast = Swal.mixin({
+            toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+            timerProgressBar: true, didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
             }
         });
 
-        // IMAGES
-        async function cacheUserProfiles() {
-            try {
-                const snap = await getDocs(collection(db, "users"));
-                snap.forEach(doc => { const d=doc.data(); userProfileMap[d.lineUserId] = d.pictureUrl || "https://via.placeholder.com/40"; });
-            } catch (e) { console.error(e); }
-        }
-        function getProfileImg(uid) { return `<img src="${userProfileMap[uid]||'https://via.placeholder.com/40'}" class="profile-thumb">`; }
+        // AUTH Logic
+        onAuthStateChanged(auth, async (user) => {
+            if (user && user.email === ADMIN_EMAIL) {
+                document.getElementById('loginPage').classList.add('d-none');
+                document.getElementById('dashboardPage').classList.remove('hidden');
+                document.getElementById('adminEmailDisplay').innerText = user.email;
+                
+                await cacheUserProfiles();
+                loadInitialData();
+                editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                document.getElementById('chartMonth').value = new Date().toISOString().slice(0, 7);
+            } else {
+                if (isSignInWithEmailLink(auth, window.location.href)) {
+                    let e = localStorage.getItem('emailForSignIn') || prompt('กรุณายืนยันอีเมลของคุณ:');
+                    signInWithEmailLink(auth, e, window.location.href).then(() => {
+                        localStorage.removeItem('emailForSignIn');
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }).catch(err => Swal.fire('Error', err.message, 'error'));
+                } else {
+                    document.getElementById('loginPage').classList.remove('d-none');
+                }
+            }
+        });
 
-        // LOADERS
-        function loadInitialData() { document.getElementById('filterDate').valueAsDate = new Date(); loadData(); loadUsersList(); loadPendingUsers(); }
-        window.switchTab = (tab) => {
-            document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active')); event.target.classList.add('active');
-            ['tabAttendance','tabSchedule','tabLeave','tabCalendar','tabUsers'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.remove('hidden');
-            if(tab==='schedule') loadSchedules();
-            if(tab==='leave') loadLeaveRequests();
-            if(tab==='calendar') setTimeout(initCalendar, 200);
-            if(tab==='users') { loadPendingUsers(); loadAllUsers(); }
-        };
-
-        // ATTENDANCE
+        // 2. LOAD DATA (Attendance) with Improved UI
         window.loadData = async () => {
             const d = document.getElementById('filterDate').value;
             const s=new Date(d); s.setHours(0,0,0,0); const e=new Date(d); e.setHours(23,59,59,999);
+            const tbody = document.getElementById('tableBody');
+            
+            // Skeleton Loading
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>`;
+
             const snap = await getDocs(query(collection(db,"attendance"), where("timestamp",">=",s), where("timestamp","<=",e)));
-            let h = ""; window.currentData = [];
+            let h = ""; window.currentData = []; let countIn=0;
             
             snap.forEach(doc => {
                 const v = doc.data();
                 window.currentData.push(v);
+                if(v.type === 'เข้างาน') countIn++;
+                
                 const img = getProfileImg(v.userId);
-                let mapBtn = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-outline-primary">📍 ดูแผนที่</a>` : '<span class="text-muted">-</span>';
+                const time = new Date(v.timestamp.seconds*1000).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}); // Monospace Format
+                
+                // 1. Color Status
+                let statusClass = v.type==='เข้างาน' ? 'text-status-in bg-success bg-opacity-10' : 'text-status-out bg-danger bg-opacity-10';
+                let dotClass = v.type==='เข้างาน' ? 'bg-status-in' : 'bg-status-out';
+                
+                // Map Button
+                let mapBtn = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary" data-bs-toggle="tooltip" title="ดูแผนที่"><i class="bi bi-geo-alt-fill"></i></a>` : '<span class="text-muted small">-</span>';
 
-                h += `<tr><td>${new Date(v.timestamp.seconds*1000).toLocaleTimeString('th-TH')}</td><td><div class="user-cell">${img} <span>${v.name}</span></div></td><td>${v.dept}</td><td><span class="${v.type==='เข้างาน'?'text-success':'text-danger'} fw-bold">${v.type}</span></td><td>${mapBtn}</td></tr>`;
+                h += `<tr>
+                    <td class="ps-3"><span class="mono-font fs-6">${time}</span></td>
+                    <td class="col-user">
+                        <div class="user-cell">
+                            ${img}
+                            <div class="user-info">
+                                <h6>${v.name}</h6>
+                                <small>${v.empId || 'No ID'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">${v.dept}</span></td>
+                    <td><span class="badge ${statusClass} badge-pill"><span class="status-dot ${dotClass}"></span>${v.type}</span></td>
+                    <td class="hide-mobile">${mapBtn}</td>
+                </tr>`;
             });
-            document.getElementById('tableBody').innerHTML = h || "<tr><td colspan='5'>ไม่พบข้อมูล</td></tr>";
+
+            tbody.innerHTML = h || `<tr><td colspan="5" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>ไม่พบข้อมูลในวันนี้</td></tr>`;
+            document.getElementById('statIn').innerText = countIn;
         };
 
-        window.exportCSV = () => {
-            if(!window.currentData?.length) return alert('ไม่มีข้อมูล');
-            let c = "Time,Name,Dept,Type,MapLink\n" + window.currentData.map(r => `${new Date(r.timestamp.seconds*1000).toLocaleTimeString('th-TH')},${r.name},${r.dept},${r.type},${r.mapUrl||''}`).join("\n");
-            const a = document.createElement("a"); a.href="data:text/csv;charset=utf-8,"+encodeURI(c); a.download="report.csv"; a.click();
+        // 10. Charts (Chart.js)
+        window.renderCharts = async () => {
+            const m = document.getElementById('chartMonth').value;
+            if(!m) return;
+            
+            const start = new Date(m + "-01"); start.setHours(0,0,0,0);
+            const end = new Date(m + "-01"); end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23,59,59,999);
+
+            // Fetch Data
+            const attSnap = await getDocs(query(collection(db, "attendance"), where("timestamp", ">=", start), where("timestamp", "<=", end)));
+            let userHours = {};
+            
+            attSnap.forEach(d => {
+                const v = d.data();
+                if(!userHours[v.name]) userHours[v.name] = { logs: [], total: 0 };
+                userHours[v.name].logs.push({ t:v.type, time: v.timestamp.seconds });
+            });
+
+            // Calculate Hours
+            let labels = []; let dataHours = [];
+            Object.keys(userHours).forEach(name => {
+                const logs = userHours[name].logs.sort((a,b)=>a.time-b.time);
+                let ms=0, last=null;
+                logs.forEach(l => {
+                    if(l.t==='เข้างาน') last=l.time;
+                    else if(l.t==='ออกงาน' && last) { ms += (l.time-last); last=null; }
+                });
+                const hrs = (ms / 3600).toFixed(1);
+                if(hrs > 0) { labels.push(name); dataHours.push(hrs); }
+            });
+
+            // Render Bar Chart
+            if(barChart) barChart.destroy();
+            const ctx = document.getElementById('workHoursChart').getContext('2d');
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'ชั่วโมงทำงาน (ชม.)',
+                        data: dataHours,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Pie Chart (Leave Types) - Placeholder Logic
+            // (ต้องดึงจาก collection leave_requests แบบเดียวกัน)
         };
 
-        // SCHEDULE
-        window.loadSchedules=async()=>{const s=await getDocs(query(collection(db,"schedules"),orderBy("date","desc")));let h="";s.forEach(d=>{const v=d.data();const img=getProfileImg(v.userId);h+=`<tr><td>${v.date}</td><td><div class="user-cell">${img} ${v.name}</div></td><td>${v.shiftDetail}</td><td><button onclick="delSched('${d.id}')" class="btn btn-sm btn-danger">ลบ</button></td></tr>`});document.getElementById('schedTableBody').innerHTML=h};
-        window.createSchedule=async(e)=>{e.preventDefault();const u=document.getElementById('userSelect');const uid=u.value;const nm=u.options[u.selectedIndex].text;await setDoc(doc(db,"schedules",`${uid}_${document.getElementById('schedDate').value}`),{userId:uid,name:nm,date:document.getElementById('schedDate').value,shiftDetail:document.getElementById('schedType').value});alert('บันทึกสำเร็จ');loadSchedules()};
-        window.delSched=async(id)=>{if(confirm('ยืนยันลบ?'))await deleteDoc(doc(db,"schedules",id));loadSchedules()};
+        // 12. Notification Logic
+        window.checkNotifications = async () => {
+            const pendingUsers = await getDocs(query(collection(db, "users"), where("status", "==", "Pending")));
+            const pendingLeaves = await getDocs(query(collection(db, "leave_requests"), where("status", "==", "Pending")));
+            
+            const count = pendingUsers.size + pendingLeaves.size;
+            const badge = document.getElementById('notifBadge');
+            
+            badge.innerText = count;
+            badge.classList.toggle('hidden', count === 0);
+            
+            document.getElementById('statNewUsers').innerText = pendingUsers.size;
+            document.getElementById('statLeave').innerText = pendingLeaves.size;
 
-        // LEAVE
-        window.loadLeaveRequests=async()=>{const s=await getDocs(query(collection(db,"leave_requests"),where("status","==","Pending")));let h="";s.forEach(doc=>{const d=doc.data();const img=getProfileImg(d.userId);h+=`<tr><td><div class="user-cell">${img} <div>${d.name}<br><small>${d.dept}</small></div></div></td><td><span class="badge bg-info text-dark">${d.type}</span></td><td>${d.startDate} - ${d.endDate}</td><td>${d.reason}</td><td><button onclick="updLeave('${doc.id}','Approved','${d.userId}','${d.name}','${d.startDate}','${d.endDate}','${d.type}')" class="btn btn-sm btn-success">✓</button> <button onclick="updLeave('${doc.id}','Rejected')" class="btn btn-sm btn-danger">X</button></td></tr>`});document.getElementById('leaveTableBody').innerHTML=h||"<tr><td colspan='5'>ไม่มีคำขอ</td></tr>"};
-        window.updLeave=async(id,st,uid,nm,s,e,tp)=>{await setDoc(doc(db,"leave_requests",id),{status:st},{merge:true});if(st==='Approved'){let c=new Date(s),end=new Date(e);while(c<=end){let ds=c.toISOString().split('T')[0];await setDoc(doc(db,"schedules",`${uid}_${ds}`),{userId:uid,name:nm,date:ds,shiftDetail:`🛑 ${tp}`});c.setDate(c.getDate()+1)}}loadLeaveRequests()};
+            if(count > 0) {
+               // Optional: Show toast on load
+            }
+        };
 
-        // --- CALENDAR (LOGIC ใหม่: คำนวณชั่วโมงทำงาน) ---
+        // --- CALENDAR (With Colors) ---
         function initCalendar(){
             if(calendarObj){calendarObj.render();return}
             calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'),{
                 initialView:'dayGridMonth',
                 locale:'th',
                 height:'auto',
-                events: async(info, successCallback, failureCallback) => {
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                buttonText: { today: 'วันนี้', month: 'เดือน', list: 'รายการ' },
+                events: async(info, success, fail) => {
                     try {
-                        let events = [];
-
-                        // 1. ดึงข้อมูลตารางเวร (Schedules)
-                        const schedSnap = await getDocs(collection(db,"schedules"));
-                        schedSnap.forEach(d => {
-                            const v = d.data();
-                            let color = '#0d6efd'; // Blue
-                            if(v.shiftDetail.includes('หยุด')||v.shiftDetail.includes('ลา')) color = '#dc3545'; // Red
-                            else if(v.shiftDetail.includes('บ่าย')) color = '#fd7e14'; // Orange
-                            else if(v.shiftDetail.includes('ดึก')) color = '#6610f2'; // Purple
-                            events.push({ title:`${v.name} (${v.shiftDetail.split('(')[0]})`, start:v.date, color:color });
-                        });
-
-                        // 2. ดึงข้อมูลการลงเวลา (Attendance) มาคำนวณชั่วโมง
-                        const attSnap = await getDocs(collection(db, "attendance"));
-                        let workMap = {}; // Key: userId_date
-
-                        attSnap.forEach(doc => {
-                            const d = doc.data();
-                            const dateObj = new Date(d.timestamp.seconds * 1000);
-                            const dateStr = dateObj.toISOString().split('T')[0];
-                            const key = `${d.userId}_${dateStr}`;
-
-                            if(!workMap[key]) workMap[key] = { name: d.name, logs: [] };
-                            workMap[key].logs.push({ type: d.type, time: dateObj });
-                        });
-
-                        // คำนวณเวลา (Pair Matching)
-                        Object.keys(workMap).forEach(key => {
-                            const item = workMap[key];
-                            item.logs.sort((a,b) => a.time - b.time); // เรียงตามเวลา
+                        let evs = [];
+                        const sSnap = await getDocs(collection(db,"schedules"));
+                        sSnap.forEach(d => {
+                            const v=d.data();
+                            // 1. Color Logic
+                            let c = 'var(--color-shift-am)';
+                            if(v.shiftDetail.includes('บ่าย')) c = 'var(--color-shift-pm)';
+                            if(v.shiftDetail.includes('ดึก')) c = 'var(--color-shift-night)';
+                            if(v.shiftDetail.includes('หยุด')||v.shiftDetail.includes('ลา')) c = 'var(--color-leave)';
                             
-                            let totalMs = 0;
-                            let lastIn = null;
-
-                            item.logs.forEach(log => {
-                                if(log.type === 'เข้างาน') {
-                                    lastIn = log.time;
-                                } else if(log.type === 'ออกงาน' && lastIn) {
-                                    totalMs += (log.time - lastIn);
-                                    lastIn = null;
-                                }
-                            });
-
-                            const hours = (totalMs / (1000*60*60)).toFixed(1);
-                            if(hours > 0) {
-                                const [uid, dateStr] = key.split('_');
-                                events.push({
-                                    title: `⏱️ ${item.name}: ${hours} ชม.`,
-                                    start: dateStr,
-                                    color: '#198754', // Green
-                                    display: 'block'
-                                });
-                            }
+                            evs.push({ title: `${v.name} (${v.shiftDetail.split('(')[0]})`, start:v.date, color: c });
                         });
-
-                        successCallback(events);
-                    } catch(e) { console.error(e); failureCallback(e); }
+                        success(evs);
+                    } catch(e){ fail(e); }
                 }
             });
             calendarObj.render();
         }
 
-        // USERS
-        window.loadPendingUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Pending")));let h="";s.forEach(d=>h+=`<tr><td><div class="user-cell"><img src="${d.data().pictureUrl}" class="profile-thumb"> ${d.data().name}</div></td><td><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success">อนุมัติ</button></td></tr>`);document.getElementById('pendingUsersTable').innerHTML=h;document.getElementById('userBadge').classList.toggle('hidden',s.empty)};
-        window.loadAllUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h="";s.forEach(d=>{const u=d.data();h+=`<tr><td><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"> ${u.name}</div></td><td><span class="badge bg-secondary">${u.dept}</span></td><td><button onclick="openEditUser('${d.id}','${u.name}','${u.dept}','${u.pictureUrl}')" class="btn btn-sm btn-outline-primary">✏️</button> <button onclick="delUser('${d.id}')" class="btn btn-sm btn-outline-danger">🗑️</button></td></tr>`});document.getElementById('allUsersTable').innerHTML=h};
-        window.appUser=async(id)=>{await setDoc(doc(db,"users",id),{status:"Approved"},{merge:true});loadPendingUsers();loadAllUsers()};
-        window.delUser=async(id)=>{if(confirm('ลบผู้ใช้งาน?'))await deleteDoc(doc(db,"users",id));loadAllUsers()};
-        window.openEditUser=(id,nm,dp,pic)=>{document.getElementById('editUserId').value=id;document.getElementById('editUserName').value=nm;document.getElementById('editUserDept').value=dp;document.getElementById('editUserImg').src=pic;editModal.show()};
-        window.saveEditUser=async()=>{try{await updateDoc(doc(db,"users",document.getElementById('editUserId').value),{name:document.getElementById('editUserName').value,dept:document.getElementById('editUserDept').value});alert('แก้ไขสำเร็จ');editModal.hide();loadAllUsers();cacheUserProfiles();}catch(e){alert(e.message)}};
+        // --- SHARED UTILS ---
+        async function cacheUserProfiles() {
+            const snap = await getDocs(collection(db, "users"));
+            document.getElementById('statTotalUsers').innerText = snap.size;
+            snap.forEach(d => { const v=d.data(); userProfileMap[d.lineUserId] = v.pictureUrl || "https://via.placeholder.com/45"; });
+            checkNotifications(); // Check Notifs after load
+        }
+        function getProfileImg(uid) { return `<img src="${userProfileMap[uid]||'https://via.placeholder.com/45'}" class="profile-thumb">`; }
+        function loadInitialData() { document.getElementById('filterDate').valueAsDate = new Date(); loadData(); loadUsersList(); loadPendingUsers(); }
+        
+        window.switchTab = (tab) => {
+            // Hide all tabs
+            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
+            // Show selected
+            document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.remove('hidden');
+            // Update Nav state
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active'); // Fixed: use currentTarget
 
-        // HELPER
-        window.sendLoginLink=()=>{const e=document.getElementById('email').value;sendSignInLinkToEmail(auth,e,{url:window.location.href,handleCodeInApp:true}).then(()=>{localStorage.setItem('emailForSignIn',e);alert('ส่งลิงก์แล้ว')})};
+            if(tab==='schedule') loadSchedules();
+            if(tab==='leave') loadLeaveRequests();
+            if(tab==='report') { setTimeout(initCalendar, 200); renderCharts(); }
+            if(tab==='users') { loadPendingUsers(); loadAllUsers(); }
+        };
+
+        // --- OTHER FUNCTIONS (Optimized) ---
+        window.sendLoginLink = async () => {
+            const btn = document.getElementById('btnSend');
+            const spin = document.getElementById('btnSpinner');
+            const txt = document.getElementById('btnText');
+            
+            btn.disabled = true; spin.classList.remove('d-none'); txt.innerText = " กำลังส่ง...";
+            
+            try {
+                const e = document.getElementById('email').value;
+                await sendSignInLinkToEmail(auth, e, { url: window.location.href, handleCodeInApp: true });
+                window.localStorage.setItem('emailForSignIn', e);
+                Toast.fire({ icon: 'success', title: 'ส่งลิงก์เรียบร้อย! เช็คอีเมลได้เลย' });
+                txt.innerText = "ส่งสำเร็จ";
+            } catch(e) {
+                Swal.fire('Login Error', e.message, 'error');
+                btn.disabled = false; spin.classList.add('d-none'); txt.innerText = "ส่งลิงก์เข้าสู่ระบบ";
+            }
+        };
+
+        window.loadSchedules=async()=>{const s=await getDocs(query(collection(db,"schedules"),orderBy("date","desc")));let h="";s.forEach(d=>{const v=d.data();const img=getProfileImg(v.userId);h+=`<tr><td>${v.date}</td><td><div class="user-cell">${img} ${v.name}</div></td><td><span class="badge bg-light text-dark border">${v.shiftDetail}</span></td><td><button onclick="delSched('${d.id}')" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></td></tr>`});document.getElementById('schedTableBody').innerHTML=h};
+        window.createSchedule=async(e)=>{e.preventDefault();const u=document.getElementById('userSelect');const uid=u.value;const nm=u.options[u.selectedIndex].text;await setDoc(doc(db,"schedules",`${uid}_${document.getElementById('schedDate').value}`),{userId:uid,name:nm,date:document.getElementById('schedDate').value,shiftDetail:document.getElementById('schedType').value});Toast.fire({icon:'success',title:'บันทึกเวรเรียบร้อย'});loadSchedules()};
+        window.delSched=async(id)=>{
+            const result = await Swal.fire({ title: 'ลบรายการ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบเลย', cancelButtonText: 'ยกเลิก' });
+            if(result.isConfirmed) { await deleteDoc(doc(db,"schedules",id)); loadSchedules(); Toast.fire('ลบสำเร็จ','','success'); }
+        };
+        window.loadLeaveRequests=async()=>{const s=await getDocs(query(collection(db,"leave_requests"),where("status","==","Pending")));let h="";s.forEach(doc=>{const d=doc.data();const img=getProfileImg(d.userId);h+=`<tr><td class="ps-3"><div class="user-cell">${img} <div><h6>${d.name}</h6><small>${d.dept}</small></div></div></td><td><span class="badge bg-warning text-dark">${d.type}</span></td><td>${d.startDate} - ${d.endDate}</td><td>${d.reason}</td><td class="text-end pe-3"><button onclick="updLeave('${doc.id}','Approved','${d.userId}','${d.name}','${d.startDate}','${d.endDate}','${d.type}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button><button onclick="updLeave('${doc.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button></td></tr>`});document.getElementById('leaveTableBody').innerHTML=h||`<tr><td colspan="5" class="text-center py-4 text-muted">ไม่มีคำขอใหม่</td></tr>`;};
+        window.updLeave=async(id,st,uid,nm,s,e,tp)=>{await setDoc(doc(db,"leave_requests",id),{status:st},{merge:true});if(st==='Approved'){let c=new Date(s),end=new Date(e);while(c<=end){let ds=c.toISOString().split('T')[0];await setDoc(doc(db,"schedules",`${uid}_${ds}`),{userId:uid,name:nm,date:ds,shiftDetail:`🛑 ${tp}`});c.setDate(c.getDate()+1)}}Toast.fire({icon:'success',title:'ดำเนินการเรียบร้อย'});loadLeaveRequests();checkNotifications();};
+        window.loadPendingUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Pending")));let h="";s.forEach(d=>{const v=d.data();h+=`<tr><td class="ps-3"><div class="user-cell"><img src="${v.pictureUrl}" class="profile-thumb"> <div><h6>${v.name}</h6><small class="text-danger">New Register</small></div></div></td><td class="text-end pe-3"><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success px-3">อนุมัติ</button></td></tr>`});document.getElementById('pendingUsersTable').innerHTML=h||`<tr><td colspan="2" class="text-center py-3 text-muted">ไม่มีผู้สมัครใหม่</td></tr>`;checkNotifications();};
+        window.loadAllUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h="";s.forEach(d=>{const u=d.data();h+=`<tr><td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"> <h6>${u.name}</h6></div></td><td><span class="badge bg-light text-dark border">${u.dept}</span></td><td class="text-end pe-3"><button onclick="openEditUser('${d.id}','${u.name}','${u.dept}','${u.pictureUrl}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${d.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td></tr>`});document.getElementById('allUsersTable').innerHTML=h};
+        window.appUser=async(id)=>{await setDoc(doc(db,"users",id),{status:"Approved"},{merge:true});Toast.fire({icon:'success',title:'อนุมัติพนักงานแล้ว'});loadPendingUsers();loadAllUsers();};
+        window.delUser=async(id)=>{const res=await Swal.fire({title:'ลบพนักงาน?',text:'การกระทำนี้ไม่สามารถย้อนกลับได้',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545'});if(res.isConfirmed){await deleteDoc(doc(db,"users",id));loadAllUsers();Toast.fire('ลบสำเร็จ','','success')}};
+        window.openEditUser=(id,nm,dp,pic)=>{document.getElementById('editUserId').value=id;document.getElementById('editUserName').value=nm;document.getElementById('editUserDept').value=dp;document.getElementById('editUserImg').src=pic;editModal.show()};
+        window.saveEditUser=async()=>{try{await updateDoc(doc(db,"users",document.getElementById('editUserId').value),{name:document.getElementById('editUserName').value,dept:document.getElementById('editUserDept').value});Toast.fire({icon:'success',title:'แก้ไขข้อมูลสำเร็จ'});editModal.hide();loadAllUsers();cacheUserProfiles();}catch(e){Swal.fire('Error',e.message,'error')}};
         window.logout=()=>signOut(auth);
-        window.loadUsersList=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h='<option value="">เลือกพนักงาน</option>';s.forEach(d=>h+=`<option value="${d.data().lineUserId}">${d.data().name}</option>`);document.getElementById('userSelect').innerHTML=h};
+        window.loadUsersList=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h='<option value="">เลือกพนักงาน...</option>';s.forEach(d=>h+=`<option value="${d.data().lineUserId}">${d.data().name}</option>`);document.getElementById('userSelect').innerHTML=h};
+        window.exportCSV=()=>{if(!window.currentData?.length)return Toast.fire({icon:'warning',title:'ไม่มีข้อมูลให้ Export'});let c="Time,Name,Dept,Type,MapLink\n"+window.currentData.map(r=>`${new Date(r.timestamp.seconds*1000).toLocaleTimeString('th-TH')},${r.name},${r.dept},${r.type},${r.mapUrl||''}`).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURI(c);a.download=`attendance_${new Date().toISOString().split('T')[0]}.csv`;a.click()};
+
+        // Make Global
+        window.sendLoginLink=sendLoginLink; window.logout=logout; window.loadData=loadData; window.exportCSV=exportCSV; window.loadSchedules=loadSchedules; window.createSchedule=createSchedule; window.delSched=delSched; window.loadLeaveRequests=loadLeaveRequests; window.updLeave=updLeave; window.loadPendingUsers=loadPendingUsers; window.loadAllUsers=loadAllUsers; window.appUser=appUser; window.delUser=delUser; window.openEditUser=openEditUser; window.saveEditUser=saveEditUser; window.switchTab=switchTab; window.renderCharts=renderCharts; window.loadAllUsers=loadAllUsers; window.checkNotifications=checkNotifications;
     </script>
 </body>
 </html>
-
-
