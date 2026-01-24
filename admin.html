@@ -29,7 +29,7 @@
         <div class="card p-4 shadow-sm text-center" style="width: 400px;">
             <h3 class="mb-3">🏥 Admin Login</h3>
             <p class="text-muted small">ระบบจัดการหลังบ้าน</p>
-            <input type="email" id="email" class="form-control mb-3" value="medlifeplus@gmail.com">
+            <input type="email" id="email" class="form-control mb-3" value="">
             <button onclick="sendLoginLink()" id="btnSend" class="btn btn-primary w-100">ส่งลิงก์เข้าอีเมล (Magic Link)</button>
             <div id="loginMsg" class="mt-3 text-success small"></div>
         </div>
@@ -174,7 +174,7 @@
     measurementId: "G-WN14VJSG17"
 
   };
-        const ADMIN_EMAIL = ""; 
+        const ADMIN_EMAIL = "medlifeplus@gmail.com"; 
         // -----------------------------
 
         const app = initializeApp(firebaseConfig);
@@ -342,4 +342,5 @@
     </script>
 </body>
 </html>
+
 
