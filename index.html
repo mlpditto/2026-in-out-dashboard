@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบลงเวลาพนักงาน (GPS)</title>
+    <title>ระบบลงเวลาพนักงาน</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
@@ -11,10 +11,10 @@
         .hidden { display: none !important; }
         .btn { padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; color: white; transition: 0.2s; }
         .btn:disabled { opacity: 0.7; cursor: not-allowed; }
-        .btn-primary { background-color: #007bff; }
         .btn-success { background-color: #28a745; }
         .btn-danger { background-color: #dc3545; }
         .btn-warning { background-color: #ffc107; color: black; }
+        .btn-primary { background-color: #007bff; }
         .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-size: 16px; box-sizing: border-box;}
         .profile-img { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .history-item { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 5px; border-left: 4px solid #ccc; font-size: 0.9em; display: flex; justify-content: space-between; }
@@ -96,11 +96,11 @@
 
             <div style="margin-top: 25px; text-align: left;">
                 <strong>📅 ตารางเวรของฉัน</strong>
-                <div id="scheduleList" style="margin-top: 5px;"></div>
+                <div id="scheduleList" style="margin-top: 5px;">กำลังโหลด...</div>
             </div>
             <div style="margin-top: 25px; text-align: left;">
                 <strong>ประวัติวันนี้</strong>
-                <ul id="historyList" style="padding-left: 0; list-style: none; margin-top: 5px;"></ul>
+                <ul id="historyList" style="padding-left: 0; list-style: none; margin-top: 5px;">กำลังโหลด...</ul>
             </div>
         </div>
     </div>
@@ -110,7 +110,7 @@
         import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- 🔴 CONFIGURATION ZONE (แก้ไขตรงนี้) ---
+        // --- 🔴 CONFIGURATION ZONE ---
          const firebaseConfig = {
 
     apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
@@ -129,34 +129,27 @@
 
   };
         const LIFF_ID = "2008951813-KgjInNxK"; 
-        // ------------------------------------------
+        // -----------------------------
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let currentUser = {};
 
-        // 1. Initial System
         async function main() {
             try {
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 const profile = await liff.getProfile();
-                currentUser = { 
-                    lineUserId: profile.userId, 
-                    pictureUrl: profile.pictureUrl, 
-                    displayName: profile.displayName 
-                };
+                currentUser = { lineUserId: profile.userId, pictureUrl: profile.pictureUrl, displayName: profile.displayName };
                 checkUserInFirestore();
             } catch (err) { alert("LIFF Error: " + err); }
         }
         main();
 
-        // 2. Check User Status
         async function checkUserInFirestore() {
             try {
                 const docRef = doc(db, "users", currentUser.lineUserId);
                 const docSnap = await getDoc(docRef);
-
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     if (data.status === 'Pending') {
@@ -164,13 +157,9 @@
                         document.getElementById('pendingImg').src = currentUser.pictureUrl;
                         document.getElementById('pendingName').innerText = data.name;
                     } else if (data.status === 'Approved') {
-                        currentUser.name = data.name;
-                        currentUser.empId = data.empId;
-                        currentUser.dept = data.dept;
+                        currentUser.name = data.name; currentUser.empId = data.empId; currentUser.dept = data.dept;
                         showMainPage();
-                    } else {
-                        alert("บัญชีถูกระงับ");
-                    }
+                    } else { alert("บัญชีถูกระงับ"); }
                 } else {
                     showPage('registerPage');
                     document.getElementById('regisProfileImg').src = currentUser.pictureUrl;
@@ -184,189 +173,147 @@
             document.getElementById(pageId).classList.remove('hidden');
         }
 
-        // 3. Register
         window.handleRegister = async (e) => {
             e.preventDefault();
             const empId = document.getElementById('empId').value.trim();
             const fullName = document.getElementById('fullName').value.trim();
             const dept = document.getElementById('department').value;
-            if(!empId || !fullName) return alert("กรอกข้อมูลให้ครบ");
-
-            const btn = e.target.querySelector('button');
-            btn.disabled = true; btn.innerText = "กำลังบันทึก...";
-
+            const btn = e.target.querySelector('button'); btn.disabled = true; btn.innerText = "กำลังบันทึก...";
             try {
                 await setDoc(doc(db, "users", currentUser.lineUserId), {
-                    lineUserId: currentUser.lineUserId,
-                    pictureUrl: currentUser.pictureUrl,
-                    empId: empId, name: fullName, dept: dept,
+                    lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, empId: empId, name: fullName, dept: dept,
                     status: "Pending", registeredAt: serverTimestamp()
                 });
                 alert("ลงทะเบียนสำเร็จ! รอการอนุมัติ"); window.location.reload();
             } catch (err) { alert("Error: " + err.message); btn.disabled = false; }
         };
 
-        // 4. Main Page Logic
         function showMainPage() {
             showPage('mainPage');
             document.getElementById('showName').innerText = currentUser.name;
             document.getElementById('showEmpId').innerText = `${currentUser.empId} | ${currentUser.dept}`;
             document.getElementById('mainProfileImg').src = currentUser.pictureUrl;
-            
             setInterval(() => {
                 const now = new Date();
                 document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
                 document.getElementById('currentDate').innerText = now.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
             }, 1000);
-            
             loadTodayHistory();
             loadMySchedule();
         }
 
-        // 5. Clock In/Out (with GPS)
         window.recordTime = async (type) => {
             if(!confirm(`ยืนยันการ ${type}?`)) return;
-
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.disabled = true;
-            btn.innerText = "📍 กำลังระบุพิกัด...";
-
+            const btn = event.target; const originalText = btn.innerText; btn.disabled = true; btn.innerText = "📍 กำลังระบุพิกัด...";
+            
             const saveToFirestore = async (lat, lng) => {
                 try {
                     btn.innerText = "⏳ กำลังบันทึก...";
-                    let locationData = null;
-                    let mapLink = "";
-
-                    if (lat && lng) {
-                        locationData = { lat: lat, lng: lng };
-                        mapLink = `https://www.google.com/maps?q=${lat},${lng}`;
-                    }
-
+                    let locationData = null; let mapLink = "";
+                    if (lat && lng) { locationData = { lat: lat, lng: lng }; mapLink = `https://www.google.com/maps?q=${lat},${lng}`; }
                     await addDoc(collection(db, "attendance"), {
-                        userId: currentUser.lineUserId,
-                        name: currentUser.name,
-                        empId: currentUser.empId,
-                        dept: currentUser.dept,
-                        type: type,
-                        timestamp: serverTimestamp(),
-                        location: locationData,
-                        mapUrl: mapLink,
-                        userAgent: navigator.userAgent
+                        userId: currentUser.lineUserId, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
+                        type: type, timestamp: serverTimestamp(), location: locationData, mapUrl: mapLink, userAgent: navigator.userAgent
                     });
-
-                    // LINE Messaging
                     if (liff.isInClient()) {
                         const icon = type === 'เข้างาน' ? '🟢' : '🔴';
                         let msg = `${icon} ลงเวลา: ${type}\n👤 ${currentUser.name}\n⏰ ${new Date().toLocaleTimeString('th-TH')}`;
                         if(mapLink) msg += `\n📍 ${mapLink}`;
-                        
                         await liff.sendMessages([{ type: 'text', text: msg }]).catch(e => console.log(e));
                     }
-
-                    alert(`บันทึก ${type} เรียบร้อย!`);
-                    loadTodayHistory();
-
-                } catch (err) {
-                    alert("Error: " + err.message);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerText = originalText;
-                }
+                    alert(`บันทึก ${type} เรียบร้อย!`); loadTodayHistory();
+                } catch (err) { alert("Error: " + err.message); } finally { btn.disabled = false; btn.innerText = originalText; }
             };
 
-            // Get GPS
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        saveToFirestore(lat, lng);
-                    },
-                    (error) => {
-                        console.error("GPS Error:", error);
-                        if(confirm("ไม่พบพิกัด GPS (อาจปิดอยู่) ต้องการลงเวลาโดย 'ไม่มีพิกัด' หรือไม่?")) {
-                            saveToFirestore(null, null);
-                        } else {
-                            btn.disabled = false;
-                            btn.innerText = originalText;
-                        }
-                    },
+                    (position) => { saveToFirestore(position.coords.latitude, position.coords.longitude); },
+                    (error) => { console.error("GPS Error:", error); if(confirm("ไม่พบพิกัด GPS ต้องการลงเวลาโดย 'ไม่มีพิกัด' หรือไม่?")) saveToFirestore(null, null); else { btn.disabled = false; btn.innerText = originalText; } },
                     { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
                 );
-            } else {
-                alert("Browser ไม่รองรับ GPS");
-                saveToFirestore(null, null);
-            }
+            } else { alert("Browser ไม่รองรับ GPS"); saveToFirestore(null, null); }
         };
 
+        // --- แก้ไข: เพิ่ม try-catch ดัก Error Index ---
         async function loadTodayHistory() {
-            const start = new Date(); start.setHours(0,0,0,0);
-            const q = query(collection(db, "attendance"), where("userId","==",currentUser.lineUserId), where("timestamp",">=",start), orderBy("timestamp"));
-            const snap = await getDocs(q);
-            const list = document.getElementById('historyList');
-            list.innerHTML = "";
-            snap.forEach(d => {
-                const v = d.data();
-                const time = v.timestamp ? new Date(v.timestamp.seconds*1000).toLocaleTimeString('th-TH') : "..";
-                const color = v.type === 'เข้างาน' ? '#28a745' : '#dc3545';
-                list.innerHTML += `<li class="history-item" style="border-left-color:${color}"><span>${v.type}</span> <strong>${time}</strong></li>`;
-            });
+            try {
+                const start = new Date(); start.setHours(0,0,0,0);
+                const q = query(collection(db, "attendance"), where("userId","==",currentUser.lineUserId), where("timestamp",">=",start), orderBy("timestamp"));
+                const snap = await getDocs(q);
+                const list = document.getElementById('historyList'); list.innerHTML = "";
+                
+                if(snap.empty) { list.innerHTML = "<li style='color:#999;'>ยังไม่มีประวัติวันนี้</li>"; return; }
+                
+                snap.forEach(d => {
+                    const v = d.data();
+                    const time = v.timestamp ? new Date(v.timestamp.seconds*1000).toLocaleTimeString('th-TH') : "..";
+                    const color = v.type === 'เข้างาน' ? '#28a745' : '#dc3545';
+                    list.innerHTML += `<li class="history-item" style="border-left-color:${color}"><span>${v.type}</span> <strong>${time}</strong></li>`;
+                });
+            } catch (err) {
+                console.error(err);
+                if(err.message.includes("index")) {
+                    alert("⚠️ ระบบแจ้งเตือน: Database ยังไม่ได้สร้าง Index\nกรุณาแจ้ง Admin ให้สร้าง Index ใน Firebase Console");
+                }
+                document.getElementById('historyList').innerHTML = `<li style="color:red; font-size:0.8em;">Error: ${err.message}</li>`;
+            }
         }
 
+        // --- แก้ไข: เพิ่ม try-catch ดัก Error Index ---
         async function loadMySchedule() {
-            const today = new Date().toISOString().split('T')[0];
-            const q = query(collection(db, "schedules"), where("userId","==",currentUser.lineUserId), where("date",">=",today), orderBy("date"));
-            const snap = await getDocs(q);
-            const div = document.getElementById('scheduleList');
-            div.innerHTML = snap.empty ? "<p class='text-muted' style='font-size:0.9em'>ไม่มีตารางเร็วๆ นี้</p>" : "";
-            snap.forEach(d => {
-                const v = d.data();
-                const dThai = new Date(v.date).toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short'});
-                let color = '#007bff'; if(v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) color = '#dc3545';
-                div.innerHTML += `<div style="background:white; border-left:4px solid ${color}; padding:10px; margin-bottom:5px; box-shadow:0 1px 2px rgba(0,0,0,0.1); border-radius:4px;">
-                    <div style="display:flex; justify-content:space-between;"><strong>${dThai}</strong><span style="color:${color}; font-size:0.9em;">${v.shiftDetail}</span></div></div>`;
-            });
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const q = query(collection(db, "schedules"), where("userId","==",currentUser.lineUserId), where("date",">=",today), orderBy("date"));
+                const snap = await getDocs(q);
+                const div = document.getElementById('scheduleList'); div.innerHTML = "";
+
+                if(snap.empty) { div.innerHTML = "<p class='text-muted' style='font-size:0.9em'>ไม่มีตารางเร็วๆ นี้</p>"; return; }
+
+                snap.forEach(d => {
+                    const v = d.data();
+                    const dThai = new Date(v.date).toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short'});
+                    let color = '#007bff'; if(v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) color = '#dc3545';
+                    div.innerHTML += `<div style="background:white; border-left:4px solid ${color}; padding:10px; margin-bottom:5px; box-shadow:0 1px 2px rgba(0,0,0,0.1); border-radius:4px;">
+                        <div style="display:flex; justify-content:space-between;"><strong>${dThai}</strong><span style="color:${color}; font-size:0.9em;">${v.shiftDetail}</span></div></div>`;
+                });
+            } catch (err) {
+                console.error(err);
+                document.getElementById('scheduleList').innerHTML = `<p style="color:red; font-size:0.8em;">Error: ${err.message}</p>`;
+            }
         }
 
-        // 6. Leave System
         window.toggleLeaveForm = () => { const el = document.getElementById('leaveFormSection'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) loadMyLeaves(); };
         window.submitLeaveRequest = async () => {
             const type = document.getElementById('leaveType').value;
             const start = document.getElementById('leaveStart').value;
             const end = document.getElementById('leaveEnd').value;
             const reason = document.getElementById('leaveReason').value;
-
             if(!start || !end) return alert("ระบุวันให้ครบ");
             if(start > end) return alert("วันเริ่มต้องมาก่อนวันจบ");
             if(!confirm("ยืนยันส่งคำขอลา?")) return;
-
             try {
                 await addDoc(collection(db, "leave_requests"), {
                     userId: currentUser.lineUserId, name: currentUser.name, dept: currentUser.dept,
                     type, startDate: start, endDate: end, reason, status: "Pending", requestedAt: serverTimestamp()
                 });
-
-                if (liff.isInClient()) {
-                    await liff.sendMessages([{ type: 'text', text: `📝 ขอลาหยุด (${currentUser.name})\n📌 ${type}\n📅 ${start} ถึง ${end}\n💬 ${reason||'-'}` }]).catch(e=>console.log(e));
-                }
+                if (liff.isInClient()) { await liff.sendMessages([{ type: 'text', text: `📝 ขอลาหยุด (${currentUser.name})\n📌 ${type}\n📅 ${start} ถึง ${end}\n💬 ${reason||'-'}` }]).catch(e=>console.log(e)); }
                 alert("ส่งคำขอเรียบร้อย"); toggleLeaveForm();
             } catch (err) { alert("Error: " + err.message); }
         };
 
         async function loadMyLeaves() {
-            const q = query(collection(db, "leave_requests"), where("userId","==",currentUser.lineUserId), orderBy("startDate","desc"));
-            const snap = await getDocs(q);
-            const list = document.getElementById('myLeaveList');
-            list.innerHTML = "";
-            snap.forEach(d => {
-                const v = d.data();
-                let color = 'orange'; let status = 'รออนุมัติ';
-                if(v.status==='Approved') { color='green'; status='อนุมัติ'; }
-                if(v.status==='Rejected') { color='red'; status='ไม่อนุมัติ'; }
-                list.innerHTML += `<li style="margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:5px; font-size:0.9em;">
-                    <span style="color:${color}; font-weight:bold;">${status}</span> : ${v.type} <span style="color:#666;">(${v.startDate})</span></li>`;
-            });
+            try {
+                const q = query(collection(db, "leave_requests"), where("userId","==",currentUser.lineUserId), orderBy("startDate","desc"));
+                const snap = await getDocs(q);
+                const list = document.getElementById('myLeaveList'); list.innerHTML = "";
+                snap.forEach(d => {
+                    const v = d.data();
+                    let color = 'orange'; let status = 'รออนุมัติ';
+                    if(v.status==='Approved') { color='green'; status='อนุมัติ'; }
+                    if(v.status==='Rejected') { color='red'; status='ไม่อนุมัติ'; }
+                    list.innerHTML += `<li style="margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:5px; font-size:0.9em;"><span style="color:${color}; font-weight:bold;">${status}</span> : ${v.type} <span style="color:#666;">(${v.startDate})</span></li>`;
+                });
+            } catch(e) { console.log(e); }
         }
     </script>
 </body>
