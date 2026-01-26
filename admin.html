@@ -54,7 +54,6 @@
         .fc-event { cursor: pointer; border: none; font-size: 0.85rem; padding: 2px 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .fc-daygrid-event-dot { display: none; }
 
-        /* Card Hover Effect */
         .card-hover { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
         .card-hover:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important; }
     </style>
@@ -63,15 +62,9 @@
 
     <div id="loginPage" class="d-flex justify-content-center align-items-center" style="height: 100vh; background: #eef2f6;">
         <div class="login-card text-center">
-            <div class="mb-4">
-                <i class="bi bi-hospital-fill text-primary" style="font-size: 4rem;"></i>
-                <h3 class="mt-3 fw-bold text-dark">MedLife Plus</h3>
-                <p class="text-muted">Admin Portal</p>
-            </div>
+            <div class="mb-4"><i class="bi bi-hospital-fill text-primary" style="font-size: 4rem;"></i><h3 class="mt-3 fw-bold text-dark">MedLife Plus</h3><p class="text-muted">Admin Portal</p></div>
             <div class="alert alert-info small text-start"><i class="bi bi-info-circle me-1"></i> เฉพาะบัญชี <b>medlifeplus@gmail.com</b></div>
-            <button onclick="loginWithGoogle()" class="btn btn-google btn-lg w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> เข้าสู่ระบบด้วย Google
-            </button>
+            <button onclick="loginWithGoogle()" class="btn btn-google btn-lg w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> เข้าสู่ระบบด้วย Google</button>
         </div>
     </div>
 
@@ -79,10 +72,7 @@
         <nav class="navbar navbar-light bg-white border-bottom px-4 py-3 sticky-top">
             <div class="d-flex align-items-center gap-3"><i class="bi bi-hospital-fill text-primary fs-3"></i><h5 class="mb-0 fw-bold d-none d-md-block">MedLife Plus <span class="text-muted fw-normal fs-6">| Admin</span></h5></div>
             <div class="dropdown">
-                <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3" data-bs-toggle="dropdown">
-                    <img id="adminProfilePic" src="https://via.placeholder.com/30" class="rounded-circle" style="width: 30px; height: 30px;">
-                    <span class="d-none d-sm-block small fw-bold" id="adminEmailDisplay">Admin</span>
-                </button>
+                <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3" data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30" class="rounded-circle" style="width: 30px; height: 30px;"><span class="d-none d-sm-block small fw-bold" id="adminEmailDisplay">Admin</span></button>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0"><li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>ออกจากระบบ</a></li></ul>
             </div>
         </nav>
@@ -90,42 +80,10 @@
         <div class="container-fluid px-4 py-4">
             
             <div class="row g-3 mb-4">
-                <div class="col-md-3 col-6">
-                    <div class="card p-3 border-start border-4 border-success shadow-sm h-100" onclick="switchTab('attendance')" style="cursor: pointer;">
-                        <small class="text-muted">เข้างานวันนี้</small>
-                        <h3 class="fw-bold my-1 text-success" id="statIn">0</h3>
-                        <div id="liveClock" class="mt-2 pt-2 border-top small text-secondary mono-font">
-                            <i class="bi bi-clock"></i> Loading...
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 col-6">
-                    <div class="card p-3 border-start border-4 border-warning shadow-sm h-100 card-hover" onclick="switchTab('leave')">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div><small class="text-muted">รออนุมัติลา</small><h3 class="fw-bold my-1 text-warning" id="statLeave">0</h3></div>
-                            <i class="bi bi-chevron-right text-muted opacity-25"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 col-6">
-                    <div class="card p-3 border-start border-4 border-info shadow-sm h-100 card-hover" onclick="switchTab('users')">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div><small class="text-muted">พนักงานทั้งหมด</small><h3 class="fw-bold my-1 text-info" id="statTotalUsers">0</h3></div>
-                            <i class="bi bi-chevron-right text-muted opacity-25"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-3 col-6">
-                    <div class="card p-3 border-start border-4 border-danger shadow-sm h-100 card-hover" onclick="switchTab('users')">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div><small class="text-muted">สมาชิกใหม่</small><h3 class="fw-bold my-1 text-danger" id="statNewUsers">0</h3></div>
-                            <i class="bi bi-chevron-right text-muted opacity-25"></i>
-                        </div>
-                    </div>
-                </div>
+                <div class="col-md-3 col-6"><div class="card p-3 border-start border-4 border-success shadow-sm h-100 card-hover" onclick="switchTab('attendance')"><small class="text-muted">เข้างานวันนี้</small><h3 class="fw-bold my-1 text-success" id="statIn">0</h3><div id="liveClock" class="mt-2 pt-2 border-top small text-secondary mono-font"><i class="bi bi-clock"></i> Loading...</div></div></div>
+                <div class="col-md-3 col-6"><div class="card p-3 border-start border-4 border-warning shadow-sm h-100 card-hover" onclick="switchTab('leave')"><div class="d-flex justify-content-between align-items-start"><div><small class="text-muted">รออนุมัติลา</small><h3 class="fw-bold my-1 text-warning" id="statLeave">0</h3></div><i class="bi bi-chevron-right text-muted opacity-25"></i></div></div></div>
+                <div class="col-md-3 col-6"><div class="card p-3 border-start border-4 border-info shadow-sm h-100 card-hover" onclick="switchTab('users')"><div class="d-flex justify-content-between align-items-start"><div><small class="text-muted">พนักงานทั้งหมด</small><h3 class="fw-bold my-1 text-info" id="statTotalUsers">0</h3></div><i class="bi bi-chevron-right text-muted opacity-25"></i></div></div></div>
+                <div class="col-md-3 col-6"><div class="card p-3 border-start border-4 border-danger shadow-sm h-100 card-hover" onclick="switchTab('users')"><div class="d-flex justify-content-between align-items-start"><div><small class="text-muted">สมาชิกใหม่</small><h3 class="fw-bold my-1 text-danger" id="statNewUsers">0</h3></div><i class="bi bi-chevron-right text-muted opacity-25"></i></div></div></div>
             </div>
 
             <ul class="nav nav-tabs" id="mainTab" role="tablist">
@@ -145,37 +103,8 @@
 
             <div id="tabSchedule" class="tab-section hidden">
                 <div class="row g-4">
-                    <div class="col-lg-4">
-                        <div class="card shadow-sm border-0 h-100">
-                            <div class="card-header bg-white fw-bold py-3">สร้างเวรทำงาน</div>
-                            <div class="card-body">
-                                <form onsubmit="createSchedule(event)">
-                                    <div class="mb-3"><label class="small text-muted">พนักงาน</label><select id="userSelect" class="form-select" required></select></div>
-                                    <div class="mb-3"><label class="small text-muted">วันที่</label><input type="date" id="schedDate" class="form-control" required></div>
-                                    <div class="mb-3"><label class="small text-muted">กะ</label>
-                                        <select id="schedType" class="form-select" onchange="toggleCustomTime()">
-                                            <option value="เช้า (08:00 - 17:00)">☀️ เช้า (08:00 - 17:00)</option>
-                                            <option value="บ่าย (13:00 - 22:00)">🌤️ บ่าย (13:00 - 22:00)</option>
-                                            <option value="ดึก (22:00 - 07:00)">🌙 ดึก (22:00 - 07:00)</option>
-                                            <option value="หยุด (Day Off)">🛑 หยุด (Day Off)</option>
-                                            <option value="custom">✏️ กำหนดเอง (Custom)</option>
-                                        </select>
-                                    </div>
-                                    <div id="customTimeBox" class="mb-4 p-3 bg-light rounded border d-none">
-                                        <label class="small fw-bold mb-2">ระบุเวลาเอง:</label>
-                                        <div class="d-flex gap-2 align-items-center"><input type="time" id="customStart" class="form-control"><span>ถึง</span><input type="time" id="customEnd" class="form-control"></div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100">บันทึก</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-8">
-                        <div class="card shadow-sm border-0 h-100">
-                            <div class="card-header bg-white d-flex justify-content-between py-3"><span class="fw-bold">รายการเวรล่าสุด</span><button onclick="loadSchedules()" class="btn btn-sm btn-light border"><i class="bi bi-arrow-clockwise"></i></button></div>
-                            <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>วันที่</th><th>พนักงาน</th><th>กะ</th><th>ลบ</th></tr></thead><tbody id="schedTableBody"></tbody></table></div>
-                        </div>
-                    </div>
+                    <div class="col-lg-4"><div class="card shadow-sm border-0 h-100"><div class="card-header bg-white fw-bold py-3">สร้างเวรทำงาน</div><div class="card-body"><form onsubmit="createSchedule(event)"><div class="mb-3"><label class="small text-muted">พนักงาน</label><select id="userSelect" class="form-select" required></select></div><div class="mb-3"><label class="small text-muted">วันที่</label><input type="date" id="schedDate" class="form-control" required></div><div class="mb-3"><label class="small text-muted">กะ</label><select id="schedType" class="form-select" onchange="toggleCustomTime()"><option value="เช้า (08:00 - 17:00)">☀️ เช้า (08:00 - 17:00)</option><option value="บ่าย (13:00 - 22:00)">🌤️ บ่าย (13:00 - 22:00)</option><option value="ดึก (22:00 - 07:00)">🌙 ดึก (22:00 - 07:00)</option><option value="หยุด (Day Off)">🛑 หยุด (Day Off)</option><option value="custom">✏️ กำหนดเอง (Custom)</option></select></div><div id="customTimeBox" class="mb-4 p-3 bg-light rounded border d-none"><label class="small fw-bold mb-2">ระบุเวลาเอง:</label><div class="d-flex gap-2 align-items-center"><input type="time" id="customStart" class="form-control"><span>ถึง</span><input type="time" id="customEnd" class="form-control"></div></div><button type="submit" class="btn btn-primary w-100">บันทึก</button></form></div></div></div>
+                    <div class="col-lg-8"><div class="card shadow-sm border-0 h-100"><div class="card-header bg-white d-flex justify-content-between py-3"><span class="fw-bold">รายการเวรล่าสุด</span><button onclick="loadSchedules()" class="btn btn-sm btn-light border"><i class="bi bi-arrow-clockwise"></i></button></div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>วันที่</th><th>พนักงาน</th><th>กะ</th><th>ลบ</th></tr></thead><tbody id="schedTableBody"></tbody></table></div></div></div>
                 </div>
             </div>
 
@@ -185,84 +114,34 @@
 
             <div id="tabReport" class="tab-section hidden">
                 <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0">ปฏิทินงาน & ชั่วโมงทำงาน</h5>
-                        <div class="d-flex align-items-center gap-2"><span class="badge bg-primary">ตารางเวร</span><span class="badge" style="background-color: var(--color-work-actual);">⏱️ ชั่วโมงทำงานจริง</span></div>
-                    </div>
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center"><h5 class="fw-bold mb-0">ปฏิทินงาน & ชั่วโมงทำงาน</h5><div class="d-flex align-items-center gap-2"><span class="badge bg-primary">ตารางเวร</span><span class="badge" style="background-color: var(--color-work-actual);">⏱️ ชั่วโมงทำงานจริง</span></div></div>
                     <div class="card-body"><div id='calendar'></div></div>
                 </div>
-                <div class="card shadow-sm border-0"><div class="card-header bg-white fw-bold py-3">กราฟชั่วโมงทำงานรายเดือน</div><div class="card-body"><div class="d-flex gap-2 mb-3"><input type="month" id="chartMonth" class="form-control" style="width: 200px;"><button onclick="renderCharts()" class="btn btn-dark">แสดงกราฟ</button></div><canvas id="workHoursChart" style="max-height: 300px;"></canvas></div></div>
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold py-3">📊 อันดับชั่วโมงทำงานรายเดือน (Top Performers)</div>
+                    <div class="card-body">
+                        <div class="d-flex gap-2 mb-3 align-items-center">
+                            <label>เลือกเดือน:</label>
+                            <input type="month" id="chartMonth" class="form-control" style="width: 200px;">
+                            <button onclick="renderCharts()" class="btn btn-dark">แสดงกราฟ</button>
+                        </div>
+                        <div style="height: 400px;">
+                            <canvas id="workHoursChart"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="tabUsers" class="tab-section hidden">
                 <div class="row g-4">
-                    <div class="col-lg-5">
-                        <div class="card shadow-sm border-0 border-start border-4 border-danger">
-                            <div class="card-header bg-white text-danger fw-bold py-3">รออนุมัติ (Pending)</div>
-                            <div class="table-responsive"><table class="table table-hover align-middle mb-0"><tbody id="pendingUsersTable"></tbody></table></div>
-                        </div>
-                    </div>
-                    <div class="col-lg-7">
-                        <div class="card shadow-sm border-0 border-start border-4 border-primary">
-                            <div class="card-header bg-white text-primary fw-bold py-3 d-flex justify-content-between"><span>พนักงานทั้งหมด</span><button onclick="loadAllUsers()" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-clockwise"></i></button></div>
-                            <div class="table-responsive" style="max-height: 500px;"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead><tbody id="allUsersTable"></tbody></table></div>
-                        </div>
-                    </div>
+                    <div class="col-lg-5"><div class="card shadow-sm border-0 border-start border-4 border-danger"><div class="card-header bg-white text-danger fw-bold py-3">รออนุมัติ (Pending)</div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><tbody id="pendingUsersTable"></tbody></table></div></div></div>
+                    <div class="col-lg-7"><div class="card shadow-sm border-0 border-start border-4 border-primary"><div class="card-header bg-white text-primary fw-bold py-3 d-flex justify-content-between"><span>พนักงานทั้งหมด</span><button onclick="loadAllUsers()" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-clockwise"></i></button></div><div class="table-responsive" style="max-height: 500px;"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead><tbody id="allUsersTable"></tbody></table></div></div></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="editUserModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-0 bg-light"><h5 class="modal-title fw-bold">✏️ แก้ไขข้อมูล</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body p-4">
-                    <div class="text-center mb-3">
-                        <img id="editUserImg" src="" class="profile-thumb shadow-sm" style="width:80px; height:80px;">
-                    </div>
-                    <input type="hidden" id="editUserId">
-                    
-                    <div class="form-floating mb-3">
-                        <input type="text" id="editEmpId" class="form-control" placeholder="รหัส">
-                        <label>รหัสพนักงาน</label>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input type="text" id="editUserName" class="form-control" placeholder="ชื่อ">
-                        <label>ชื่อ-นามสกุล</label>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <select id="editUserDept" class="form-select">
-                            <option value="General">General</option>
-                            <option value="Pharmacy">Pharmacy</option>
-                            <option value="IT">IT Support</option>
-                            <option value="Admin">Admin</option>
-                            <option value="Sales">Sales</option>
-                        </select>
-                        <label>แผนก</label>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <div class="form-floating">
-                                <input type="date" id="editStartDate" class="form-control">
-                                <label>วันที่เริ่มงาน</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-floating">
-                                <input type="date" id="editEndDate" class="form-control">
-                                <label>สิ้นสุดงาน</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 bg-light">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="button" class="btn btn-primary px-4" onclick="saveEditUser()">บันทึก</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="modal fade" id="editUserModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header border-0 bg-light"><h5 class="modal-title fw-bold">✏️ แก้ไขข้อมูล</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><div class="text-center mb-3"><img id="editUserImg" src="" class="profile-thumb shadow-sm" style="width:80px; height:80px;"></div><input type="hidden" id="editUserId"><div class="form-floating mb-3"><input type="text" id="editEmpId" class="form-control" placeholder="รหัส"><label>รหัสพนักงาน</label></div><div class="form-floating mb-3"><input type="text" id="editUserName" class="form-control" placeholder="ชื่อ"><label>ชื่อ-นามสกุล</label></div><div class="form-floating mb-3"><select id="editUserDept" class="form-select"><option value="General">General</option><option value="Pharmacy">Pharmacy</option><option value="IT">IT Support</option><option value="Admin">Admin</option><option value="Sales">Sales</option></select><label>แผนก</label></div><div class="row g-2"><div class="col-6"><div class="form-floating"><input type="date" id="editStartDate" class="form-control"><label>วันที่เริ่มงาน</label></div></div><div class="col-6"><div class="form-floating"><input type="date" id="editEndDate" class="form-control"><label>สิ้นสุดงาน</label></div></div></div></div><div class="modal-footer border-0 bg-light"><button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary px-4" onclick="saveEditUser()">บันทึก</button></div></div></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -295,9 +174,7 @@
         
         let calendarObj, editModal, barChart;
         let userProfileMap = {};
-        // เก็บข้อมูล User ทั้งหมด (object) เพื่อใช้ตอน Edit โดยไม่ต้องส่ง parameter เยอะๆ
         window.allUserData = {}; 
-
         const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
 
         // AUTH
@@ -311,10 +188,7 @@
                     await cacheUserProfiles(); loadInitialData();
                     editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
                     document.getElementById('chartMonth').value = new Date().toISOString().slice(0, 7);
-                    
-                    // Start Realtime Clock
-                    setInterval(updateLiveClock, 1000);
-                    updateLiveClock();
+                    setInterval(updateLiveClock, 1000); updateLiveClock();
                 } else { await signOut(auth); Swal.fire('Access Denied', 'อีเมลนี้ไม่มีสิทธิ์เข้าถึง', 'error'); }
             } else {
                 document.getElementById('loginPage').classList.remove('hidden');
@@ -322,7 +196,6 @@
             }
         });
 
-        // --- 🟢 Real-time Clock Function ---
         function updateLiveClock() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
@@ -338,7 +211,6 @@
             const target = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
             if(target) target.classList.remove('hidden');
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            // Find nav link that calls this function (loop to find matching onclick)
             const links = document.querySelectorAll('.nav-link');
             links.forEach(l => { if(l.getAttribute('onclick').includes(tabName)) l.classList.add('active'); });
 
@@ -358,73 +230,95 @@
         window.delSched=async(id)=>{if((await Swal.fire({title:'ลบรายการ?',icon:'warning',showCancelButton:true})).isConfirmed){await deleteDoc(doc(db,"schedules",id));loadSchedules();}};
         window.loadLeaveRequests=async()=>{const s=await getDocs(query(collection(db,"leave_requests"),where("status","==","Pending")));let h="";s.forEach(doc=>{const d=doc.data();const img=getProfileImg(d.userId);h+=`<tr><td class="ps-3"><div class="user-cell">${img} <div><h6>${d.name}</h6><small>${d.dept}</small></div></div></td><td><span class="badge bg-warning text-dark">${d.type}</span></td><td>${d.startDate} - ${d.endDate}</td><td>${d.reason}</td><td class="text-end pe-3"><button onclick="updLeave('${doc.id}','Approved','${d.userId}','${d.name}','${d.startDate}','${d.endDate}','${d.type}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button><button onclick="updLeave('${doc.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button></td></tr>`});document.getElementById('leaveTableBody').innerHTML=h||`<tr><td colspan="5" class="text-center py-4 text-muted">ไม่มีคำขอใหม่</td></tr>`; document.getElementById('statLeave').innerText = s.size; };
         window.updLeave=async(id,st,uid,nm,s,e,tp)=>{await setDoc(doc(db,"leave_requests",id),{status:st},{merge:true});if(st==='Approved'){let c=new Date(s),end=new Date(e);while(c<=end){let ds=c.toISOString().split('T')[0];await setDoc(doc(db,"schedules",`${uid}_${ds}`),{userId:uid,name:nm,date:ds,shiftDetail:`🛑 ${tp}`});c.setDate(c.getDate()+1)}}Toast.fire({icon:'success',title:'เรียบร้อย'});loadLeaveRequests();};
-        window.renderCharts=async()=>{const m=document.getElementById('chartMonth').value; if(!m)return; const start=new Date(m+"-01"); start.setHours(0,0,0,0); const end=new Date(m+"-01"); end.setMonth(end.getMonth()+1); end.setDate(0); end.setHours(23,59,59,999); const userSnap = await getDocs(query(collection(db, "users"), where("status", "==", "Approved"))); let uH = {}; userSnap.forEach(doc => { uH[doc.data().name] = { logs: [] }; }); const snap=await getDocs(query(collection(db,"attendance"),where("timestamp",">=",start),where("timestamp","<=",end))); snap.forEach(d=>{ const v=d.data(); if(uH[v.name]) uH[v.name].logs.push({t:v.type, time:v.timestamp.seconds}); }); let lbs=[], dts=[]; Object.keys(uH).forEach(n=>{ const l=uH[n].logs.sort((a,b)=>a.time-b.time); let ms=0, last=null; l.forEach(x=>{ if(x.t==='เข้างาน') last=x.time; else if(x.t==='ออกงาน' && last) { ms+=(x.time-last); last=null; } }); lbs.push(n); dts.push((ms/3600).toFixed(1)); }); if(barChart)barChart.destroy(); barChart=new Chart(document.getElementById('workHoursChart'),{type:'bar',data:{labels:lbs,datasets:[{label:'ชั่วโมงทำงาน',data:dts,backgroundColor:'#0d6efd'}]},options:{responsive:true}});};
         window.loadPendingUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Pending")));let h="";s.forEach(d=>{const v=d.data();h+=`<tr><td class="ps-3"><div class="user-cell"><img src="${v.pictureUrl}" class="profile-thumb"> <div><h6>${v.name}</h6><small class="text-danger">New Register</small></div></div></td><td class="text-end pe-3"><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success px-3">อนุมัติ</button></td></tr>`});document.getElementById('pendingUsersTable').innerHTML=h||`<tr><td colspan="2" class="text-center py-3 text-muted">ไม่มีผู้สมัครใหม่</td></tr>`; document.getElementById('statNewUsers').innerText=s.size;};
         
-        // --- 🟢 UPDATED: Load All Users + Store Data ---
+        // --- 🟢 RENDER CHART (Horizontal Bar + Sorted) ---
+        window.renderCharts=async()=>{
+            const m=document.getElementById('chartMonth').value; if(!m)return;
+            const start=new Date(m+"-01"); start.setHours(0,0,0,0); const end=new Date(m+"-01"); end.setMonth(end.getMonth()+1); end.setDate(0); end.setHours(23,59,59,999);
+            
+            // 1. Get All Users
+            const userSnap = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
+            let uH = {}; userSnap.forEach(doc => { uH[doc.data().name] = { logs: [] }; });
+
+            // 2. Get Attendance
+            const snap=await getDocs(query(collection(db,"attendance"),where("timestamp",">=",start),where("timestamp","<=",end)));
+            snap.forEach(d=>{ const v=d.data(); if(uH[v.name]) uH[v.name].logs.push({t:v.type, time:v.timestamp.seconds}); });
+
+            // 3. Calc Hours
+            let chartData = [];
+            Object.keys(uH).forEach(n=>{
+                const l=uH[n].logs.sort((a,b)=>a.time-b.time); 
+                let ms=0, last=null;
+                l.forEach(x=>{
+                    if(x.t==='เข้างาน') last=x.time;
+                    else if(x.t==='ออกงาน' && last) { ms+=(x.time-last); last=null; }
+                });
+                chartData.push({ name: n, hours: parseFloat((ms/3600).toFixed(2)) });
+            });
+
+            // 4. Sort (Highest hours first)
+            chartData.sort((a,b) => b.hours - a.hours);
+
+            const labels = chartData.map(d => d.name);
+            const data = chartData.map(d => d.hours);
+
+            if(barChart)barChart.destroy();
+            const ctx = document.getElementById('workHoursChart').getContext('2d');
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'ชั่วโมงทำงานรวม',
+                        data: data,
+                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // 🟢 Horizontal Bar
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true, grid: { display: true, color: '#f0f0f0' } },
+                        y: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: { label: (c) => ` ${c.raw} ชั่วโมง` }
+                        }
+                    }
+                }
+            });
+        };
+
         window.loadAllUsers=async()=>{
             const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));
-            let h="";
-            window.allUserData = {}; // Reset global data
-            
+            let h=""; window.allUserData = {};
             s.forEach(d=>{
-                const u=d.data();
-                window.allUserData[d.id] = u; // Store for Edit Modal
-                h+=`<tr>
-                    <td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"><h6>${u.name}</h6></div></td>
-                    <td><span class="badge bg-light text-dark border">${u.dept}</span></td>
-                    <td class="text-end pe-3">
-                        <button onclick="openEditUser('${d.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button>
-                        <button onclick="delUser('${d.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button>
-                    </td>
-                </tr>`
+                const u=d.data(); window.allUserData[d.id] = u;
+                h+=`<tr><td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"><h6>${u.name}</h6></div></td><td><span class="badge bg-light text-dark border">${u.dept}</span></td><td class="text-end pe-3"><button onclick="openEditUser('${d.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${d.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td></tr>`
             });
             document.getElementById('allUsersTable').innerHTML=h;
         };
 
         window.appUser=async(id)=>{await setDoc(doc(db,"users",id),{status:"Approved"},{merge:true});Toast.fire({icon:'success',title:'อนุมัติแล้ว'});loadPendingUsers();loadAllUsers();};
         window.delUser=async(id)=>{if((await Swal.fire({title:'ลบพนักงาน?',icon:'warning',showCancelButton:true})).isConfirmed){await deleteDoc(doc(db,"users",id));loadAllUsers();Toast.fire('ลบสำเร็จ','','success')}};
-        
-        // --- 🟢 UPDATED: OPEN EDIT MODAL (Populate new fields) ---
-        window.openEditUser = (id) => {
-            const u = window.allUserData[id];
-            if(!u) return;
-
-            document.getElementById('editUserId').value = id;
-            document.getElementById('editUserName').value = u.name;
-            document.getElementById('editEmpId').value = u.empId || '';
-            document.getElementById('editUserDept').value = u.dept;
-            document.getElementById('editStartDate').value = u.startDate || '';
-            document.getElementById('editEndDate').value = u.endDate || '';
-            document.getElementById('editUserImg').src = u.pictureUrl || "https://via.placeholder.com/80";
-            
-            editModal.show();
+        window.openEditUser=(id)=>{
+            const u=window.allUserData[id]; if(!u)return;
+            document.getElementById('editUserId').value=id; document.getElementById('editUserName').value=u.name; document.getElementById('editEmpId').value=u.empId||''; document.getElementById('editUserDept').value=u.dept; document.getElementById('editStartDate').value=u.startDate||''; document.getElementById('editEndDate').value=u.endDate||''; document.getElementById('editUserImg').src=u.pictureUrl||"https://via.placeholder.com/80"; editModal.show();
         };
-
-        // --- 🟢 UPDATED: SAVE EDIT (Save new fields) ---
-        window.saveEditUser = async () => {
-            try {
-                const id = document.getElementById('editUserId').value;
-                await updateDoc(doc(db, "users", id), {
-                    name: document.getElementById('editUserName').value,
-                    empId: document.getElementById('editEmpId').value,
-                    dept: document.getElementById('editUserDept').value,
-                    startDate: document.getElementById('editStartDate').value,
-                    endDate: document.getElementById('editEndDate').value
-                });
-                Toast.fire({icon:'success',title:'แก้ไขสำเร็จ'});
-                editModal.hide();
-                loadAllUsers();
-            } catch(e) { Swal.fire('Error',e.message,'error') }
-        };
-
+        window.saveEditUser=async()=>{try{await updateDoc(doc(db,"users",document.getElementById('editUserId').value),{name:document.getElementById('editUserName').value,empId:document.getElementById('editEmpId').value,dept:document.getElementById('editUserDept').value,startDate:document.getElementById('editStartDate').value,endDate:document.getElementById('editEndDate').value});Toast.fire({icon:'success',title:'แก้ไขสำเร็จ'});editModal.hide();loadAllUsers();}catch(e){Swal.fire('Error',e.message,'error')}};
         window.logout=()=>signOut(auth);
         window.loadUsersList=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h='<option value="">เลือกพนักงาน...</option>';s.forEach(d=>h+=`<option value="${d.data().lineUserId}">${d.data().name}</option>`);document.getElementById('userSelect').innerHTML=h};
         window.exportCSV=()=>{if(!window.currentData?.length)return Toast.fire({icon:'warning',title:'ไม่มีข้อมูล'});let c="Time,Name,Dept,Type,MapLink\n"+window.currentData.map(r=>`${new Date(r.timestamp.seconds*1000).toLocaleTimeString('th-TH')},${r.name},${r.dept},${r.type},${r.mapUrl||''}`).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURI(c);a.download=`attendance_${new Date().toISOString().split('T')[0]}.csv`;a.click()};
-
         function initCalendar(){if(calendarObj){calendarObj.render();return}calendarObj=new FullCalendar.Calendar(document.getElementById('calendar'),{initialView:'dayGridMonth',locale:'th',height:'auto',events:async(info,s,f)=>{try{let ev=[];const sn=await getDocs(collection(db,"schedules"));sn.forEach(d=>{const v=d.data();let c='var(--color-shift-am)';if(v.shiftDetail.includes('บ่าย'))c='var(--color-shift-pm)';else if(v.shiftDetail.includes('ดึก'))c='var(--color-shift-night)';else if(v.shiftDetail.includes('หยุด')||v.shiftDetail.includes('ลา'))c='var(--color-leave)';ev.push({title:`${v.name}`,start:v.date,color:c})});const att=await getDocs(collection(db,"attendance"));let map={};att.forEach(d=>{const k=`${d.data().userId}_${new Date(d.data().timestamp.seconds*1000).toISOString().split('T')[0]}`;if(!map[k])map[k]={n:d.data().name,l:[]};map[k].l.push({t:d.data().type,ts:d.data().timestamp.seconds})});Object.keys(map).forEach(k=>{const i=map[k];i.l.sort((a,b)=>a.ts-b.ts);let ms=0,last=null;i.l.forEach(x=>{if(x.t==='เข้างาน')last=x.ts;else if(x.t==='ออกงาน'&&last){ms+=(x.ts-last);last=null}});if(ms>0)ev.push({title:`⏱️ ${i.n}: ${(ms/3600).toFixed(1)} ชม.`,start:k.split('_')[1],color:'var(--color-work-actual)',display:'block'})});s(ev)}catch(e){f(e)}}});calendarObj.render();}
 
-        // Global
         window.loginWithGoogle=loginWithGoogle; window.logout=logout; window.loadData=loadData; window.exportCSV=exportCSV; window.switchTab=switchTab; window.loadSchedules=loadSchedules; window.createSchedule=createSchedule; window.delSched=delSched; window.loadLeaveRequests=loadLeaveRequests; window.updLeave=updLeave; window.renderCharts=renderCharts; window.loadPendingUsers=loadPendingUsers; window.loadAllUsers=loadAllUsers; window.appUser=appUser; window.delUser=delUser; window.openEditUser=openEditUser; window.saveEditUser=saveEditUser; window.toggleCustomTime=toggleCustomTime;
     </script>
 </body>
