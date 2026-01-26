@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบลงเวลาพนักงาน (GPS Forced)</title>
+    <title>ระบบลงเวลาพนักงาน</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
@@ -118,7 +118,7 @@
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- 🔴 CONFIGURATION ZONE (แก้ไขตรงนี้) ---
-         const firebaseConfig = {
+        const firebaseConfig = {
 
     apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
 
@@ -210,20 +210,57 @@
             loadMySchedule();
         }
 
-        // --- 🟢 ฟังก์ชันลงเวลา (บังคับ GPS + ซ่อนลิงก์ในไลน์) ---
+        // --- 🟢 ฟังก์ชันลงเวลา (CHECK DUPLICATE + GPS Forced) ---
         window.recordTime = async (type) => {
             if(!confirm(`ยืนยันการ ${type}?`)) return;
 
             const btn = event.target;
             const originalText = btn.innerText;
             btn.disabled = true;
+            btn.innerText = "🔍 กำลังตรวจสอบ...";
+
+            // 1. ตรวจสอบว่าวันนี้ลงไปแล้วหรือยัง?
+            try {
+                const start = new Date(); start.setHours(0,0,0,0);
+                const end = new Date(); end.setHours(23,59,59,999);
+                
+                // Query: ใคร + ประเภทอะไร + วันนี้
+                const q = query(collection(db, "attendance"), 
+                    where("userId", "==", currentUser.lineUserId),
+                    where("type", "==", type),
+                    where("timestamp", ">=", start),
+                    where("timestamp", "<=", end)
+                );
+                
+                const snap = await getDocs(q);
+                if(!snap.empty) {
+                    // ถ้าเจอข้อมูลแล้ว ให้หยุดเลย
+                    alert(`⚠️ คุณได้ลงเวลา "${type}" ของวันนี้ไปแล้วครับ\n(ไม่สามารถลงซ้ำได้)`);
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                    return;
+                }
+
+            } catch (e) {
+                // ถ้า Error เรื่อง Index (ซึ่งจะเกิดแน่นอนในครั้งแรก)
+                if(e.message.includes("index")) {
+                    alert("⚠️ ระบบต้องการการตั้งค่าครั้งแรก (Create Index)\nกรุณาแจ้ง Admin ให้สร้าง Index ใน Firebase ตามลิงก์ใน Console");
+                    console.error("Required Index Link:", e.message); // Admin ต้องกดลิงก์นี้ในคอม
+                } else {
+                    alert("Error checking: " + e.message);
+                }
+                btn.disabled = false;
+                btn.innerText = originalText;
+                return;
+            }
+
+            // 2. ถ้ายังไม่เคยลง -> เริ่มขอ GPS
             btn.innerText = "📍 กำลังระบุพิกัด...";
 
             const saveToFirestore = async (lat, lng) => {
                 try {
                     btn.innerText = "⏳ กำลังบันทึก...";
                     
-                    // เตรียมข้อมูลพิกัด (ส่งไปเก็บหลังบ้าน)
                     const locationData = { lat: lat, lng: lng };
                     const mapLink = `http://maps.google.com/?q=${lat},${lng}`;
 
@@ -235,15 +272,14 @@
                         dept: currentUser.dept,
                         type: type,
                         timestamp: serverTimestamp(),
-                        location: locationData, // ✅ เก็บพิกัดให้แอดมินดู
-                        mapUrl: mapLink,        // ✅ เก็บลิงก์ให้แอดมินดู
+                        location: locationData, 
+                        mapUrl: mapLink,
                         userAgent: navigator.userAgent
                     });
 
-                    // ส่งเข้าไลน์ (❌ ไม่ใส่ mapLink)
+                    // ส่งเข้าไลน์
                     if (liff.isInClient()) {
                         const icon = type === 'เข้างาน' ? '🟢' : '🔴';
-                        // ข้อความคลีนๆ
                         const msg = `${icon} ลงเวลา: ${type}\n👤 ${currentUser.name}\n⏰ ${new Date().toLocaleTimeString('th-TH')}`;
                         await liff.sendMessages([{ type: 'text', text: msg }]).catch(e => console.log(e));
                     }
@@ -252,7 +288,7 @@
                     loadTodayHistory();
 
                 } catch (err) {
-                    alert("Error: " + err.message);
+                    alert("Save Error: " + err.message);
                 } finally {
                     btn.disabled = false;
                     btn.innerText = originalText;
@@ -263,12 +299,10 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        // ได้พิกัด -> ไปบันทึก
                         saveToFirestore(position.coords.latitude, position.coords.longitude);
                     },
                     (error) => {
                         console.error("GPS Error:", error);
-                        // ⛔️ ไม่ได้พิกัด -> หยุดและแจ้งเตือน
                         alert("⚠️ ไม่สามารถลงเวลาได้\n\nระบบบังคับให้เปิด GPS เพื่อระบุตำแหน่ง\nกรุณากด 'Allow' หรือเปิด GPS แล้วลองใหม่");
                         btn.disabled = false;
                         btn.innerText = originalText;
@@ -282,7 +316,7 @@
             }
         };
 
-        // --- โหลดประวัติ (พร้อมดัก Error Index) ---
+        // --- โหลดประวัติ ---
         async function loadTodayHistory() {
             try {
                 const start = new Date(); start.setHours(0,0,0,0);
@@ -304,7 +338,7 @@
             }
         }
 
-        // --- โหลดตารางเวร (พร้อมดัก Error Index) ---
+        // --- โหลดตารางเวร ---
         async function loadMySchedule() {
             try {
                 const today = new Date().toISOString().split('T')[0];
