@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MedLife Plus</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .container { max-width: 1200px; margin-top: 30px; margin-bottom: 50px; }
+        .hidden { display: none !important; }
+        .nav-tabs .nav-link { cursor: pointer; color: #495057; }
+        .nav-tabs .nav-link.active { font-weight: bold; color: #0d6efd; border-bottom: 3px solid #0d6efd; }
+        
+        .profile-thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .profile-thumb-lg { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+        .user-cell { display: flex; align-items: center; gap: 10px; }
+        
+        /* Calendar Styles */
+        #calendarWrapper { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
+        
+        /* Full Screen Class */
+        .calendar-fullscreen { 
+            position: fixed !important; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            z-index: 9999; 
+            width: 100% !important; 
+            height: 100vh !important; 
+            border-radius: 0 !important;
+            padding: 20px;
+            background: white;
+            overflow: auto;
+        }
+        
+        .fc-event { cursor: pointer; }
+        /* ปรับให้ Event ในปฏิทินไม่ซ่อน (Wrap text) */
+        .fc-daygrid-event { white-space: normal !important; align-items: flex-start; }
+    </style>
+</head>
+<body>
+
+    <div id="loginPage" class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="card p-4 shadow-sm text-center" style="width: 400px;">
+            <h3 class="mb-3">🏥 Admin Login</h3>
+            <input type="email" id="email" class="form-control mb-3" value="medlifeplus@gmail.com">
+            <button onclick="sendLoginLink()" id="btnSend" class="btn btn-primary w-100">ส่งลิงก์เข้าอีเมล</button>
+            <div id="loginMsg" class="mt-3 text-success small"></div>
+        </div>
+    </div>
+
+    <div id="dashboardPage" class="container hidden">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div><h3 class="mb-0">Admin Dashboard</h3><span class="badge bg-secondary" id="adminEmailDisplay">...</span></div>
+            <button onclick="logout()" class="btn btn-sm btn-outline-danger">ออกจากระบบ</button>
+        </div>
+
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')">🕒 เวลาเข้า-ออก</a></li>
+            <li class="nav-item"><a class="nav-link" onclick="switchTab('schedule')">✍️ จัดตารางเวร</a></li>
+            <li class="nav-item"><a class="nav-link" onclick="switchTab('leave')">📩 คำขอลา</a></li>
+            <li class="nav-item"><a class="nav-link" onclick="switchTab('calendar')">🗓️ ปฏิทิน & สรุป</a></li>
+            <li class="nav-item"><a class="nav-link" onclick="switchTab('users')">👥 พนักงาน <span id="userBadge" class="badge bg-danger hidden">New</span></a></li>
+        </ul>
+
+        <div id="tabAttendance">
+            <div class="card">
+                <div class="card-header bg-white py-3 d-flex gap-2 align-items-center flex-wrap">
+                    <input type="date" id="filterDate" class="form-control" style="width: auto;">
+                    <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
+                    <button onclick="exportCSV()" class="btn btn-success ms-auto">Export</button>
+                </div>
+                <div class="card-body p-0 table-responsive"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th>เวลา</th><th>พนักงาน</th><th>แผนก</th><th>สถานะ</th><th>พิกัด</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+            </div>
+        </div>
+
+        <div id="tabSchedule" class="hidden">
+            <div class="row">
+                <div class="col-md-4 mb-4"><div class="card p-3"><h5>✍️ สร้างเวร</h5><form onsubmit="createSchedule(event)"><div class="mb-2"><label>พนักงาน</label><select id="userSelect" class="form-select" required></select></div><div class="mb-2"><label>วันที่</label><input type="date" id="schedDate" class="form-control" required></div><div class="mb-3"><label>กะ</label><select id="schedType" class="form-select"><option>เช้า (08:00 - 17:00)</option><option>บ่าย (13:00 - 22:00)</option><option>ดึก (22:00 - 07:00)</option><option>หยุด (Day Off)</option></select></div><button type="submit" class="btn btn-primary w-100">บันทึก</button></form></div></div>
+                <div class="col-md-8"><div class="card p-3"><div class="d-flex justify-content-between mb-2"><h5>รายการเวร</h5><button onclick="loadSchedules()" class="btn btn-sm btn-outline-secondary">Refresh</button></div><table class="table table-sm table-bordered align-middle"><tbody id="schedTableBody"></tbody></table></div></div>
+            </div>
+        </div>
+
+        <div id="tabLeave" class="hidden">
+            <div class="card"><div class="card-header bg-warning">⏳ รออนุมัติ</div><div class="card-body p-0 table-responsive"><table class="table table-hover mb-0 align-middle"><tbody id="leaveTableBody"></tbody></table></div></div>
+        </div>
+
+        <div id="tabCalendar" class="hidden">
+            <div id="calendarWrapper" class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">📅 ปฏิทินการทำงาน</h5>
+                    <button onclick="toggleFullScreen()" class="btn btn-outline-dark btn-sm">
+                        <i class="bi bi-arrows-fullscreen"></i> ขยายเต็มจอ (Full Screen)
+                    </button>
+                </div>
+                <div id='calendar'></div>
+            </div>
+
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📊 สรุปชั่วโมงทำงานรายเดือน (Monthly Summary)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-center mb-3">
+                        <div class="col-auto"><label>เลือกเดือน:</label></div>
+                        <div class="col-auto"><input type="month" id="summaryMonth" class="form-control"></div>
+                        <div class="col-auto"><button onclick="loadMonthlySummary()" class="btn btn-dark">คำนวณยอด</button></div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>พนักงาน</th>
+                                    <th>แผนก</th>
+                                    <th class="text-center">จำนวนวันมาทำงาน</th>
+                                    <th class="text-center">ชั่วโมงรวม (ชม.)</th>
+                                    <th class="text-center">เฉลี่ยต่อวัน</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryTableBody">
+                                <tr><td colspan="5" class="text-center text-muted">กรุณาเลือกเดือนและกดคำนวณ</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabUsers" class="hidden">
+            <div class="row">
+                <div class="col-md-6 mb-4"><div class="card border-danger"><div class="card-header bg-danger text-white"><h5>⏳ รออนุมัติ</h5></div><div class="card-body p-0 table-responsive"><table class="table table-hover mb-0 align-middle"><tbody id="pendingUsersTable"></tbody></table></div></div></div>
+                <div class="col-md-6"><div class="card"><div class="card-header bg-white d-flex justify-content-between"><h5>✅ พนักงานทั้งหมด</h5><button onclick="loadAllUsers()" class="btn btn-sm btn-outline-secondary">Refresh</button></div><div class="card-body p-0 table-responsive" style="max-height: 500px;"><table class="table table-sm table-hover mb-0 align-middle"><tbody id="allUsersTable"></tbody></table></div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">✏️ แก้ไขข้อมูล</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><img id="editUserImg" src="" class="profile-thumb-lg mb-3"><input type="hidden" id="editUserId"><div class="text-start"><div class="mb-3"><label>ชื่อ-นามสกุล</label><input type="text" id="editUserName" class="form-control"></div><div class="mb-3"><label>แผนก</label><select id="editUserDept" class="form-select"><option value="General">General</option><option value="Pharmacy">Pharmacy</option><option value="IT">IT Support</option><option value="Admin">Admin</option><option value="Sales">Sales</option></select></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary" onclick="saveEditUser()">บันทึก</button></div></div></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, setDoc, updateDoc, deleteDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- 🔴 CONFIG ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+        const ADMIN_EMAIL = "medlifeplus@gmail.com"; 
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let calendarObj = null;
+        let editModal = null;
+        let userProfileMap = {};
+
+        // AUTH
+        onAuthStateChanged(auth, async (user) => {
+            if (user && user.email === ADMIN_EMAIL) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('dashboardPage').classList.remove('hidden');
+                document.getElementById('adminEmailDisplay').innerText = user.email;
+                
+                await cacheUserProfiles(); loadInitialData();
+                editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                
+                // Set default month for summary
+                document.getElementById('summaryMonth').value = new Date().toISOString().slice(0, 7);
+            } else {
+                if (isSignInWithEmailLink(auth, window.location.href)) {
+                    let e = localStorage.getItem('emailForSignIn') || prompt('ยืนยันอีเมล:');
+                    signInWithEmailLink(auth, e, window.location.href).then(() => { localStorage.removeItem('emailForSignIn'); history.replaceState({},'',location.pathname); });
+                } else document.getElementById('loginPage').classList.remove('hidden');
+            }
+        });
+
+        // CACHE IMAGES
+        async function cacheUserProfiles() {
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                snap.forEach(doc => { const d=doc.data(); userProfileMap[d.lineUserId] = d.pictureUrl || "https://via.placeholder.com/40"; });
+            } catch (e) { console.error(e); }
+        }
+        function getProfileImg(uid) { return `<img src="${userProfileMap[uid]||'https://via.placeholder.com/40'}" class="profile-thumb">`; }
+
+        // LOADERS
+        function loadInitialData() { document.getElementById('filterDate').valueAsDate = new Date(); loadData(); loadUsersList(); loadPendingUsers(); }
+        window.switchTab = (tab) => {
+            document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active')); event.target.classList.add('active');
+            ['tabAttendance','tabSchedule','tabLeave','tabCalendar','tabUsers'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.remove('hidden');
+            if(tab==='schedule') loadSchedules();
+            if(tab==='leave') loadLeaveRequests();
+            if(tab==='calendar') setTimeout(initCalendar, 200);
+            if(tab==='users') { loadPendingUsers(); loadAllUsers(); }
+        };
+
+        // --- NEW: CALENDAR FULL SCREEN ---
+        window.toggleFullScreen = () => {
+            const el = document.getElementById('calendarWrapper');
+            el.classList.toggle('calendar-fullscreen');
+            
+            // Re-render calendar to fit new size
+            setTimeout(() => { if(calendarObj) calendarObj.updateSize(); }, 300);
+        };
+
+        // --- NEW: MONTHLY SUMMARY ---
+        window.loadMonthlySummary = async () => {
+            const m = document.getElementById('summaryMonth').value;
+            if(!m) return alert("กรุณาเลือกเดือน");
+
+            const tbody = document.getElementById('summaryTableBody');
+            tbody.innerHTML = "<tr><td colspan='5' class='text-center'>⏳ กำลังคำนวณ...</td></tr>";
+
+            const start = new Date(m + "-01"); start.setHours(0,0,0,0);
+            const end = new Date(m + "-01"); end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23,59,59,999);
+
+            try {
+                // 1. ดึง Attendance ของเดือนนั้นทั้งหมด
+                const q = query(collection(db, "attendance"), where("timestamp", ">=", start), where("timestamp", "<=", end));
+                const snap = await getDocs(q);
+                
+                let userWork = {}; // เก็บข้อมูลสรุปของแต่ละคน
+
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if(!userWork[d.userId]) {
+                        userWork[d.userId] = { 
+                            name: d.name, 
+                            dept: d.dept, 
+                            logs: [], 
+                            daysWorked: new Set() 
+                        };
+                    }
+                    userWork[d.userId].logs.push({ type: d.type, time: d.timestamp.seconds * 1000 });
+                    userWork[d.userId].daysWorked.add(new Date(d.timestamp.seconds*1000).getDate());
+                });
+
+                // 2. คำนวณชั่วโมง
+                let html = "";
+                Object.values(userWork).forEach(u => {
+                    u.logs.sort((a,b) => a.time - b.time); // เรียงตามเวลา
+                    let totalMs = 0;
+                    let lastIn = null;
+
+                    u.logs.forEach(log => {
+                        if(log.type === 'เข้างาน') lastIn = log.time;
+                        else if(log.type === 'ออกงาน' && lastIn) {
+                            totalMs += (log.time - lastIn);
+                            lastIn = null;
+                        }
+                    });
+
+                    const totalHours = (totalMs / (1000 * 60 * 60)).toFixed(2);
+                    const days = u.daysWorked.size;
+                    const avg = days > 0 ? (totalHours / days).toFixed(2) : 0;
+
+                    html += `<tr>
+                        <td><div class="user-cell">${u.name}</div></td>
+                        <td>${u.dept}</td>
+                        <td class="text-center">${days} วัน</td>
+                        <td class="text-center fw-bold text-success">${totalHours}</td>
+                        <td class="text-center">${avg}</td>
+                    </tr>`;
+                });
+
+                tbody.innerHTML = html || "<tr><td colspan='5' class='text-center'>ไม่พบข้อมูลในเดือนนี้</td></tr>";
+
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = `<tr><td colspan='5' class='text-danger'>Error: ${e.message}</td></tr>`;
+            }
+        };
+
+        // --- CALENDAR RENDER ---
+        function initCalendar(){
+            if(calendarObj){calendarObj.render();return}
+            calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'),{
+                initialView:'dayGridMonth',
+                locale:'th',
+                height:'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,listMonth'
+                },
+                events: async(info, successCallback, failureCallback) => {
+                    try {
+                        let events = [];
+                        // Shift
+                        const schedSnap = await getDocs(collection(db,"schedules"));
+                        schedSnap.forEach(d => {
+                            const v = d.data();
+                            let color = '#0d6efd';
+                            if(v.shiftDetail.includes('หยุด')||v.shiftDetail.includes('ลา')) color = '#dc3545';
+                            else if(v.shiftDetail.includes('บ่าย')) color = '#fd7e14';
+                            else if(v.shiftDetail.includes('ดึก')) color = '#6610f2';
+                            events.push({ title:`${v.name} (${v.shiftDetail.split('(')[0]})`, start:v.date, color:color });
+                        });
+                        // Actual Work Hours (Daily)
+                        const attSnap = await getDocs(collection(db, "attendance"));
+                        let workMap = {};
+                        attSnap.forEach(d => {
+                            const v = d.data();
+                            const k = `${v.userId}_${new Date(v.timestamp.seconds*1000).toISOString().split('T')[0]}`;
+                            if(!workMap[k]) workMap[k] = { name: v.name, logs: [] };
+                            workMap[k].logs.push({ t: v.type, time: v.timestamp.seconds*1000 });
+                        });
+                        Object.keys(workMap).forEach(k => {
+                            const item = workMap[k]; item.logs.sort((a,b)=>a.time-b.time);
+                            let ms=0, last=null;
+                            item.logs.forEach(l=>{ if(l.t==='เข้างาน')last=l.time; else if(l.t==='ออกงาน'&&last){ms+=(l.time-last);last=null;} });
+                            if(ms>0) events.push({ title:`⏱️ ${item.name}: ${(ms/3600000).toFixed(1)} ชม.`, start:k.split('_')[1], color:'#198754', display:'block' });
+                        });
+                        successCallback(events);
+                    } catch(e) { failureCallback(e); }
+                }
+            });
+            calendarObj.render();
+        }
+
+        // --- (ฟังก์ชันอื่นๆ เหมือนเดิม ย่อไว้) ---
+        window.loadData = async () => { const d = document.getElementById('filterDate').value; const s=new Date(d); s.setHours(0,0,0,0); const e=new Date(d); e.setHours(23,59,59,999); const snap = await getDocs(query(collection(db,"attendance"), where("timestamp",">=",s), where("timestamp","<=",e))); let h = ""; window.currentData = []; snap.forEach(doc => { const v = doc.data(); window.currentData.push(v); const img = getProfileImg(v.userId); let mapBtn = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-outline-primary">📍</a>` : '-'; h += `<tr><td>${new Date(v.timestamp.seconds*1000).toLocaleTimeString('th-TH')}</td><td><div class="user-cell">${img} <span>${v.name}</span></div></td><td>${v.dept}</td><td><span class="${v.type==='เข้างาน'?'text-success':'text-danger'} fw-bold">${v.type}</span></td><td>${mapBtn}</td></tr>`; }); document.getElementById('tableBody').innerHTML = h || "<tr><td colspan='5'>ไม่พบข้อมูล</td></tr>"; };
+        window.exportCSV=()=>{if(!window.currentData?.length)return alert('ไม่มีข้อมูล');let c="Time,Name,Dept,Type,MapLink\n"+window.currentData.map(r=>`${new Date(r.timestamp.seconds*1000).toLocaleTimeString('th-TH')},${r.name},${r.dept},${r.type},${r.mapUrl||''}`).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURI(c);a.download="report.csv";a.click()};
+        window.loadSchedules=async()=>{const s=await getDocs(query(collection(db,"schedules"),orderBy("date","desc")));let h="";s.forEach(d=>{const v=d.data();const img=getProfileImg(v.userId);h+=`<tr><td>${v.date}</td><td><div class="user-cell">${img} ${v.name}</div></td><td>${v.shiftDetail}</td><td><button onclick="delSched('${d.id}')" class="btn btn-sm btn-danger">ลบ</button></td></tr>`});document.getElementById('schedTableBody').innerHTML=h};
+        window.createSchedule=async(e)=>{e.preventDefault();const u=document.getElementById('userSelect');const uid=u.value;const nm=u.options[u.selectedIndex].text;await setDoc(doc(db,"schedules",`${uid}_${document.getElementById('schedDate').value}`),{userId:uid,name:nm,date:document.getElementById('schedDate').value,shiftDetail:document.getElementById('schedType').value});alert('บันทึกสำเร็จ');loadSchedules()};
+        window.delSched=async(id)=>{if(confirm('ยืนยันลบ?'))await deleteDoc(doc(db,"schedules",id));loadSchedules()};
+        window.loadLeaveRequests=async()=>{const s=await getDocs(query(collection(db,"leave_requests"),where("status","==","Pending")));let h="";s.forEach(doc=>{const d=doc.data();const img=getProfileImg(d.userId);h+=`<tr><td><div class="user-cell">${img} <div>${d.name}<br><small>${d.dept}</small></div></div></td><td><span class="badge bg-info text-dark">${d.type}</span></td><td>${d.startDate} - ${d.endDate}</td><td>${d.reason}</td><td><button onclick="updLeave('${doc.id}','Approved','${d.userId}','${d.name}','${d.startDate}','${d.endDate}','${d.type}')" class="btn btn-sm btn-success">✓</button> <button onclick="updLeave('${doc.id}','Rejected')" class="btn btn-sm btn-danger">X</button></td></tr>`});document.getElementById('leaveTableBody').innerHTML=h||"<tr><td colspan='5'>ไม่มีคำขอ</td></tr>"};
+        window.updLeave=async(id,st,uid,nm,s,e,tp)=>{await setDoc(doc(db,"leave_requests",id),{status:st},{merge:true});if(st==='Approved'){let c=new Date(s),end=new Date(e);while(c<=end){let ds=c.toISOString().split('T')[0];await setDoc(doc(db,"schedules",`${uid}_${ds}`),{userId:uid,name:nm,date:ds,shiftDetail:`🛑 ${tp}`});c.setDate(c.getDate()+1)}}loadLeaveRequests()};
+        window.loadPendingUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Pending")));let h="";s.forEach(d=>h+=`<tr><td><div class="user-cell"><img src="${d.data().pictureUrl}" class="profile-thumb"> ${d.data().name}</div></td><td><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success">อนุมัติ</button></td></tr>`);document.getElementById('pendingUsersTable').innerHTML=h;document.getElementById('userBadge').classList.toggle('hidden',s.empty)};
+        window.loadAllUsers=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h="";s.forEach(d=>{const u=d.data();h+=`<tr><td><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"> ${u.name}</div></td><td><span class="badge bg-secondary">${u.dept}</span></td><td><button onclick="openEditUser('${d.id}','${u.name}','${u.dept}','${u.pictureUrl}')" class="btn btn-sm btn-outline-primary">✏️</button> <button onclick="delUser('${d.id}')" class="btn btn-sm btn-outline-danger">🗑️</button></td></tr>`});document.getElementById('allUsersTable').innerHTML=h};
+        window.appUser=async(id)=>{await setDoc(doc(db,"users",id),{status:"Approved"},{merge:true});loadPendingUsers();loadAllUsers()};
+        window.delUser=async(id)=>{if(confirm('ลบ?'))await deleteDoc(doc(db,"users",id));loadAllUsers()};
+        window.openEditUser=(id,nm,dp,pic)=>{document.getElementById('editUserId').value=id;document.getElementById('editUserName').value=nm;document.getElementById('editUserDept').value=dp;document.getElementById('editUserImg').src=pic;editModal.show()};
+        window.saveEditUser=async()=>{try{await updateDoc(doc(db,"users",document.getElementById('editUserId').value),{name:document.getElementById('editUserName').value,dept:document.getElementById('editUserDept').value});alert('แก้ไขสำเร็จ');editModal.hide();loadAllUsers();cacheUserProfiles();}catch(e){alert(e.message)}};
+        window.sendLoginLink=()=>{const e=document.getElementById('email').value;sendSignInLinkToEmail(auth,e,{url:window.location.href,handleCodeInApp:true}).then(()=>{localStorage.setItem('emailForSignIn',e);alert('ส่งลิงก์แล้ว')})};
+        window.logout=()=>signOut(auth);
+        window.loadUsersList=async()=>{const s=await getDocs(query(collection(db,"users"),where("status","==","Approved")));let h='<option value="">เลือกพนักงาน</option>';s.forEach(d=>h+=`<option value="${d.data().lineUserId}">${d.data().name}</option>`);document.getElementById('userSelect').innerHTML=h};
+    </script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ระบบลงเวลา</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { max-width: 1200px; margin-top: 30px; }
+        .hidden { display: none !important; }
+        .profile-thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .status-in { color: #198754; font-weight: bold; }
+        .status-out { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="loginPage" class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="card p-4 shadow" style="width: 400px; text-align: center;">
+            <h3 class="mb-3">Admin Login</h3>
+            <p class="text-muted small">ระบบจะส่งลิงก์ล็อกอินไปที่อีเมลแอดมิน</p>
+            
+            <div class="mb-3 text-start">
+                <label>Email</label>
+                <input type="email" id="email" class="form-control" value="medlifeplus@gmail.com" readonly>
+            </div>
+            
+            <button onclick="sendLoginLink()" id="btnSend" class="btn btn-primary w-100">
+                ส่งลิงก์เข้าอีเมล (Magic Link)
+            </button>
+            <div id="loginMsg" class="mt-3 text-success small"></div>
+        </div>
+    </div>
+
+    <div id="dashboardPage" class="container hidden">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>📅 Admin Dashboard</h2>
+                <span class="badge bg-info text-dark" id="adminEmailDisplay">...</span>
+            </div>
+            <button onclick="logout()" class="btn btn-outline-danger btn-sm">ออกจากระบบ</button>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <label>เลือกวันที่:</label>
+                    <input type="date" id="filterDate" class="form-control" style="width: auto;">
+                    <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
+                </div>
+                <button onclick="exportCSV()" class="btn btn-success mt-2 mt-md-0">📥 Export Excel</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>เวลา</th>
+                                <th>รูป</th>
+                                <th>รหัส</th>
+                                <th>ชื่อ-สกุล</th>
+                                <th>แผนก</th>
+                                <th>สถานะ</th>
+                                <th>อุปกรณ์</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="noData" class="p-4 text-center text-muted hidden">ไม่พบข้อมูลในวันที่เลือก</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, onAuthStateChanged } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- CONFIG ZONE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
+            authDomain: "in-out-dashboard.firebaseapp.com",
+            projectId: "in-out-dashboard",
+            storageBucket: "in-out-dashboard.firebasestorage.app",
+            messagingSenderId: "846266395224",
+            appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
+            measurementId: "G-WN14VJSG17"
+        };
+        const ADMIN_EMAIL = "medlifeplus@gmail.com"; // อีเมลที่อนุญาตให้เข้าใช้งาน
+        // -------------------
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        document.getElementById('filterDate').valueAsDate = new Date();
+
+        // 1. ตรวจสอบสถานะ User เมื่อโหลดหน้าเว็บ
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // เช็คว่าเป็นเมล Admin ตัวจริงไหม
+                if(user.email !== ADMIN_EMAIL) {
+                    alert("อีเมลนี้ไม่มีสิทธิ์เข้าถึง (Access Denied)");
+                    signOut(auth);
+                    return;
+                }
+                showDashboard(user);
+            } else {
+                // ถ้ายังไม่ล็อกอิน ให้เช็คว่าเป็นเคส "กดลิงก์จากเมลกลับมา" หรือไม่
+                checkIfComingFromEmailLink();
+            }
+        });
+
+        // 2. ฟังก์ชันส่งลิงก์ (Magic Link)
+        window.sendLoginLink = () => {
+            const email = document.getElementById('email').value;
+            
+            if (email !== ADMIN_EMAIL) {
+                return alert("ระบบอนุญาตเฉพาะแอดมินเท่านั้น");
+            }
+
+            const actionCodeSettings = {
+                url: window.location.href, // ให้เด้งกลับมาที่หน้าปัจจุบัน
+                handleCodeInApp: true
+            };
+
+            const btn = document.getElementById('btnSend');
+            btn.disabled = true;
+            btn.innerText = "กำลังส่ง...";
+
+            sendSignInLinkToEmail(auth, email, actionCodeSettings)
+                .then(() => {
+                    window.localStorage.setItem('emailForSignIn', email);
+                    document.getElementById('loginMsg').innerText = `✅ ส่งลิงก์ไปที่ ${email} แล้ว! กรุณาเช็ค Inbox หรือ Junk Mail`;
+                    btn.innerText = "ส่งลิงก์สำเร็จ";
+                })
+                .catch((error) => {
+                    console.error(error);
+                    alert("เกิดข้อผิดพลาด: " + error.message);
+                    btn.disabled = false;
+                    btn.innerText = "ส่งลิงก์เข้าอีเมล";
+                });
+        };
+
+        // 3. ฟังก์ชันตรวจสอบเมื่อกดลิงก์จากเมลกลับมา
+        function checkIfComingFromEmailLink() {
+            if (isSignInWithEmailLink(auth, window.location.href)) {
+                let email = window.localStorage.getItem('emailForSignIn');
+                if (!email) {
+                    email = window.prompt('เพื่อความปลอดภัย กรุณายืนยันอีเมลของคุณอีกครั้ง:');
+                }
+                
+                signInWithEmailLink(auth, email, window.location.href)
+                    .then((result) => {
+                        window.localStorage.removeItem('emailForSignIn');
+                        // เคลียร์ URL ไม่ให้รกรุงรัง
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        // onAuthStateChanged จะทำงานต่อเองอัตโนมัติ
+                    })
+                    .catch((error) => {
+                        alert("ลิงก์หมดอายุหรือมีปัญหา กรุณากดขอลิงก์ใหม่");
+                        console.error(error);
+                    });
+            } else {
+                // ถ้าไม่ได้กดมาจากลิงก์ และยังไม่ล็อกอิน -> แสดงหน้า Login
+                document.getElementById('loginPage').classList.remove('hidden');
+                document.getElementById('dashboardPage').classList.add('hidden');
+            }
+        }
+
+        // 4. แสดงหน้า Dashboard
+        function showDashboard(user) {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('dashboardPage').classList.remove('hidden');
+            document.getElementById('adminEmailDisplay').innerText = user.email;
+            loadData();
+        }
+
+        window.logout = () => signOut(auth);
+
+        // 5. โหลดข้อมูล (เหมือนเดิม)
+        window.loadData = async () => {
+            const dateVal = document.getElementById('filterDate').value;
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">กำลังโหลด...</td></tr>';
+            document.getElementById('noData').classList.add('hidden');
+
+            const start = new Date(dateVal); start.setHours(0,0,0,0);
+            const end = new Date(dateVal); end.setHours(23,59,59,999);
+
+            try {
+                const q = query(
+                    collection(db, "attendance"),
+                    where("timestamp", ">=", start),
+                    where("timestamp", "<=", end)
+                );
+                const querySnapshot = await getDocs(q);
+                let html = "";
+                let rawData = [];
+
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    rawData.push(data);
+                });
+                rawData.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+                if(rawData.length === 0) {
+                    tbody.innerHTML = "";
+                    document.getElementById('noData').classList.remove('hidden');
+                    return;
+                }
+
+                rawData.forEach(item => {
+                    const time = item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "-";
+                    const statusClass = item.type === 'เข้างาน' ? 'status-in' : 'status-out';
+                    
+                    html += `
+                        <tr>
+                            <td>${time}</td>
+                            <td>${item.lineUserId ? `<img src="${item.pictureUrl}" class="profile-thumb">` : '-'}</td>
+                            <td>${item.empId || '-'}</td>
+                            <td>${item.name}</td>
+                            <td>${item.dept || '-'}</td>
+                            <td class="${statusClass}">${item.type}</td>
+                            <td class="text-muted small">${item.userAgent.includes("Mobile") ? "Mobile" : "PC"}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+                window.currentData = rawData; 
+
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">Error: ${err.message}</td></tr>`;
+            }
+        };
+
+        // 6. Export Excel (เหมือนเดิม)
+        window.exportCSV = () => {
+            if (!window.currentData || window.currentData.length === 0) return alert("ไม่มีข้อมูล");
+            let csvContent = "data:text/csv;charset=utf-8,Date,Time,EmpID,Name,Type\n";
+            window.currentData.forEach(row => {
+                const date = row.timestamp ? new Date(row.timestamp.seconds * 1000).toLocaleDateString('th-TH') : "-";
+                const time = row.timestamp ? new Date(row.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "-";
+                csvContent += `${date},${time},"${row.empId}","${row.name}",${row.type}\r\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `report_${document.getElementById('filterDate').value}.csv`);
+            document.body.appendChild(link);
+            link.click();
+        };
+    </script>
+</body>
+</html>
