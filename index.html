@@ -420,11 +420,17 @@
 
 
 
+
         function show(id, data) {
             ['loadingPage', 'registerPage', 'pendingPage', 'mainPage'].forEach(p => {
-                document.getElementById(p).style.display = 'none'; // Force hide
+                const el = document.getElementById(p);
+                el.classList.add('hidden'); // Ensure class is present
+                el.style.display = 'none';  // Double safety
             });
-            document.getElementById(id).style.display = 'block'; // Force show
+
+            const target = document.getElementById(id);
+            target.classList.remove('hidden'); // Remove !important class
+            target.style.display = 'block';    // Set display
 
             if (id === 'registerPage') {
                 document.getElementById('regisProfileImg').src = currentUser.pictureUrl;
