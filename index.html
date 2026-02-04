@@ -418,8 +418,12 @@
             } catch (e) { Swal.fire('Connection Error', e.message, 'error'); }
         }
 
+
         function show(id, data) {
-            document.querySelectorAll('body > div .container > div').forEach(e => e.classList.add('hidden'));
+            // Fix: Selector was wrong
+            const pages = ['loadingPage', 'registerPage', 'pendingPage', 'mainPage'];
+            pages.forEach(p => document.getElementById(p).classList.add('hidden'));
+
             document.getElementById(id).classList.remove('hidden');
             if (id === 'registerPage') {
                 document.getElementById('regisProfileImg').src = currentUser.pictureUrl;
