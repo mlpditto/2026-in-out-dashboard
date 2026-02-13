@@ -360,6 +360,61 @@
                 <ul id="myLeaveList" class="history-list" style="max-height: 200px; overflow-y: auto;"></ul>
             </div>
 
+            <!-- Working Hours Summary -->
+            <div class="mt-4">
+                <h4 class="mb-3 text-muted"><i class="bi bi-clock-history"></i> สรุปชั่วโมงการทำงาน</h4>
+                <div id="workingHoursSummary" class="row g-2">
+                    <div class="col-12">
+                        <div class="card border-primary bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1 text-primary fw-bold" id="hours1Title">ชั่วโมงทำงานทั้งหมด</h6>
+                                        <small class="text-muted" id="hours1Desc">ตั้งแต่วันแรกที่สมัคร</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-primary fw-bold" id="hours1Value">0.00</h3>
+                                        <small class="text-muted">ชั่วโมง</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card border-success bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1 text-success fw-bold">ชั่วโมงทำงานเดือนนี้</h6>
+                                        <small class="text-muted">ตั้งแต่วันที่ 1 ถึงเมื่อวาน</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-success fw-bold" id="hours2Value">0.00</h3>
+                                        <small class="text-muted">ชั่วโมง</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12" id="yearlyHoursCard">
+                        <div class="card border-info bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1 text-info fw-bold">ชั่วโมงทำงานปีนี้</h6>
+                                        <small class="text-muted">ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-info fw-bold" id="hours3Value">0.00</h3>
+                                        <small class="text-muted">ชั่วโมง</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Schedule & History -->
             <div class="mt-4">
                 <h4 class="mb-3 text-muted"><i class="bi bi-calendar-event"></i> ตารางเวรของฉัน</h4>
@@ -449,10 +504,39 @@
                 }, 1000);
                 loadHistory();
                 loadSchedule();
+                loadWorkingHours();
             }
         }
 
-        // ... (handleRegister remains same) ...
+        // --- 🟢 REGISTRATION ---
+        window.handleRegister = async (event) => {
+            event.preventDefault();
+            
+            const empId = document.getElementById('empId').value;
+            const fullName = document.getElementById('fullName').value;
+            const department = document.getElementById('department').value;
+            
+            try {
+                // Save user data with registration timestamp
+                await setDoc(doc(db, "users", currentUser.lineUserId), {
+                    lineUserId: currentUser.lineUserId,
+                    pictureUrl: currentUser.pictureUrl,
+                    displayName: currentUser.displayName,
+                    empId: empId,
+                    name: fullName,
+                    dept: department,
+                    status: 'Pending',
+                    registrationDate: serverTimestamp(),
+                    createdAt: serverTimestamp()
+                });
+                
+                // Show pending page
+                show('pendingPage', { name: fullName });
+                
+            } catch (error) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message, 'error');
+            }
+        };
 
         // --- 🟢 CORE LOGIC: Record Time ---
         window.recordTime = async (type) => {
@@ -503,6 +587,7 @@
                     }
                     if (!isAuto) Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
                     loadHistory(); // Reload to toggle buttons
+                    loadWorkingHours(); // Reload working hours
                 } catch (e) { Swal.fire('Error', e.message, 'error'); }
                 finally { btn.disabled = false; btn.innerHTML = originalText; }
             }
@@ -660,6 +745,171 @@
                     <div class="${color} fw-bold small"><i class="bi ${icon}"></i> ${v.status}</div>
                  </li>`
             });
+        }
+
+        // --- WORKING HOURS CALCULATION ---
+        async function loadWorkingHours() {
+            try {
+                const isPharmacistIntern = currentUser.dept === 'Pharmacy';
+                
+                // Hide/show yearly hours card based on department
+                const yearlyCard = document.getElementById('yearlyHoursCard');
+                yearlyCard.style.display = isPharmacistIntern ? 'none' : 'block';
+                
+                // Update title and description for first card
+                const hours1Title = document.getElementById('hours1Title');
+                const hours1Desc = document.getElementById('hours1Desc');
+                if (isPharmacistIntern) {
+                    hours1Title.innerText = 'ชั่วโมงทำงานทั้งหมด';
+                    hours1Desc.innerText = 'ตั้งแต่วันแรกที่สมัคร';
+                } else {
+                    hours1Title.innerText = 'ชั่วโมงทำงานปีนี้';
+                    hours1Desc.innerText = 'ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน';
+                }
+                
+                if (isPharmacistIntern) {
+                    // Pharmacist Intern: Calculate from first registration date
+                    await calculateHoursFromRegistration();
+                } else {
+                    // Other departments: Calculate from 1st January
+                    await calculateHoursFromYearStart();
+                }
+                
+                // All departments: Calculate from 1st of current month
+                await calculateHoursFromMonthStart();
+                
+            } catch (error) {
+                console.error('Error loading working hours:', error);
+            }
+        }
+
+        async function calculateHoursFromRegistration() {
+            try {
+                // Get user registration date
+                const userDoc = await getDoc(doc(db, "users", currentUser.lineUserId));
+                if (!userDoc.exists()) return;
+                
+                const userData = userDoc.data();
+                const registrationDate = userData.registrationDate || userData.createdAt;
+                
+                if (!registrationDate) {
+                    document.getElementById('hours1Value').innerText = '0.00';
+                    return;
+                }
+                
+                const startDate = registrationDate.toDate ? registrationDate.toDate() : new Date(registrationDate);
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() - 1); // Yesterday
+                endDate.setHours(23, 59, 59, 999);
+                
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours1Value').innerText = hours.toFixed(2);
+                
+            } catch (error) {
+                console.error('Error calculating hours from registration:', error);
+                document.getElementById('hours1Value').innerText = '0.00';
+            }
+        }
+
+        async function calculateHoursFromMonthStart() {
+            try {
+                const now = new Date();
+                const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of current month
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() - 1); // Yesterday
+                endDate.setHours(23, 59, 59, 999);
+                
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours2Value').innerText = hours.toFixed(2);
+                
+            } catch (error) {
+                console.error('Error calculating hours from month start:', error);
+                document.getElementById('hours2Value').innerText = '0.00';
+            }
+        }
+
+        async function calculateHoursFromYearStart() {
+            try {
+                const now = new Date();
+                const startDate = new Date(now.getFullYear(), 0, 1); // 1st January
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() - 1); // Yesterday
+                endDate.setHours(23, 59, 59, 999);
+                
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours3Value').innerText = hours.toFixed(2);
+                
+            } catch (error) {
+                console.error('Error calculating hours from year start:', error);
+                document.getElementById('hours3Value').innerText = '0.00';
+            }
+        }
+
+        async function calculateWorkingHours(startDate, endDate) {
+            try {
+                const q = query(
+                    collection(db, "attendance"),
+                    where("userId", "==", currentUser.lineUserId),
+                    where("timestamp", ">=", startDate),
+                    where("timestamp", "<=", endDate),
+                    orderBy("timestamp")
+                );
+                
+                const snap = await getDocs(q);
+                const records = snap.docs.map(doc => ({
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp.toDate()
+                }));
+                
+                // Group records by date and calculate daily hours
+                const dailyRecords = {};
+                records.forEach(record => {
+                    const dateKey = record.timestamp.toISOString().split('T')[0];
+                    if (!dailyRecords[dateKey]) {
+                        dailyRecords[dateKey] = [];
+                    }
+                    dailyRecords[dateKey].push(record);
+                });
+                
+                let totalHours = 0;
+                
+                Object.values(dailyRecords).forEach(dayRecords => {
+                    // Sort by time
+                    dayRecords.sort((a, b) => a.timestamp - b.timestamp);
+                    
+                    let dayHours = 0;
+                    let clockInTime = null;
+                    
+                    dayRecords.forEach(record => {
+                        if (record.type === 'เข้างาน') {
+                            clockInTime = record.timestamp;
+                        } else if (record.type === 'ออกงาน' && clockInTime) {
+                            // Calculate hours between clock in and clock out
+                            const diffMs = record.timestamp - clockInTime;
+                            const diffHours = diffMs / (1000 * 60 * 60);
+                            dayHours += diffHours;
+                            clockInTime = null;
+                        }
+                    });
+                    
+                    // Handle case where clocked in but no clock out (use 23:00 as default)
+                    if (clockInTime) {
+                        const endTime = new Date(clockInTime);
+                        endTime.setHours(23, 0, 0, 0);
+                        const diffMs = endTime - clockInTime;
+                        const diffHours = diffMs / (1000 * 60 * 60);
+                        dayHours += diffHours;
+                    }
+                    
+                    totalHours += dayHours;
+                });
+                
+                return totalHours;
+                
+            } catch (error) {
+                console.error('Error in calculateWorkingHours:', error);
+                return 0;
+            }
         }
     </script>
 </body>
