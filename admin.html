@@ -419,43 +419,24 @@
             </div>
 
             <div id="tabUsers" class="tab-section hidden">
-                <div class="card shadow-sm border-0 border-start border-4 border-primary">
-                    <div
-                        class="card-header bg-white text-primary fw-bold py-3 d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center gap-2">
-                            <span>พนักงานทั้งหมด</span>
-                            <span class="badge bg-primary rounded-pill badge-sm" id="badgeTotalUsers">0</span>
-                        </div>
-                        <div class="d-flex gap-2">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 border-bottom-0">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <h5 class="fw-bold mb-0 text-primary"><i
+                                        class="bi bi-person-gear me-2"></i>จัดการพนักงาน</h5>
+                                <span class="badge bg-primary rounded-pill badge-sm" id="badgeTotalUsers">0</span>
+                            </div>
                             <button onclick="loadAllUsers()" class="btn btn-sm btn-outline-primary shadow-sm"><i
                                     class="bi bi-arrow-clockwise me-1"></i>รีเฟรช</button>
-                            <button onclick="openUsersByDept()"
-                                class="btn btn-sm btn-light border shadow-sm">ดูตามแผนก</button>
                         </div>
+                        <ul class="nav nav-tabs border-bottom-0" id="empDeptTabs" role="tablist"
+                            style="margin-bottom:0px">
+                        </ul>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-3">ชื่อ</th>
-                                    <th>แผนก</th>
-                                    <th class="text-end pe-3">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="allUsersTable"></tbody>
-                        </table>
-                    </div>
-                    <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">แสดง <span id="pageRange">0-0 จาก 0</span> คน</div>
-                        <nav>
-                            <ul class="pagination pagination-sm mb-0">
-                                <li class="page-item"><button class="page-link" id="prevPage"
-                                        onclick="changePage(-1)"><i class="bi bi-chevron-left"></i></button></li>
-                                <li class="page-item disabled"><span class="page-link" id="pageNumber">1</span></li>
-                                <li class="page-item"><button class="page-link" id="nextPage" onclick="changePage(1)"><i
-                                            class="bi bi-chevron-right"></i></button></li>
-                            </ul>
-                        </nav>
+                    <div class="card-body p-0">
+                        <div class="tab-content border-top" id="empDeptTabContent">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -480,22 +461,6 @@
                 </div>
                 <div class="modal-footer border-0 bg-light p-2">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- All Users by Department Modal -->
-    <div class="modal fade" id="usersByDeptModal" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-0 bg-light">
-                    <h5 class="modal-title fw-bold">👥 พนักงานทั้งหมด</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs" id="deptUsersTabs"></ul>
-                    <div class="tab-content pt-3" id="deptUsersTabContent"></div>
                 </div>
             </div>
         </div>
@@ -589,7 +554,6 @@
                     document.getElementById('adminProfilePic').src = user.photoURL || "https://via.placeholder.com/30";
                     await cacheUserProfiles(); loadInitialData();
                     editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-                    usersByDeptModal = new bootstrap.Modal(document.getElementById('usersByDeptModal'));
                     pendingUsersModal = new bootstrap.Modal(document.getElementById('pendingUsersModal'));
                     document.getElementById('chartMonth').value = new Date().toISOString().slice(0, 7);
                     setInterval(updateLiveClock, 1000); updateLiveClock();
@@ -942,8 +906,8 @@
         };
 
         window.loadAllUsers = async () => {
-            const table = document.getElementById('allUsersTable');
-            table.innerHTML = '<tr><td colspan="3" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
+            const container = document.getElementById('empDeptTabContent');
+            if (container) container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
 
             const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
             cachedApprovedUsers = [];
@@ -955,17 +919,17 @@
                 window.allUserData[d.id] = u;
             });
 
-            // Sort by name
             cachedApprovedUsers.sort((a, b) => (a.name || "").localeCompare(b.name || "", 'th'));
 
             document.getElementById('statTotalUsers').innerText = cachedApprovedUsers.length;
             document.getElementById('badgeTotalUsers').innerText = cachedApprovedUsers.length;
             currentPage = 1;
-            renderUsersPage();
+            renderUsersByDeptTabs();
         };
 
         function renderUsersPage() {
             const table = document.getElementById('allUsersTable');
+            if (!table) return;
             const total = cachedApprovedUsers.length;
             const totalPages = Math.ceil(total / pageSize) || 1;
 
@@ -990,7 +954,6 @@
 
             table.innerHTML = h || '<tr><td colspan="3" class="text-center py-4 text-muted">ไม่พบข้อมูลพนักงาน</td></tr>';
 
-            // Update Pagination UI
             document.getElementById('pageNumber').innerText = currentPage;
             document.getElementById('pageRange').innerText = total > 0 ? `${startIdx + 1}-${endIdx} จาก ${total}` : `0-0 จาก 0`;
             document.getElementById('prevPage').parentElement.classList.toggle('disabled', currentPage === 1);
@@ -1002,18 +965,12 @@
             renderUsersPage();
         };
 
-        window.openUsersByDept = async () => {
-            await loadAllUsers();
-            renderUsersByDeptTabs();
-            usersByDeptModal.show();
-        };
-
         function renderUsersByDeptTabs() {
-            const tabsEl = document.getElementById('deptUsersTabs');
-            const contentEl = document.getElementById('deptUsersTabContent');
+            const tabsEl = document.getElementById('empDeptTabs');
+            const contentEl = document.getElementById('empDeptTabContent');
             if (!tabsEl || !contentEl) return;
 
-            const users = Object.entries(window.allUserData || {}).map(([id, u]) => ({ id, ...u }));
+            const users = cachedApprovedUsers;
             const byDept = {};
             users.forEach(u => {
                 const dept = u.dept || 'Unknown';
@@ -1025,75 +982,58 @@
             const allCount = users.length;
 
             const makeUserRows = (list) => {
-                const sorted = (list || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                const sorted = (list || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
                 return sorted.map(u => {
-                    const img = (u.pictureUrl || 'https://via.placeholder.com/45');
-                    const dept = u.dept || '';
                     return `<tr>
-                        <td class="ps-3"><div class="user-cell"><img src="${img}" class="profile-thumb"><h6 class="mb-0">${u.name || ''}</h6></div></td>
-                        <td><span class="badge bg-light text-dark border">${dept}</span></td>
-                        <td class="text-end pe-3"><button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${u.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td>
+                        <td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl || 'https://via.placeholder.com/45'}" class="profile-thumb"><div><h6 class="mb-0">${u.name}</h6><small class="text-muted">${u.empId || ''}</small></div></div></td>
+                        <td><span class="badge bg-light text-dark border">${u.dept || ''}</span></td>
+                        <td class="text-end pe-3"><button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border shadow-sm me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${u.id}')" class="btn btn-sm btn-light border shadow-sm text-danger"><i class="bi bi-trash"></i></button></td>
                     </tr>`;
                 }).join('');
             };
 
-            const overviewItems = deptEntries.map(([dept, list]) => {
-                const color = getDeptColor(dept);
-                const thumbs = list.slice(0, 10).map(u => {
-                    const src = u.pictureUrl || 'https://via.placeholder.com/18';
-                    return `<img src="${src}" title="${u.name || ''}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;">`;
-                }).join('');
-                const more = list.length > 10 ? `<span class="text-muted" style="margin-left:6px;">+${list.length - 10}</span>` : '';
-                return `<div class="d-flex justify-content-between align-items-center" style="gap:10px;padding:.35rem .25rem;border-bottom:1px solid rgba(0,0,0,.05);">
-                    <div class="text-truncate" style="max-width:220px;"><span class="fw-bold" style="color:${color};">${dept}</span> <span class="text-muted">(${list.length})</span></div>
-                    <div class="d-flex align-items-center" style="padding-left:6px;">${thumbs}${more}</div>
-                </div>`;
-            }).join('');
-
-            const overviewHtml = `<div class="row g-3">
-                <div class="col-lg-4">
-                    <div class="p-3 bg-light rounded border">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold">ภาพรวมตามแผนก</div>
-                            <div class="text-muted small">ทั้งหมด ${allCount}</div>
-                        </div>
-                        <div>${overviewItems || ''}</div>
-                    </div>
-                </div>
-                <div class="col-lg-8">
-                    <div class="table-responsive" style="max-height:520px;">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
-                            <tbody>${makeUserRows(users) || ''}</tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>`;
-
-            const tabIdAll = 'deptTabAll';
-            tabsEl.innerHTML = `<li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#${tabIdAll}" type="button">ทั้งหมด <span class="badge bg-primary ms-1">${allCount}</span></button></li>`
+            tabsEl.innerHTML = `<li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#deptTab_All" type="button">ทั้งหมด <span class="badge bg-primary ms-1">${allCount}</span></button></li>`
                 + deptEntries.map(([dept, list], idx) => {
                     const safe = `deptTab_${idx}`;
                     const color = getDeptColor(dept);
                     return `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${safe}" type="button"><span class="fw-bold" style="color:${color};">${dept}</span> <span class="badge bg-secondary ms-1">${list.length}</span></button></li>`;
                 }).join('');
 
-            contentEl.innerHTML = `<div class="tab-pane fade show active" id="${tabIdAll}">${overviewHtml}</div>`
-                + deptEntries.map(([dept, list], idx) => {
-                    const safe = `deptTab_${idx}`;
-                    return `<div class="tab-pane fade" id="${safe}">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold">${dept}</div>
-                            <div class="text-muted small">${list.length} คน</div>
-                        </div>
-                        <div class="table-responsive" style="max-height:520px;">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
-                                <tbody>${makeUserRows(list) || ''}</tbody>
-                            </table>
-                        </div>
-                    </div>`;
-                }).join('');
+            const allTabContent = `
+                <div class="tab-pane fade show active" id="deptTab_All" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
+                            <tbody id="allUsersTable"></tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">แสดง <span id="pageRange">0-0 จาก 0</span> คน</div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item"><button class="page-link" id="prevPage" onclick="changePage(-1)"><i class="bi bi-chevron-left"></i></button></li>
+                                <li class="page-item disabled"><span class="page-link" id="pageNumber">1</span></li>
+                                <li class="page-item"><button class="page-link" id="nextPage" onclick="changePage(1)"><i class="bi bi-chevron-right"></i></button></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>`;
+
+            const deptTabContents = deptEntries.map(([dept, list], idx) => {
+                const safe = `deptTab_${idx}`;
+                return `
+                <div class="tab-pane fade" id="${safe}" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
+                            <tbody>${makeUserRows(list)}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+            }).join('');
+
+            contentEl.innerHTML = allTabContent + deptTabContents;
+            renderUsersPage();
         }
 
         window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadPendingUsers(); loadAllUsers(); };
