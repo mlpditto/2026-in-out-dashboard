@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLP Time Attendance</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
+            --danger-gradient: linear-gradient(135deg, #dc3545 0%, #ff4d5a 100%);
+            --success-gradient: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            --warning-gradient: linear-gradient(135deg, #ffc107 0%, #ffdb4d 100%);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --bg-color: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin: 0;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .text-muted {
+            color: #6c757d;
+        }
+
+        /* Components */
+        .hidden {
+            display: none !important;
+        }
+
+        .profile-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin-bottom: 12px;
+            border: 4px solid white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            object-fit: cover;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            filter: grayscale(100%);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);
+        }
+
+        .btn-danger {
+            background: var(--danger-gradient);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-warning {
+            background: var(--warning-gradient);
+            color: #444;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid #eee;
+            color: #555;
+            box-shadow: none;
+        }
+
+        /* Inputs */
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: 0.2s;
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            outline: none;
+            background: #fdfdfd;
+        }
+
+        /* Cards & Lists */
+        .status-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 25px;
+            border: 1px solid #eee;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        .history-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 5px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f0f0f0;
+            border-left-width: 5px;
+        }
+
+        .history-item.in {
+            border-left-color: #198754;
+        }
+
+        .history-item.out {
+            border-left-color: #dc3545;
+        }
+
+        /* Time Display */
+        .digital-clock {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #333;
+            letter-spacing: -2px;
+            line-height: 1;
+            margin: 10px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .date-display {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        /* Loader */
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            color: #666;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #0d6efd;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Loading -->
+        <div id="loadingPage" class="loader-container">
+            <div class="spinner"></div>
+            <p>กำลังเชื่อมต่อระบบ...</p>
+        </div>
+
+        <!-- Register -->
+        <div id="registerPage" class="hidden text-center" style="padding-top: 20px;">
+            <img src="https://via.placeholder.com/100" class="profile-img" id="regisProfileImg">
+            <h3 class="mb-3">ลงทะเบียนพนักงาน</h3>
+            <p id="regisName" class="text-muted mb-4">ยินดีต้อนรับสมาชิกใหม่</p>
+
+            <form onsubmit="handleRegister(event)" style="text-align: left;">
+                <label class="small text-muted fw-bold ms-1">รหัสพนักงาน</label>
+                <input type="text" id="empId" class="form-control" placeholder="เช่น 66001" required>
+
+                <label class="small text-muted fw-bold ms-1">ชื่อ-นามสกุล (ภาษาไทย)</label>
+                <input type="text" id="fullName" class="form-control" placeholder="นาย รักงาน ขยันยิ่ง" required>
+
+                <label class="small text-muted fw-bold ms-1">แผนก</label>
+                <input type="text" id="department" class="form-control" list="deptOptions"
+                    placeholder="เลือกจากรายการหรือพิมพ์เพิ่ม" required>
+                <datalist id="deptOptions">
+                    <option value="General">
+                    <option value="Pharmacy">
+                    <option value="IT">
+                    <option value="Admin">
+                    <option value="Sales">
+                    <option value="Pharmacist Extern">
+                </datalist>
+
+                <!-- Internship Period Fields (initially hidden) -->
+                <div id="internshipFields" style="display: none;">
+                    <label class="small text-muted fw-bold ms-1 mt-3">วันเริ่มต้นฝึกงาน</label>
+                    <input type="date" id="internshipStartDate" class="form-control" min="2024-01-01">
+                    
+                    <label class="small text-muted fw-bold ms-1 mt-2">วันสิ้นสุดการฝึกงาน</label>
+                    <input type="date" id="internshipEndDate" class="form-control" min="2024-01-02">
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">
+                    <i class="bi bi-person-check-fill"></i> ยืนยันข้อมูล
+                </button>
+            </form>
+        </div>
+
+        <!-- Pending -->
+        <div id="pendingPage" class="hidden text-center" style="padding-top: 40px;">
+            <div class="status-card" style="background: #fff3cd; border-color: #ffecb5;">
+                <i class="bi bi-hourglass-split text-warning" style="font-size: 3rem;"></i>
+                <h2 class="mt-3 text-warning-emphasis">รออนุมัติ</h2>
+                <p class="text-muted mt-2">ข้อมูลของคุณถูกส่งแล้ว<br>กรุณารอแอดมินยืนยันตัวตนสักครู่</p>
+            </div>
+            <img id="pendingImg" src="" class="profile-img" style="filter: grayscale(1);">
+            <p id="pendingName" class="fw-bold mt-2"></p>
+            <button onclick="window.location.reload()" class="btn btn-outline py-2 fs-6 mt-3">⟳
+                ตรวจสอบสถานะอีกครั้ง</button>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="mainPage" class="hidden">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div style="flex:1;">
+                    <h2 id="showName" class="text-truncate">User</h2>
+                    <small id="showEmpId" class="text-muted">ID</small>
+                </div>
+                <img id="mainProfileImg" src="" class="profile-img" style="width: 55px; height: 55px; margin:0;">
+            </div>
+
+            <div class="status-card">
+                <div id="currentDate" class="date-display">...</div>
+                <div id="clock" class="digital-clock">00:00:00</div>
+                <div id="shiftStatus" class="badge rounded-pill bg-light text-dark border px-3 py-1">กะเช้า (08:00 -
+                    17:00)</div>
+            </div>
+
+            <div class="row g-2">
+                <button onclick="recordTime('เข้างาน')" class="btn btn-success" id="btnCheckIn">
+                    <i class="bi bi-geo-alt-fill"></i> เข้างาน (Clock In)
+                </button>
+                <button onclick="recordTime('ออกงาน')" class="btn btn-danger" id="btnCheckOut">
+                    <i class="bi bi-box-arrow-right"></i> ออกงาน (Clock Out)
+                </button>
+            </div>
+
+            <button onclick="toggleLeaveForm()" class="btn btn-warning py-3" style="font-size:1rem; opacity:0.9;">
+                <i class="bi bi-file-earmark-text"></i> แจ้งลา / ตรวจสอบวันลา
+            </button>
+
+            <!-- Leave Form Modal-ish -->
+            <div id="leaveFormSection" class="hidden"
+                style="background: white; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 5px 20px rgba(0,0,0,0.05); padding: 20px; margin-top: 15px; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; box-sizing: border-box;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>📝 ฟอร์มใบลา</h3>
+                    <button onclick="toggleLeaveForm()" class="btn-close"
+                        style="background:none; border:none; font-size:1.5rem;">&times;</button>
+                </div>
+
+                <label class="fw-bold mb-1 d-block">ประเภทการลา</label>
+                <select id="leaveType" class="form-control">
+                    <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
+                    <option value="ลากิจ">💼 ลากิจ (Business Leave)</option>
+                    <option value="ลาพักร้อน">🏖️ ลาพักร้อน (Vacation)</option>
+                </select>
+
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex:1;">
+                        <label class="fw-bold mb-1 d-block">ตั้งแต่วันที่</label>
+                        <input type="date" id="leaveStart" class="form-control">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="fw-bold mb-1 d-block">ถึงวันที่</label>
+                        <input type="date" id="leaveEnd" class="form-control">
+                    </div>
+                </div>
+
+                <label class="fw-bold mb-1 d-block">เหตุผล</label>
+                <textarea id="leaveReason" class="form-control" rows="3" placeholder="ระบุเหตุผล..."></textarea>
+
+                <button onclick="submitLeaveRequest()" class="btn btn-primary mt-2">ส่งใบลา</button>
+
+                <hr class="my-4">
+                <h4 class="mb-3">ประวัติการลาของคุณ</h4>
+                <ul id="myLeaveList" class="history-list" style="max-height: 200px; overflow-y: auto;"></ul>
+            </div>
+
+            <!-- Working Hours Summary -->
+            <div class="mt-4">
+                <h4 class="mb-3 text-muted"><i class="bi bi-clock-history"></i> สรุปชั่วโมงการทำงาน</h4>
+                <div id="workingHoursSummary" class="row g-2">
+                    <div class="col-12">
+                        <div class="card border-primary bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1 text-primary fw-bold" id="hours1Title">ชั่วโมงทำงานทั้งหมด</h6>
+                                        <small class="text-muted" id="hours1Desc">ตั้งแต่วันแรกที่สมัคร</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-primary fw-bold" id="hours1Value">0.00</h3>
+                                        <small class="text-muted">ชั่วโมง</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card border-success bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1 text-success fw-bold">ชั่วโมงทำงานเดือนนี้</h6>
+                                        <small class="text-muted">ตั้งแต่วันที่ 1 ถึงเมื่อวาน</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-success fw-bold" id="hours2Value">0.00</h3>
+                                        <small class="text-muted">ชั่วโมง</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12" id="yearlyHoursCard">
+                        <div class="card border-info bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1 text-info fw-bold">ชั่วโมงทำงานปีนี้</h6>
+                                        <small class="text-muted">ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-info fw-bold" id="hours3Value">0.00</h3>
+                                        <small class="text-muted">ชั่วโมง</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule & History -->
+            <div class="mt-4">
+                <h4 class="mb-3 text-muted"><i class="bi bi-calendar-event"></i> ตารางเวรของฉัน</h4>
+                <div id="scheduleList">กำลังโหลด...</div>
+            </div>
+
+            <div class="mt-4 pb-4">
+                <h4 class="mb-3 text-muted"><i class="bi bi-clock-history"></i> ประวัติวันนี้</h4>
+                <ul id="historyList" class="history-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
+            authDomain: "in-out-dashboard.firebaseapp.com",
+            projectId: "in-out-dashboard",
+            storageBucket: "in-out-dashboard.firebasestorage.app",
+            messagingSenderId: "846266395224",
+            appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
+            measurementId: "G-WN14VJSG17"
+        };
+        const LIFF_ID = "2008951813-KgjInNxK";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let currentUser = {};
+
+        // MAIN
+        async function main() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) { liff.login(); return; }
+                const profile = await liff.getProfile();
+                currentUser = { lineUserId: profile.userId, pictureUrl: profile.pictureUrl, displayName: profile.displayName };
+                checkUser();
+            } catch (err) { Swal.fire('Error', 'LIFF Init: ' + err, 'error'); }
+        }
+        main();
+
+        async function checkUser() {
+            try {
+                const userDoc = await getDoc(doc(db, "users", currentUser.lineUserId));
+                
+                // Always update the user's profile picture and display name from LINE
+                await setDoc(
+                    doc(db, "users", currentUser.lineUserId),
+                    {
+                        pictureUrl: currentUser.pictureUrl,
+                        displayName: currentUser.displayName,
+                        lastProfileUpdate: serverTimestamp()
+                    },
+                    { merge: true }
+                );
+
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    // Update currentUser with existing data but keep the latest picture and name from LINE
+                    currentUser = { ...userData, ...currentUser };
+                    
+                    if (userData.status === 'Pending') {
+                        show('pendingPage', userData);
+                    } else if (userData.status === 'Approved') {
+                        show('mainPage');
+                    } else {
+                        Swal.fire('ระงับการใช้งาน', 'กรุณาติดต่อแอดมิน', 'error');
+                    }
+                } else {
+                    show('registerPage');
+                }
+            } catch (e) { 
+                console.error('Error in checkUser:', e);
+                Swal.fire('Connection Error', e.message, 'error'); 
+            }
+        }
+
+        function getDeptColor(dept) {
+            switch (dept) {
+                case 'Pharmacist Extern':
+                    return 'bg-success';
+                case 'Pharmacist':
+                    return 'bg-info';
+                case 'Doctor':
+                    return 'bg-primary';
+                case 'Nurse':
+                    return 'bg-warning';
+                default:
+                    return 'bg-light';
+            }
+        }
+
+        function updateDeptUI() {
+            const deptColor = getDeptColor(currentUser.dept);
+            document.getElementById('showName').classList.add(deptColor);
+            document.getElementById('showEmpId').classList.add(deptColor);
+            document.getElementById('mainProfileImg').classList.add(deptColor);
+        }
+
+        async function show(id, data) {
+            ['loadingPage', 'registerPage', 'pendingPage', 'mainPage'].forEach(p => {
+                const el = document.getElementById(p);
+                el.classList.add('hidden'); // Ensure class is present
+                el.style.display = 'none';  // Double safety
+            });
+            
+            // Update department colors when showing main page
+            if (id === 'mainPage' && currentUser && currentUser.dept) {
+                updateDeptUI();
+            }
+
+            const target = document.getElementById(id);
+            target.classList.remove('hidden'); // Remove !important class
+            target.style.display = 'block';    // Set display
+
+            if (id === 'registerPage') {
+                document.getElementById('regisProfileImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
+                document.getElementById('regisName').innerText = currentUser.displayName;
+            } else if (id === 'pendingPage') {
+                document.getElementById('pendingImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
+                document.getElementById('pendingName').innerText = data.name;
+            } else if (id === 'mainPage') {
+                document.getElementById('showName').innerText = currentUser.name;
+                document.getElementById('showEmpId').innerText = `${currentUser.empId} | ${currentUser.dept}`;
+                document.getElementById('mainProfileImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
+                setInterval(() => {
+                    const now = new Date();
+                    document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false });
+                    document.getElementById('currentDate').innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                }, 1000);
+                loadHistory();
+                loadSchedule();
+                loadWorkingHours();
+            }
+        }
+
+        // --- 🟢 REGISTRATION ---
+        window.handleRegister = async (event) => {
+            event.preventDefault();
+            
+            const empId = document.getElementById('empId').value;
+            const fullName = document.getElementById('fullName').value;
+            const department = document.getElementById('department').value;
+            
+            // Validate internship dates if Pharmacist Extern
+            if (department === 'Pharmacist Extern') {
+                const startDate = document.getElementById('internshipStartDate').valueAsDate;
+                const endDate = document.getElementById('internshipEndDate').valueAsDate;
+                
+                if (!startDate || !endDate) {
+                    Swal.fire('ผิดพลาด', 'กรุณากรอกวันที่เริ่มต้นและสิ้นสุดการฝึกงานให้ครบถ้วน', 'error');
+                    return;
+                }
+                
+                if (endDate <= startDate) {
+                    Swal.fire('ผิดพลาด', 'วันที่สิ้นสุดการฝึกงานต้องมากกว่าวันที่เริ่มต้น', 'error');
+                    return;
+                }
+            }
+            
+            try {
+                // Save user data with registration timestamp
+                await setDoc(doc(db, "users", currentUser.lineUserId), {
+                    lineUserId: currentUser.lineUserId,
+                    pictureUrl: currentUser.pictureUrl,
+                    displayName: currentUser.displayName,
+                    empId: empId,
+                    name: fullName,
+                    dept: department,
+                    status: 'Pending',
+                    registrationDate: serverTimestamp(),
+                    createdAt: serverTimestamp(),
+                    ...(department === 'Pharmacist Extern' && {
+                        internshipStartDate: document.getElementById('internshipStartDate').valueAsDate,
+                        internshipEndDate: document.getElementById('internshipEndDate').valueAsDate
+                    })
+                });
+                
+                // Show pending page
+                show('pendingPage', { name: fullName });
+                
+            } catch (error) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message, 'error');
+            }
+        };
+
+        // --- 🟢 CORE LOGIC: Record Time ---
+        window.recordTime = async (type) => {
+            // ... (keep existing recordTime logic but remove the duplicate checks inside since buttons are hidden?)
+            // Actually, keep server-side checks for safety, but UI will hide button.
+            const result = await Swal.fire({
+                title: `ยืนยันการ ${type}?`,
+                text: type === 'เข้างาน' ? "เริ่มงานสู้งานนะครับ!" : "เดินทางกลับโดยสวัสดิภาพครับ",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: type === 'เข้างาน' ? '#198754' : '#dc3545',
+                confirmButtonText: `ใช่, ${type}`,
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (!result.isConfirmed) return;
+
+            const btn = type === 'เข้างาน' ? document.getElementById('btnCheckIn') : document.getElementById('btnCheckOut');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ตรวจสอบ...';
+
+            try {
+                // GPS Force
+                if (!navigator.geolocation) throw new Error("อุปกรณ์ไม่รองรับ GPS");
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    await save(type, pos.coords.latitude, pos.coords.longitude);
+                }, (err) => {
+                    Swal.fire({ title: 'ต้องการพิกัด GPS', text: 'กรุณาเปิด GPS', icon: 'warning' });
+                    btn.disabled = false; btn.innerHTML = originalText;
+                }, { enableHighAccuracy: true });
+
+            } catch (err) {
+                Swal.fire('แจ้งเตือน', err.message, 'warning');
+                btn.disabled = false; btn.innerHTML = originalText;
+            }
+
+            async function save(type, lat, lng, isAuto = false) {
+                try {
+                    btn.innerHTML = '💾 บันทึก...';
+                    await addDoc(collection(db, "attendance"), {
+                        userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
+                        type: type, timestamp: serverTimestamp(),
+                        location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`, userAgent: navigator.userAgent
+                    });
+
+                    if (liff.isInClient()) {
+                        liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` }]).catch(e => console.error(e));
+                    }
+                    if (!isAuto) Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
+                    loadHistory(); // Reload to toggle buttons
+                    loadWorkingHours(); // Reload working hours
+                } catch (e) { Swal.fire('Error', e.message, 'error'); }
+                finally { btn.disabled = false; btn.innerHTML = originalText; }
+            }
+        };
+
+        async function loadHistory() {
+            const start = new Date(); start.setHours(0, 0, 0, 0);
+            const q = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", start), orderBy("timestamp"));
+            const snap = await getDocs(q);
+
+            // 🟡 SMART BUTTONS LOGIC
+            const logs = snap.docs.map(d => d.data());
+            const btnIn = document.getElementById('btnCheckIn');
+            const btnOut = document.getElementById('btnCheckOut');
+
+            let lastType = null;
+            if (logs.length > 0) lastType = logs[logs.length - 1].type;
+
+            if (lastType === 'เข้างาน') {
+                btnIn.classList.add('hidden'); // Hide In
+                btnOut.classList.remove('hidden'); // Show Out
+
+                // 🔴 AUTO CHECKOUT LOGIC (23:00 Rule)
+                const now = new Date();
+                if (now.getHours() >= 23) {
+                    await performAutoCheckout();
+                    return; // Stop here, reload will happen inside
+                }
+
+            } else {
+                // No logs OR Last was 'ออกงาน' -> Show In, Hide Out
+                btnIn.classList.remove('hidden');
+                btnOut.classList.add('hidden');
+            }
+
+            // Render List
+            const list = document.getElementById('historyList'); list.innerHTML = "";
+            if (snap.empty) { list.innerHTML = "<p class='text-muted text-center small'>ยังไม่มีประวัติวันนี้</p>"; return; }
+            snap.forEach(d => {
+                const v = d.data();
+                const time = v.timestamp ? new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "..";
+                const icon = v.type === 'เข้างาน' ? 'bi-geo-alt-fill text-success' : 'bi-box-arrow-right text-danger';
+                list.innerHTML += `<li class="history-item ${v.type === 'เข้างาน' ? 'in' : 'out'}">
+                    <div class="d-flex align-items-center gap-2"><i class="bi ${icon}"></i> <span class="fw-bold">${v.type}</span></div>
+                    <span class="mono-font badge bg-light text-dark border">${time} น.</span>
+                </li>`;
+            });
+        }
+
+        async function performAutoCheckout() {
+            Swal.fire({
+                title: 'เลยเวลา 23:00 น.',
+                text: 'ระบบทำการบันทึก "ออกงาน" ให้โดยอัตโนมัติ (Timestamp 23:00)',
+                icon: 'info',
+                timer: 4000
+            });
+
+            // Calculate timestamp for Today 23:00:00
+            const autoTime = new Date();
+            autoTime.setHours(23, 0, 0, 0);
+
+            // Get location if possible, else 0,0
+            let lat = 0, lng = 0;
+            try {
+                const pos = await new Promise((res, rej) => {
+                    navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 });
+                });
+                lat = pos.coords.latitude; lng = pos.coords.longitude;
+            } catch (e) { console.log('Auto-checkout GPS failed, using default'); }
+
+            try {
+                await addDoc(collection(db, "attendance"), {
+                    userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
+                    type: 'ออกงาน',
+                    timestamp: autoTime, // Force 23:00
+                    location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`,
+                    userAgent: 'Evaluate-System (Auto 23:00)'
+                });
+                loadHistory(); // Reload UI
+            } catch (e) { console.error("Auto Checkout Err", e); }
+        }
+
+        async function loadSchedule() {
+            // ... (rest same) ...
+            // โหลดตารางเวร (logic เดิม + UI ใหม่)
+            const today = new Date().toISOString().split('T')[0];
+            const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today), orderBy("date"));
+            const snap = await getDocs(q);
+            const div = document.getElementById('scheduleList');
+            if (snap.empty) { div.innerHTML = "<p class='text-muted text-center small'>ไม่มีตารางเร็วๆ นี้</p>"; return; }
+            div.innerHTML = "";
+            snap.forEach(d => {
+                const v = d.data();
+                const dThai = new Date(v.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
+                let badgeClass = "bg-primary-subtle text-primary";
+                if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) badgeClass = "bg-danger-subtle text-danger";
+                else if (v.shiftDetail.includes('ดึก')) badgeClass = "bg-dark-subtle text-dark";
+
+                div.innerHTML += `<div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-white rounded border border-light shadow-sm">
+                    <div class="fw-bold text-secondary"><i class="bi bi-calendar-day me-2"></i>${dThai}</div>
+                    <span class="badge ${badgeClass} border">${v.shiftDetail}</span>
+                </div>`;
+            });
+
+            // Update Shift Status Badge current day
+            const todaySched = snap.docs.find(d => d.data().date === today);
+            const statusEl = document.getElementById('shiftStatus');
+            if (todaySched) {
+                statusEl.innerText = todaySched.data().shiftDetail;
+                statusEl.className = "badge rounded-pill px-3 py-1 border " + (todaySched.data().shiftDetail.includes('หยุด') ? "bg-danger text-white" : "bg-success text-white");
+            } else {
+                statusEl.innerText = "ไม่ได้ระบุเวร";
+                statusEl.className = "badge rounded-pill bg-light text-muted border px-3 py-1";
+            }
+        }
+
+        window.toggleLeaveForm = () => {
+            const el = document.getElementById('leaveFormSection');
+            el.classList.toggle('hidden');
+            if (!el.classList.contains('hidden')) loadMyLeaves();
+        }
+
+        window.submitLeaveRequest = async () => {
+            // ... logic เดิม ...
+            // (Copy logic from previous step but update UI calls if needed, skipping for brevity but assuming implemented in real flow, strict mode: include it)
+            const type = document.getElementById('leaveType').value;
+            const start = document.getElementById('leaveStart').value;
+            const end = document.getElementById('leaveEnd').value;
+            const reason = document.getElementById('leaveReason').value;
+            if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันให้ครบถ้วน', 'warning');
+            if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
+
+            try {
+                await addDoc(collection(db, "leave_requests"), {
+                    userId: currentUser.lineUserId, name: currentUser.name, dept: currentUser.dept,
+                    type, startDate: start, endDate: end, reason, status: "Pending", requestedAt: serverTimestamp()
+                });
+                Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
+                toggleLeaveForm();
+            } catch (e) { Swal.fire('Error', e.message, 'error'); }
+        }
+
+        async function loadMyLeaves() {
+            // ... logic เดิม ...
+            const q = query(collection(db, "leave_requests"), where("userId", "==", currentUser.lineUserId), orderBy("startDate", "desc"));
+            const snap = await getDocs(q);
+            const list = document.getElementById('myLeaveList'); list.innerHTML = "";
+            snap.forEach(d => {
+                const v = d.data();
+                let color = 'text-warning', icon = 'bi-hourglass-split';
+                if (v.status === 'Approved') { color = 'text-success'; icon = 'bi-check-circle-fill'; }
+                if (v.status === 'Rejected') { color = 'text-danger'; icon = 'bi-x-circle-fill'; }
+                list.innerHTML += `<li class="history-item py-2 px-0 border-0 shadow-none d-flex justify-content-between mb-1">
+                    <div><span class="badg small border me-2">${v.type}</span> <small class="text-muted">${v.startDate}</small></div>
+                    <div class="${color} fw-bold small"><i class="bi ${icon}"></i> ${v.status}</div>
+                 </li>`
+            });
+        }
+
+        // --- DEPARTMENT COLORS ---
+        function getDeptColor(dept) {
+            dept = dept || "";
+            let c = '#6c757d'; // Default Gray
+            if (dept.match(/Pharmacy|เภสัช/i)) c = '#198754';
+            else if (dept.match(/General|ทั่วไป/i)) c = '#0dcaf0';
+            else if (dept.match(/IT|ไอที/i)) c = '#6f42c1';
+            else if (dept.match(/Admin|ธุรการ/i)) c = '#dc3545';
+            else if (dept.match(/Sales|การตลาด/i)) c = '#fd7e14';
+            return c;
+        }
+
+        // Apply department color to UI elements
+        function updateDeptUI() {
+            if (!currentUser || !currentUser.dept) return;
+            
+            const deptColor = getDeptColor(currentUser.dept);
+            
+            // Update header
+            const header = document.querySelector('.navbar');
+            if (header) header.style.backgroundColor = deptColor;
+            
+            // Update buttons
+            const buttons = document.querySelectorAll('.btn-primary');
+            buttons.forEach(btn => {
+                btn.style.backgroundColor = deptColor;
+                btn.style.borderColor = deptColor;
+            });
+            
+            // Update cards
+            const cards = document.querySelectorAll('.card-header');
+            cards.forEach(card => {
+                card.style.backgroundColor = deptColor;
+                card.style.color = 'white';
+            });
+        }
+
+        // --- WORKING HOURS CALCULATION ---
+        async function loadWorkingHours() {
+            try {
+                const isPharmacistExtern = currentUser.dept === 'Pharmacist Extern';
+
+                const yearlyCard = document.getElementById('yearlyHoursCard');
+                const monthlyCard = document.getElementById('monthlyHoursCard');
+                const hours1Title = document.getElementById('hours1Title');
+                const hours1Desc = document.getElementById('hours1Desc');
+                const hours2Title = document.getElementById('hours2Title');
+                const hours2Desc = document.getElementById('hours2Desc');
+
+                if (isPharmacistExtern) {
+                    // Pharmacist Extern:
+                    // 1) ระยะเวลาฝึกงานทั้งหมด
+                    // 2) เดือนนี้ (1 -> เมื่อวาน)
+                    yearlyCard.style.display = 'none';
+                    monthlyCard.style.display = 'block'; // Make sure monthly card is visible
+                    hours1Title.innerText = 'ชม.ทำงานทั้งหมด';
+                    hours1Desc.innerText = 'ตลอดระยะเวลาฝึกงาน';
+                    hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
+                    hours2Desc.innerText = 'ตั้งแต่วันที่ 1 ถึงเมื่อวาน';
+
+                    await calculateInternshipHours();
+                    await calculateHoursFromMonthStart();
+                } else {
+                    // ทุกแผนก (ยกเว้น Extern):
+                    // 1) เดือนนี้ (1 -> เมื่อวาน)
+                    // 2) ปีนี้ (1 ม.ค. -> เมื่อวาน)
+                    yearlyCard.style.display = 'block';
+                    monthlyCard.style.display = 'block';
+                    hours1Title.innerText = 'ชม.ทำงานปีนี้';
+                    hours1Desc.innerText = 'ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน';
+                    hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
+                    hours2Desc.innerText = 'ตั้งแต่วันที่ 1 ถึงเมื่อวาน';
+
+                    await calculateHoursFromMonthStart();
+                    await calculateHoursFromYearStart();
+                }
+
+            } catch (error) {
+                console.error('Error loading working hours:', error);
+            }
+        }
+
+        async function calculateInternshipHours() {
+            try {
+                // Get user data including internship period
+                const userDoc = await getDoc(doc(db, "users", currentUser.lineUserId));
+                if (!userDoc.exists()) return;
+
+                const userData = userDoc.data();
+                
+                // Use internship period if available, otherwise fall back to registration date
+                let startDate, endDate;
+                
+                if (userData.internshipStartDate && userData.internshipEndDate) {
+                    startDate = userData.internshipStartDate.toDate ? 
+                                userData.internshipStartDate.toDate() : 
+                                new Date(userData.internshipStartDate);
+                    
+                    endDate = userData.internshipEndDate.toDate ? 
+                              userData.internshipEndDate.toDate() : 
+                              new Date(userData.internshipEndDate);
+                    
+                    // If end date is in the future, use yesterday as end date
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    yesterday.setHours(23, 59, 59, 999);
+                    
+                    if (endDate > yesterday) {
+                        endDate = yesterday;
+                    }
+                } else {
+                    // Fallback to registration date if no internship period is set
+                    const registrationDate = userData.registrationDate || userData.createdAt;
+                    if (!registrationDate) {
+                        document.getElementById('hours1Value').innerText = '0.00';
+                        return;
+                    }
+                    startDate = registrationDate.toDate ? 
+                                registrationDate.toDate() : 
+                                new Date(registrationDate);
+                    endDate = new Date();
+                    endDate.setDate(endDate.getDate() - 1); // Yesterday
+                    endDate.setHours(23, 59, 59, 999);
+                }
+                
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours1Value').innerText = hours.toFixed(2);
+                
+            } catch (error) {
+                console.error('Error calculating internship hours:', error);
+                document.getElementById('hours1Value').innerText = '0.00';
+            }
+        }
+
+        async function calculateHoursFromMonthStart() {
+            try {
+                const now = new Date();
+                const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of current month
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() - 1); // Yesterday
+                endDate.setHours(23, 59, 59, 999);
+                
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours2Value').innerText = hours.toFixed(2);
+                
+            } catch (error) {
+                console.error('Error calculating hours from month start:', error);
+                document.getElementById('hours2Value').innerText = '0.00';
+            }
+        }
+
+        async function calculateHoursFromYearStart() {
+            try {
+                const now = new Date();
+                const startDate = new Date(now.getFullYear(), 0, 1); // 1st January
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() - 1); // Yesterday
+                endDate.setHours(23, 59, 59, 999);
+                
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours3Value').innerText = hours.toFixed(2);
+                
+            } catch (error) {
+                console.error('Error calculating hours from year start:', error);
+                document.getElementById('hours3Value').innerText = '0.00';
+            }
+        }
+
+        async function calculateWorkingHours(startDate, endDate) {
+            try {
+                const q = query(
+                    collection(db, "attendance"),
+                    where("userId", "==", currentUser.lineUserId),
+                    where("timestamp", ">=", startDate),
+                    where("timestamp", "<=", endDate),
+                    orderBy("timestamp")
+                );
+                
+                const snap = await getDocs(q);
+                const records = snap.docs.map(doc => ({
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp.toDate()
+                }));
+                
+                // Group records by date and calculate daily hours
+                const dailyRecords = {};
+                records.forEach(record => {
+                    const dateKey = record.timestamp.toISOString().split('T')[0];
+                    if (!dailyRecords[dateKey]) {
+                        dailyRecords[dateKey] = [];
+                    }
+                    dailyRecords[dateKey].push(record);
+                });
+                
+                let totalHours = 0;
+                
+                Object.values(dailyRecords).forEach(dayRecords => {
+                    // Sort by time
+                    dayRecords.sort((a, b) => a.timestamp - b.timestamp);
+                    
+                    let dayHours = 0;
+                    let clockInTime = null;
+                    
+                    dayRecords.forEach(record => {
+                        if (record.type === 'เข้างาน') {
+                            clockInTime = record.timestamp;
+                        } else if (record.type === 'ออกงาน' && clockInTime) {
+                            // Calculate hours between clock in and clock out
+                            const diffMs = record.timestamp - clockInTime;
+                            const diffHours = diffMs / (1000 * 60 * 60);
+                            dayHours += diffHours;
+                            clockInTime = null;
+                        }
+                    });
+                    
+                    // Handle case where clocked in but no clock out (use 23:00 as default)
+                    if (clockInTime) {
+                        const endTime = new Date(clockInTime);
+                        endTime.setHours(23, 0, 0, 0);
+                        const diffMs = endTime - clockInTime;
+                        const diffHours = diffMs / (1000 * 60 * 60);
+                        dayHours += diffHours;
+                    }
+                    
+                    totalHours += dayHours;
+                });
+                
+                return totalHours;
+                
+            } catch (error) {
+                console.error('Error in calculateWorkingHours:', error);
+                return 0;
+            }
+        }
+    </script>
+</body>
+
+</html>
