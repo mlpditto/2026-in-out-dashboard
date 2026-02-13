@@ -265,13 +265,16 @@
                 <input type="text" id="fullName" class="form-control" placeholder="นาย รักงาน ขยันยิ่ง" required>
 
                 <label class="small text-muted fw-bold ms-1">แผนก</label>
-                <select id="department" class="form-control">
-                    <option value="General">ทั่วไป (General)</option>
-                    <option value="Pharmacy">เภสัชกรรม (Pharmacy)</option>
-                    <option value="IT">ไอที (IT Support)</option>
-                    <option value="Admin">ธุรการ (Admin)</option>
-                    <option value="Sales">การตลาด (Sales)</option>
-                </select>
+                <input type="text" id="department" class="form-control" list="deptOptions"
+                    placeholder="เลือกจากรายการหรือพิมพ์เพิ่ม" required>
+                <datalist id="deptOptions">
+                    <option value="General">
+                    <option value="Pharmacy">
+                    <option value="IT">
+                    <option value="Admin">
+                    <option value="Sales">
+                    <option value="Pharmacist Extern">
+                </datalist>
 
                 <button type="submit" class="btn btn-primary mt-3">
                     <i class="bi bi-person-check-fill"></i> ยืนยันข้อมูล
@@ -758,25 +761,25 @@
         // --- WORKING HOURS CALCULATION ---
         async function loadWorkingHours() {
             try {
-                const isPharmacistIntern = currentUser.dept === 'Pharmacist Intern';
+                const isPharmacistExtern = currentUser.dept === 'Pharmacist Extern';
 
                 const yearlyCard = document.getElementById('yearlyHoursCard');
                 const hours1Title = document.getElementById('hours1Title');
                 const hours1Desc = document.getElementById('hours1Desc');
 
-                if (isPharmacistIntern) {
-                    // Pharmacist Intern:
+                if (isPharmacistExtern) {
+                    // Pharmacist Extern:
                     // 1) ตั้งแต่สมัครครั้งแรก -> เมื่อวาน
                     // 2) เดือนนี้ (1 -> เมื่อวาน)
                     // * ไม่แสดงปีนี้
                     yearlyCard.style.display = 'none';
-                    hours1Title.innerText = 'ชม.ทำงานสะสม (Intern)';
+                    hours1Title.innerText = 'ชม.ทำงานสะสม (Extern)';
                     hours1Desc.innerText = 'ตั้งแต่ครั้งแรกที่สมัคร ถึงเมื่อวาน';
 
                     await calculateHoursFromRegistration();
                     await calculateHoursFromMonthStart();
                 } else {
-                    // ทุกแผนก (ยกเว้น Intern):
+                    // ทุกแผนก (ยกเว้น Extern):
                     // 1) เดือนนี้ (1 -> เมื่อวาน)
                     // 2) ปีนี้ (1 ม.ค. -> เมื่อวาน)
                     // * ไม่ต้องคำนวณตั้งแต่สมัคร

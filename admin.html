@@ -479,6 +479,7 @@
                             <option value="IT">
                             <option value="Admin">
                             <option value="Sales">
+                            <option value="Pharmacist Extern">
                         </datalist>
                         <label>แผนก</label>
                     </div>
@@ -633,7 +634,7 @@
             if (!uid) return '';
             if (workHoursCache[uid]) return workHoursCache[uid];
 
-            const isIntern = row.dept === 'Pharmacy';
+            const isExtern = row.dept === 'Pharmacist Extern';
             const end = new Date();
             end.setDate(end.getDate() - 1);
             end.setHours(23, 59, 59, 999);
@@ -646,7 +647,7 @@
             const monthHours = await calcHours(uid, monthStart, end);
             let html = `<div class="text-muted small">เดือนนี้: <span class="fw-bold">${monthHours.toFixed(2)}</span> ชม.</div>`;
 
-            if (isIntern) {
+            if (isExtern) {
                 const user = window.allUserData?.[uid];
                 const reg = user?.registrationDate || user?.createdAt;
                 if (reg) {
