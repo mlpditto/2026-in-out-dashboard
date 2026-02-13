@@ -801,7 +801,94 @@
 
         window.updLeave = async (id, st, uid, nm, s, e, tp) => { await setDoc(doc(db, "leave_requests", id), { status: st }, { merge: true }); if (st === 'Approved') { let c = new Date(s), end = new Date(e); while (c <= end) { let ds = c.toISOString().split('T')[0]; await setDoc(doc(db, "schedules", `${uid}_${ds}`), { userId: uid, name: nm, date: ds, shiftDetail: `🛑 ${tp}` }); c.setDate(c.getDate() + 1) } } Toast.fire({ icon: 'success', title: 'เรียบร้อย' }); loadLeaveRequests(); };
 
-        window.loadPendingUsers = async () => { const s = await getDocs(query(collection(db, "users"), where("status", "==", "Pending"))); let h = ""; s.forEach(d => { const v = d.data(); h += `<tr><td class="ps-3"><div class="user-cell"><img src="${v.pictureUrl}" class="profile-thumb"> <div><h6>${v.name}</h6><small class="text-danger">New Register</small></div></div></td><td class="text-end pe-3"><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success px-3">อนุมัติ</button></td></tr>` }); document.getElementById('pendingUsersTable').innerHTML = h || `<tr><td colspan="2" class="text-center py-3 text-muted">ไม่มีผู้สมัครใหม่</td></tr>`; document.getElementById('statNewUsers').innerText = s.size; };
+        window.loadPendingUsers = async () => {
+            try {
+                const pendingTable = document.getElementById('pendingUsersTable');
+                pendingTable.innerHTML = `
+                    <tr><td colspan="3" class="text-center py-5">
+                        <div class="spinner-border text-danger"></div>
+                        <div class="mt-2 text-muted">กำลังโหลด...</div>
+                    </td></tr>`;
+                
+                const s = await getDocs(query(collection(db, "users"), where("status", "==", "Pending")));
+                let h = "";
+                s.forEach(d => { 
+                    const v = d.data();
+                    h += `
+                    <tr>
+                        <td class="ps-3">
+                            <div class="user-cell">
+                                <img src="${v.pictureUrl}" class="profile-thumb">
+                                <div>
+                                    <h6 class="mb-0">${v.name}</h6>
+                                    <small class="text-muted">${v.empId || 'ยังไม่มีรหัสพนักงาน'}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">${v.dept || 'ยังไม่ระบุ'}</span></td>
+                        <td class="text-end pe-3">
+                            <div class="btn-group">
+                                <button onclick="appUser('${d.id}')" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check-lg"></i> อนุมัติ
+                                </button>
+                                <button onclick="delUser('${d.id}')" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+                
+                pendingTable.innerHTML = h || `
+                    <tr>
+                        <td colspan="3" class="text-center py-5 text-muted">
+                            <i class="bi bi-emoji-smile fs-1 d-block mb-2"></i>
+                            ไม่มีผู้สมัครใหม่ที่รอการอนุมัติ
+                        </td>
+                    </tr>`;
+                
+                // Update stats and show notification if there are new users
+                const newUserCount = s.size;
+                document.getElementById('statNewUsers').innerText = newUserCount;
+                
+                // Show notification badge on the tab
+                const newMemberBadge = document.getElementById('newMemberBadge');
+                if (newMemberBadge) {
+                    if (newUserCount > 0) {
+                        newMemberBadge.classList.remove('d-none');
+                        newMemberBadge.textContent = newUserCount;
+                        
+                        // Show popup notification if this is the first load
+                        if (!window.hasShownNewMemberNotification) {
+                            window.hasShownNewMemberNotification = true;
+                            setTimeout(() => {
+                                Swal.fire({
+                                    title: 'มีสมาชิกใหม่รอการอนุมัติ',
+                                    text: `มีผู้ใช้ใหม่ ${newUserCount} คนรอการอนุมัติ`,
+                                    icon: 'info',
+                                    confirmButtonText: 'ไปที่หน้าอนุมัติ',
+                                    showCancelButton: true,
+                                    cancelButtonText: 'ปิด',
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        switchTab('newMembers');
+                                    }
+                                });
+                            }, 1000);
+                        }
+                    } else {
+                        newMemberBadge.classList.add('d-none');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading pending users:', error);
+                document.getElementById('pendingUsersTable').innerHTML = `
+                    <tr><td colspan="3" class="text-center py-5 text-danger">
+                        <i class="bi bi-exclamation-triangle"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล
+                    </td></tr>`;
+            }
+        };
 
         // --- RENDER CHART (Horizontal Bar + Sorted) ---
         window.renderCharts = async () => {
