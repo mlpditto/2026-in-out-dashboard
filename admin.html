@@ -408,8 +408,15 @@
                     <div class="card-body">
                         <div class="d-flex gap-2 mb-3 align-items-center">
                             <label>เลือกเดือน:</label>
-                            <input type="month" id="chartMonth" class="form-control" style="width: 200px;">
-                            <button onclick="renderCharts()" class="btn btn-dark">แสดงกราฟ</button>
+                            <div class="input-group" style="width: 280px;">
+                                <button class="btn btn-outline-secondary" onclick="changeChartMonth(-1)"><i
+                                        class="bi bi-chevron-left"></i></button>
+                                <input type="month" id="chartMonth" class="form-control text-center">
+                                <button class="btn btn-outline-secondary" onclick="changeChartMonth(1)"><i
+                                        class="bi bi-chevron-right"></i></button>
+                            </div>
+                            <button onclick="renderCharts()" class="btn btn-dark ms-2"><i
+                                    class="bi bi-graph-up me-1"></i>แสดงกราฟ</button>
                         </div>
                         <div style="height: 400px;">
                             <canvas id="workHoursChart"></canvas>
@@ -881,7 +888,8 @@
                 chartData.push({ name: n, hours: parseFloat((ms / 3600).toFixed(2)) });
             });
 
-            // 4. Sort (Highest hours first)
+            // 4. Filter out users with 0 hours and Sort (Highest hours first)
+            chartData = chartData.filter(d => d.hours > 0);
             chartData.sort((a, b) => b.hours - a.hours);
 
             const labels = chartData.map(d => d.name);
@@ -1162,6 +1170,16 @@
 
         window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
         window.openPendingUsers = openPendingUsers; window.changePage = changePage;
+
+        window.changeChartMonth = (dir) => {
+            const el = document.getElementById('chartMonth');
+            const current = el.value; // YYYY-MM
+            if (!current) return;
+            let [y, m] = current.split('-').map(Number);
+            let d = new Date(y, m - 1 + dir, 1);
+            el.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            renderCharts();
+        };
     </script>
 </body>
 
