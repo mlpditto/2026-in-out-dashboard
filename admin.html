@@ -207,7 +207,7 @@
 
         window.logout = () => signOut(auth);
 
-        // 5. โหลดข้อมูล (เหมือนเดิม)
+        // 5. โหลดข้อมูล (พร้อมแก้ไขปัญหาภาพ)
         window.loadData = async () => {
             const dateVal = document.getElementById('filterDate').value;
             const tbody = document.getElementById('tableBody');
@@ -227,6 +227,19 @@
                 let html = "";
                 let rawData = [];
 
+                // ดึงข้อมูล user ไว้แสดงรูป
+                const userIds = [...new Set(querySnapshot.docs.map(doc => doc.data().userId))];
+                const userProfiles = {};
+                
+                for (const userId of userIds) {
+                    if (userId) {
+                        const userDoc = await getDoc(doc(db, "users", userId));
+                        if (userDoc.exists()) {
+                            userProfiles[userId] = userDoc.data().pictureUrl || '';
+                        }
+                    }
+                }
+
                 querySnapshot.forEach(doc => {
                     const data = doc.data();
                     rawData.push(data);
@@ -242,11 +255,12 @@
                 rawData.forEach(item => {
                     const time = item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "-";
                     const statusClass = item.type === 'เข้างาน' ? 'status-in' : 'status-out';
+                    const userPicture = userProfiles[item.userId] || '';
 
                     html += `
                         <tr>
                             <td>${time}</td>
-                            <td>${item.lineUserId ? `<img src="${item.pictureUrl}" class="profile-thumb">` : '-'}</td>
+                            <td>${userPicture ? `<img src="${userPicture}" class="profile-thumb">` : '-'}</td>
                             <td>${item.empId || '-'}</td>
                             <td>${item.name}</td>
                             <td>${item.dept || '-'}</td>
