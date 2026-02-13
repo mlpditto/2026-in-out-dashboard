@@ -263,6 +263,7 @@
                                 <h3 class="fw-bold my-1 text-info" id="statTotalUsers">0</h3>
                             </div><i class="bi bi-chevron-right text-muted opacity-25"></i>
                         </div>
+                        <div id="deptBreakdown" class="mt-2 small"></div>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
@@ -632,7 +633,7 @@
             if (!uid) return '';
             if (workHoursCache[uid]) return workHoursCache[uid];
 
-            const isIntern = row.dept === 'Pharmacist Intern';
+            const isIntern = row.dept === 'Pharmacy';
             const end = new Date();
             end.setDate(end.getDate() - 1);
             end.setHours(23, 59, 59, 999);
@@ -695,21 +696,88 @@
                     <td class="text-end pe-3"><button onclick="delAttendance('${docSnap.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button></td>
                 </tr>`;
             }
+
             t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
             document.getElementById('statIn').innerText = c;
         };
 
-        async function cacheUserProfiles() { const s = await getDocs(collection(db, "users")); document.getElementById('statTotalUsers').innerText = s.size; s.forEach(d => userProfileMap[d.data().lineUserId] = d.data().pictureUrl); }
-        function getProfileImg(uid) { return `<img src="${userProfileMap[uid] || 'https://via.placeholder.com/45'}" class="profile-thumb">`; }
-        function loadInitialData() { document.getElementById('filterDate').valueAsDate = new Date(); loadData(); loadUsersList(); loadPendingUsers(); }
-        window.loadSchedules = async () => { const s = await getDocs(query(collection(db, "schedules"), orderBy("date", "desc"))); let h = ""; s.forEach(d => { const v = d.data(); const img = getProfileImg(v.userId); h += `<tr><td>${v.date}</td><td><div class="user-cell">${img} ${v.name}</div></td><td><span class="badge bg-light text-dark border">${v.shiftDetail}</span></td><td><button onclick="delSched('${d.id}')" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></td></tr>` }); document.getElementById('schedTableBody').innerHTML = h };
-        window.createSchedule = async (e) => { e.preventDefault(); const u = document.getElementById('userSelect'); await setDoc(doc(db, "schedules", `${u.value}_${document.getElementById('schedDate').value}`), { userId: u.value, name: u.options[u.selectedIndex].text, date: document.getElementById('schedDate').value, shiftDetail: document.getElementById('schedType').value === 'custom' ? `กำหนดเอง (${document.getElementById('customStart').value} - ${document.getElementById('customEnd').value})` : document.getElementById('schedType').value }); Toast.fire({ icon: 'success', title: 'บันทึกสำเร็จ' }); loadSchedules() };
-        window.delSched = async (id) => { if ((await Swal.fire({ title: 'ลบรายการ?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "schedules", id)); loadSchedules(); } };
-        window.loadLeaveRequests = async () => { const s = await getDocs(query(collection(db, "leave_requests"), where("status", "==", "Pending"))); let h = ""; s.forEach(doc => { const d = doc.data(); const img = getProfileImg(d.userId); h += `<tr><td class="ps-3"><div class="user-cell">${img} <div><h6>${d.name}</h6><small>${d.dept}</small></div></div></td><td><span class="badge bg-warning text-dark">${d.type}</span></td><td>${d.startDate} - ${d.endDate}</td><td>${d.reason}</td><td class="text-end pe-3"><button onclick="updLeave('${doc.id}','Approved','${d.userId}','${d.name}','${d.startDate}','${d.endDate}','${d.type}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button><button onclick="updLeave('${doc.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button></td></tr>` }); document.getElementById('leaveTableBody').innerHTML = h || `<tr><td colspan="5" class="text-center py-4 text-muted">ไม่มีคำขอใหม่</td></tr>`; document.getElementById('statLeave').innerText = s.size; };
+        async function cacheUserProfiles() {
+            const s = await getDocs(collection(db, "users"));
+            userProfileMap = {};
+            window.allUserData = {};
+
+            let approvedCount = 0;
+            const byDept = {};
+
+            s.forEach(d => {
+                const u = d.data();
+                const uid = u.lineUserId || d.id;
+                if (uid) {
+                    userProfileMap[uid] = u.pictureUrl;
+                    window.allUserData[uid] = u;
+
+                    if (u.status === 'Approved') {
+                        approvedCount++;
+                        const dept = u.dept || 'Unknown';
+                        if (!byDept[dept]) byDept[dept] = [];
+                        byDept[dept].push({ uid, pictureUrl: u.pictureUrl, name: u.name });
+                    }
+                }
+            });
+
+            document.getElementById('statTotalUsers').innerText = approvedCount;
+            renderDeptBreakdown(byDept);
+        }
+
+        function renderDeptBreakdown(byDept) {
+            const el = document.getElementById('deptBreakdown');
+            if (!el) return;
+
+            const entries = Object.entries(byDept || {});
+            if (!entries.length) {
+                el.innerHTML = '';
+                return;
+            }
+
+            entries.sort((a, b) => b[1].length - a[1].length);
+
+            el.innerHTML = entries.map(([dept, list]) => {
+                const color = getDeptColor(dept);
+                const thumbs = list.slice(0, 8).map(u => {
+                    const src = u.pictureUrl || 'https://via.placeholder.com/18';
+                    return `<img src="${src}" title="${u.name || ''}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;">`;
+                }).join('');
+                const more = list.length > 8 ? `<span class="text-muted" style="margin-left:6px;">+${list.length - 8}</span>` : '';
+                return `
+                    <div class="d-flex justify-content-between align-items-center" style="gap:8px;">
+                        <div class="text-truncate" style="max-width:140px;">
+                            <span class="fw-bold" style="color:${color};">${dept}</span>
+                            <span class="text-muted">(${list.length})</span>
+                        </div>
+                        <div class="d-flex align-items-center" style="padding-left:6px;">
+                            ${thumbs}${more}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getProfileImg(uid) {
+            return `<img src="${userProfileMap[uid] || 'https://via.placeholder.com/45'}" class="profile-thumb">`;
+        }
+
+        function loadInitialData() {
+            document.getElementById('filterDate').valueAsDate = new Date();
+            loadData();
+            loadUsersList();
+            loadPendingUsers();
+        }
+
         window.updLeave = async (id, st, uid, nm, s, e, tp) => { await setDoc(doc(db, "leave_requests", id), { status: st }, { merge: true }); if (st === 'Approved') { let c = new Date(s), end = new Date(e); while (c <= end) { let ds = c.toISOString().split('T')[0]; await setDoc(doc(db, "schedules", `${uid}_${ds}`), { userId: uid, name: nm, date: ds, shiftDetail: `🛑 ${tp}` }); c.setDate(c.getDate() + 1) } } Toast.fire({ icon: 'success', title: 'เรียบร้อย' }); loadLeaveRequests(); };
+
         window.loadPendingUsers = async () => { const s = await getDocs(query(collection(db, "users"), where("status", "==", "Pending"))); let h = ""; s.forEach(d => { const v = d.data(); h += `<tr><td class="ps-3"><div class="user-cell"><img src="${v.pictureUrl}" class="profile-thumb"> <div><h6>${v.name}</h6><small class="text-danger">New Register</small></div></div></td><td class="text-end pe-3"><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success px-3">อนุมัติ</button></td></tr>` }); document.getElementById('pendingUsersTable').innerHTML = h || `<tr><td colspan="2" class="text-center py-3 text-muted">ไม่มีผู้สมัครใหม่</td></tr>`; document.getElementById('statNewUsers').innerText = s.size; };
 
-        // --- 🟢 RENDER CHART (Horizontal Bar + Sorted) ---
+        // --- RENDER CHART (Horizontal Bar + Sorted) ---
         window.renderCharts = async () => {
             const m = document.getElementById('chartMonth').value; if (!m) return;
             const start = new Date(m + "-01"); start.setHours(0, 0, 0, 0); const end = new Date(m + "-01"); end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23, 59, 59, 999);

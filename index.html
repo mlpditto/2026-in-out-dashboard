@@ -466,6 +466,14 @@
                 const s = await getDoc(doc(db, "users", currentUser.lineUserId));
                 if (s.exists()) {
                     const d = s.data();
+                    await setDoc(
+                        doc(db, "users", currentUser.lineUserId),
+                        {
+                            pictureUrl: currentUser.pictureUrl,
+                            displayName: currentUser.displayName
+                        },
+                        { merge: true }
+                    );
                     if (d.status === 'Pending') show('pendingPage', d);
                     else if (d.status === 'Approved') { Object.assign(currentUser, d); show('mainPage'); }
                     else Swal.fire('ระงับการใช้งาน', 'กรุณาติดต่อแอดมิน', 'error');
@@ -488,15 +496,15 @@
             target.style.display = 'block';    // Set display
 
             if (id === 'registerPage') {
-                document.getElementById('regisProfileImg').src = currentUser.pictureUrl;
+                document.getElementById('regisProfileImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
                 document.getElementById('regisName').innerText = currentUser.displayName;
             } else if (id === 'pendingPage') {
-                document.getElementById('pendingImg').src = currentUser.pictureUrl;
+                document.getElementById('pendingImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
                 document.getElementById('pendingName').innerText = data.name;
             } else if (id === 'mainPage') {
                 document.getElementById('showName').innerText = currentUser.name;
                 document.getElementById('showEmpId').innerText = `${currentUser.empId} | ${currentUser.dept}`;
-                document.getElementById('mainProfileImg').src = currentUser.pictureUrl;
+                document.getElementById('mainProfileImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
                 setInterval(() => {
                     const now = new Date();
                     document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false });
@@ -583,7 +591,7 @@
                     });
 
                     if (liff.isInClient()) {
-                        liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}` }]).catch(e => console.error(e));
+                        liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` }]).catch(e => console.error(e));
                     }
                     if (!isAuto) Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
                     loadHistory(); // Reload to toggle buttons
