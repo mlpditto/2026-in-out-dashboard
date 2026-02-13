@@ -575,6 +575,94 @@
             }
         };
 
+        const workHoursCache = {};
+        function calcHoursFromLogs(logs) {
+            const byDay = {};
+            logs.forEach(x => {
+                const k = x.timestamp.toISOString().split('T')[0];
+                if (!byDay[k]) byDay[k] = [];
+                byDay[k].push(x);
+            });
+
+            let total = 0;
+            Object.values(byDay).forEach(list => {
+                list.sort((a, b) => a.timestamp - b.timestamp);
+                let inTime = null;
+                let dayHours = 0;
+
+                list.forEach(r => {
+                    if (r.type === 'เข้างาน') inTime = r.timestamp;
+                    else if (r.type === 'ออกงาน' && inTime) {
+                        dayHours += (r.timestamp - inTime) / 3600000;
+                        inTime = null;
+                    }
+                });
+
+                if (inTime) {
+                    const end23 = new Date(inTime);
+                    end23.setHours(23, 0, 0, 0);
+                    dayHours += (end23 - inTime) / 3600000;
+                }
+
+                total += dayHours;
+            });
+
+            return total;
+        }
+
+        async function calcHours(uid, startDate, endDate) {
+            const qh = query(
+                collection(db, "attendance"),
+                where("userId", "==", uid),
+                where("timestamp", ">=", startDate),
+                where("timestamp", "<=", endDate),
+                orderBy("timestamp")
+            );
+            const sh = await getDocs(qh);
+            const logs = sh.docs.map(dd => {
+                const v = dd.data();
+                const ts = v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp.seconds * 1000);
+                return { type: v.type, timestamp: ts };
+            });
+            return calcHoursFromLogs(logs);
+        }
+
+        async function getHoursHtml(row) {
+            const uid = row.userId;
+            if (!uid) return '';
+            if (workHoursCache[uid]) return workHoursCache[uid];
+
+            const isIntern = row.dept === 'Pharmacist Intern';
+            const end = new Date();
+            end.setDate(end.getDate() - 1);
+            end.setHours(23, 59, 59, 999);
+
+            const monthStart = new Date(end.getFullYear(), end.getMonth(), 1);
+            monthStart.setHours(0, 0, 0, 0);
+            const yearStart = new Date(end.getFullYear(), 0, 1);
+            yearStart.setHours(0, 0, 0, 0);
+
+            const monthHours = await calcHours(uid, monthStart, end);
+            let html = `<div class="text-muted small">เดือนนี้: <span class="fw-bold">${monthHours.toFixed(2)}</span> ชม.</div>`;
+
+            if (isIntern) {
+                const user = window.allUserData?.[uid];
+                const reg = user?.registrationDate || user?.createdAt;
+                if (reg) {
+                    const regStart = reg.toDate ? reg.toDate() : new Date(reg);
+                    regStart.setHours(0, 0, 0, 0);
+                    const totalHours = await calcHours(uid, regStart, end);
+                    html = `<div class="text-muted small">สะสม: <span class="fw-bold">${totalHours.toFixed(2)}</span> ชม.</div>` + html;
+                }
+            } else {
+                const yearHours = await calcHours(uid, yearStart, end);
+                html = html + `<div class="text-muted small">ปีนี้: <span class="fw-bold">${yearHours.toFixed(2)}</span> ชม.</div>`;
+            }
+
+            workHoursCache[uid] = html;
+            return html;
+        }
+
         window.loadData = async () => {
             const d = document.getElementById('filterDate').value;
             const s = new Date(d); s.setHours(0, 0, 0, 0); const e = new Date(d); e.setHours(23, 59, 59, 999);
@@ -584,21 +672,29 @@
             const snap = await getDocs(q);
             let h = "", c = 0;
             window.currentData = [];
-            snap.forEach(doc => {
-                const v = doc.data();
+
+            const docs = [];
+            snap.forEach(d0 => docs.push(d0));
+
+            for (const docSnap of docs) {
+                const v = docSnap.data();
                 window.currentData.push(v);
                 if (v.type === 'เข้างาน') c++;
                 const bg = v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger';
                 const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
+                const hoursHtml = await getHoursHtml(v);
                 h += `<tr>
                     <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
                     <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${v.name}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
                     <td><span class="badge bg-light text-dark border">${v.dept}</span></td>
-                    <td><span class="badge ${bg} bg-opacity-10 text-${bg.split('-')[1]} badge-pill"><span class="status-dot ${bg}"></span>${v.type}</span></td>
+                    <td>
+                        <span class="badge ${bg} bg-opacity-10 text-${bg.split('-')[1]} badge-pill"><span class="status-dot ${bg}"></span>${v.type}</span>
+                        ${hoursHtml}
+                    </td>
                     <td>${map}</td>
-                    <td class="text-end pe-3"><button onclick="delAttendance('${doc.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button></td>
+                    <td class="text-end pe-3"><button onclick="delAttendance('${docSnap.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button></td>
                 </tr>`;
-            });
+            }
             t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
             document.getElementById('statIn').innerText = c;
         };
