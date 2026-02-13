@@ -5,24 +5,41 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: '18.x'
+          cache: 'npm'
           
-      - name: Install dependencies and build
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build
         run: |
-          npm install
-          npm run build
+          mkdir -p dist
+          cp -r *.html *.css *.js images/ dist/ 2>/dev/null || :
           
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
           folder: dist
+          clean: true
+          clean-exclude: |
+            .git
+            .github
+            CNAME
+            README.md
+          commit-message: 'Deploy: Update GitHub Pages [skip ci]'
