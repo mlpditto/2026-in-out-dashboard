@@ -208,7 +208,8 @@
                 <p class="text-muted">Admin Portal</p>
             </div>
             <div class="alert alert-info small text-start"><i class="bi bi-info-circle me-1"></i> เฉพาะบัญชี
-                <b>medlifeplus@gmail.com</b></div>
+                <b>medlifeplus@gmail.com</b>
+            </div>
             <button onclick="loginWithGoogle()"
                 class="btn btn-google btn-lg w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center"><img
                     src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
@@ -268,7 +269,7 @@
                 </div>
                 <div class="col-md-3 col-6">
                     <div class="card p-3 border-start border-4 border-danger shadow-sm h-100 card-hover"
-                        onclick="switchTab('users')">
+                        onclick="openPendingUsers()">
                         <div class="d-flex justify-content-between align-items-start">
                             <div><small class="text-muted">สมาชิกใหม่</small>
                                 <h3 class="fw-bold my-1 text-danger" id="statNewUsers">0</h3>
@@ -418,39 +419,67 @@
             </div>
 
             <div id="tabUsers" class="tab-section hidden">
-                <div class="row g-4">
-                    <div class="col-lg-5">
-                        <div class="card shadow-sm border-0 border-start border-4 border-danger">
-                            <div class="card-header bg-white text-danger fw-bold py-3">รออนุมัติ (Pending)</div>
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <tbody id="pendingUsersTable"></tbody>
-                                </table>
-                            </div>
+                <div class="card shadow-sm border-0 border-start border-4 border-primary">
+                    <div
+                        class="card-header bg-white text-primary fw-bold py-3 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <span>พนักงานทั้งหมด</span>
+                            <span class="badge bg-primary rounded-pill badge-sm" id="badgeTotalUsers">0</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button onclick="loadAllUsers()" class="btn btn-sm btn-outline-primary shadow-sm"><i
+                                    class="bi bi-arrow-clockwise me-1"></i>รีเฟรช</button>
+                            <button onclick="openUsersByDept()"
+                                class="btn btn-sm btn-light border shadow-sm">ดูตามแผนก</button>
                         </div>
                     </div>
-                    <div class="col-lg-7">
-                        <div class="card shadow-sm border-0 border-start border-4 border-primary">
-                            <div class="card-header bg-white text-primary fw-bold py-3 d-flex justify-content-between">
-                                <span>พนักงานทั้งหมด</span><button onclick="loadAllUsers()"
-                                    class="btn btn-sm btn-outline-primary"><i
-                                        class="bi bi-arrow-clockwise"></i></button>
-                                <button onclick="openUsersByDept()" class="btn btn-sm btn-light border">ดูตามแผนก</button>
-                            </div>
-                            <div class="table-responsive" style="max-height: 500px;">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="ps-3">ชื่อ</th>
-                                            <th>แผนก</th>
-                                            <th class="text-end pe-3">จัดการ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="allUsersTable"></tbody>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">ชื่อ</th>
+                                    <th>แผนก</th>
+                                    <th class="text-end pe-3">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allUsersTable"></tbody>
+                        </table>
                     </div>
+                    <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">แสดง <span id="pageRange">0-0 จาก 0</span> คน</div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item"><button class="page-link" id="prevPage"
+                                        onclick="changePage(-1)"><i class="bi bi-chevron-left"></i></button></li>
+                                <li class="page-item disabled"><span class="page-link" id="pageNumber">1</span></li>
+                                <li class="page-item"><button class="page-link" id="nextPage" onclick="changePage(1)"><i
+                                            class="bi bi-chevron-right"></i></button></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Users Modal -->
+    <div class="modal fade" id="pendingUsersModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>สมาชิกใหม่ (รออนุมัติ)
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive" style="max-height: 70vh;">
+                        <table class="table table-hover align-middle mb-0">
+                            <tbody id="pendingUsersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light p-2">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button>
                 </div>
             </div>
         </div>
@@ -541,10 +570,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let calendarObj, editModal, barChart;
+        let calendarObj, editModal, barChart, pendingUsersModal;
         let userProfileMap = {};
         window.allUserData = {};
+        let cachedApprovedUsers = [];
         let usersByDeptModal;
+        let currentPage = 1;
+        const pageSize = 20;
         const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
 
         // AUTH
@@ -558,6 +590,7 @@
                     await cacheUserProfiles(); loadInitialData();
                     editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
                     usersByDeptModal = new bootstrap.Modal(document.getElementById('usersByDeptModal'));
+                    pendingUsersModal = new bootstrap.Modal(document.getElementById('pendingUsersModal'));
                     document.getElementById('chartMonth').value = new Date().toISOString().slice(0, 7);
                     setInterval(updateLiveClock, 1000); updateLiveClock();
                 } else { await signOut(auth); Swal.fire('Access Denied', 'อีเมลนี้ไม่มีสิทธิ์เข้าถึง', 'error'); }
@@ -801,18 +834,19 @@
 
         window.updLeave = async (id, st, uid, nm, s, e, tp) => { await setDoc(doc(db, "leave_requests", id), { status: st }, { merge: true }); if (st === 'Approved') { let c = new Date(s), end = new Date(e); while (c <= end) { let ds = c.toISOString().split('T')[0]; await setDoc(doc(db, "schedules", `${uid}_${ds}`), { userId: uid, name: nm, date: ds, shiftDetail: `🛑 ${tp}` }); c.setDate(c.getDate() + 1) } } Toast.fire({ icon: 'success', title: 'เรียบร้อย' }); loadLeaveRequests(); };
 
+        window.openPendingUsers = () => {
+            loadPendingUsers();
+            pendingUsersModal.show();
+        };
+
         window.loadPendingUsers = async () => {
             try {
                 const pendingTable = document.getElementById('pendingUsersTable');
-                pendingTable.innerHTML = `
-                    <tr><td colspan="3" class="text-center py-5">
-                        <div class="spinner-border text-danger"></div>
-                        <div class="mt-2 text-muted">กำลังโหลด...</div>
-                    </td></tr>`;
-                
+                pendingTable.innerHTML = `<tr><td colspan="3" class="text-center py-5"><div class="spinner-border text-danger"></div></td></tr>`;
+
                 const s = await getDocs(query(collection(db, "users"), where("status", "==", "Pending")));
                 let h = "";
-                s.forEach(d => { 
+                s.forEach(d => {
                     const v = d.data();
                     h += `
                     <tr>
@@ -828,65 +862,17 @@
                         <td><span class="badge bg-light text-dark border">${v.dept || 'ยังไม่ระบุ'}</span></td>
                         <td class="text-end pe-3">
                             <div class="btn-group">
-                                <button onclick="appUser('${d.id}')" class="btn btn-sm btn-success">
-                                    <i class="bi bi-check-lg"></i> อนุมัติ
-                                </button>
-                                <button onclick="delUser('${d.id}')" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
+                                <button onclick="appUser('${d.id}')" class="btn btn-sm btn-success px-3">อนุมัติ</button>
+                                <button onclick="delUser('${d.id}')" class="btn btn-sm btn-outline-danger">ยกเลิก</button>
                             </div>
                         </td>
                     </tr>`;
                 });
-                
-                pendingTable.innerHTML = h || `
-                    <tr>
-                        <td colspan="3" class="text-center py-5 text-muted">
-                            <i class="bi bi-emoji-smile fs-1 d-block mb-2"></i>
-                            ไม่มีผู้สมัครใหม่ที่รอการอนุมัติ
-                        </td>
-                    </tr>`;
-                
-                // Update stats and show notification if there are new users
-                const newUserCount = s.size;
-                document.getElementById('statNewUsers').innerText = newUserCount;
-                
-                // Show notification badge on the tab
-                const newMemberBadge = document.getElementById('newMemberBadge');
-                if (newMemberBadge) {
-                    if (newUserCount > 0) {
-                        newMemberBadge.classList.remove('d-none');
-                        newMemberBadge.textContent = newUserCount;
-                        
-                        // Show popup notification if this is the first load
-                        if (!window.hasShownNewMemberNotification) {
-                            window.hasShownNewMemberNotification = true;
-                            setTimeout(() => {
-                                Swal.fire({
-                                    title: 'มีสมาชิกใหม่รอการอนุมัติ',
-                                    text: `มีผู้ใช้ใหม่ ${newUserCount} คนรอการอนุมัติ`,
-                                    icon: 'info',
-                                    confirmButtonText: 'ไปที่หน้าอนุมัติ',
-                                    showCancelButton: true,
-                                    cancelButtonText: 'ปิด',
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        switchTab('newMembers');
-                                    }
-                                });
-                            }, 1000);
-                        }
-                    } else {
-                        newMemberBadge.classList.add('d-none');
-                    }
-                }
-                
+
+                pendingTable.innerHTML = h || `<tr><td colspan="3" class="text-center py-5 text-muted">ไม่มีผู้สมัครใหม่ที่รอการอนุมัติ</td></tr>`;
+                document.getElementById('statNewUsers').innerText = s.size;
             } catch (error) {
                 console.error('Error loading pending users:', error);
-                document.getElementById('pendingUsersTable').innerHTML = `
-                    <tr><td colspan="3" class="text-center py-5 text-danger">
-                        <i class="bi bi-exclamation-triangle"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล
-                    </td></tr>`;
             }
         };
 
@@ -956,13 +942,64 @@
         };
 
         window.loadAllUsers = async () => {
+            const table = document.getElementById('allUsersTable');
+            table.innerHTML = '<tr><td colspan="3" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
+
             const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
-            let h = ""; window.allUserData = {};
+            cachedApprovedUsers = [];
+            window.allUserData = {};
+
             s.forEach(d => {
-                const u = d.data(); window.allUserData[d.id] = u;
-                h += `<tr><td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"><h6>${u.name}</h6></div></td><td><span class="badge bg-light text-dark border">${u.dept}</span></td><td class="text-end pe-3"><button onclick="openEditUser('${d.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${d.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td></tr>`
+                const u = { id: d.id, ...d.data() };
+                cachedApprovedUsers.push(u);
+                window.allUserData[d.id] = u;
             });
-            document.getElementById('allUsersTable').innerHTML = h;
+
+            // Sort by name
+            cachedApprovedUsers.sort((a, b) => (a.name || "").localeCompare(b.name || "", 'th'));
+
+            document.getElementById('statTotalUsers').innerText = cachedApprovedUsers.length;
+            document.getElementById('badgeTotalUsers').innerText = cachedApprovedUsers.length;
+            currentPage = 1;
+            renderUsersPage();
+        };
+
+        function renderUsersPage() {
+            const table = document.getElementById('allUsersTable');
+            const total = cachedApprovedUsers.length;
+            const totalPages = Math.ceil(total / pageSize) || 1;
+
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIdx = (currentPage - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, total);
+            const pageData = cachedApprovedUsers.slice(startIdx, endIdx);
+
+            let h = "";
+            pageData.forEach(u => {
+                h += `<tr>
+                    <td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl || 'https://via.placeholder.com/45'}" class="profile-thumb"><div><h6 class="mb-0">${u.name}</h6><small class="text-muted">${u.empId || ''}</small></div></div></td>
+                    <td><span class="badge bg-light text-dark border">${u.dept || ''}</span></td>
+                    <td class="text-end pe-3">
+                        <button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border shadow-sm me-1"><i class="bi bi-pencil"></i></button>
+                        <button onclick="delUser('${u.id}')" class="btn btn-sm btn-light border shadow-sm text-danger"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`;
+            });
+
+            table.innerHTML = h || '<tr><td colspan="3" class="text-center py-4 text-muted">ไม่พบข้อมูลพนักงาน</td></tr>';
+
+            // Update Pagination UI
+            document.getElementById('pageNumber').innerText = currentPage;
+            document.getElementById('pageRange').innerText = total > 0 ? `${startIdx + 1}-${endIdx} จาก ${total}` : `0-0 จาก 0`;
+            document.getElementById('prevPage').parentElement.classList.toggle('disabled', currentPage === 1);
+            document.getElementById('nextPage').parentElement.classList.toggle('disabled', currentPage === totalPages || total === 0);
+        }
+
+        window.changePage = (dir) => {
+            currentPage += dir;
+            renderUsersPage();
         };
 
         window.openUsersByDept = async () => {
@@ -1168,6 +1205,7 @@
         }
 
         window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
+        window.openPendingUsers = openPendingUsers; window.changePage = changePage;
     </script>
 </body>
 
