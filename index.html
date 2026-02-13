@@ -509,12 +509,39 @@
             }
         }
 
-        function show(id, data) {
+        function getDeptColor(dept) {
+            switch (dept) {
+                case 'Pharmacist Extern':
+                    return 'bg-success';
+                case 'Pharmacist':
+                    return 'bg-info';
+                case 'Doctor':
+                    return 'bg-primary';
+                case 'Nurse':
+                    return 'bg-warning';
+                default:
+                    return 'bg-light';
+            }
+        }
+
+        function updateDeptUI() {
+            const deptColor = getDeptColor(currentUser.dept);
+            document.getElementById('showName').classList.add(deptColor);
+            document.getElementById('showEmpId').classList.add(deptColor);
+            document.getElementById('mainProfileImg').classList.add(deptColor);
+        }
+
+        async function show(id, data) {
             ['loadingPage', 'registerPage', 'pendingPage', 'mainPage'].forEach(p => {
                 const el = document.getElementById(p);
                 el.classList.add('hidden'); // Ensure class is present
                 el.style.display = 'none';  // Double safety
             });
+            
+            // Update department colors when showing main page
+            if (id === 'mainPage' && currentUser && currentUser.dept) {
+                updateDeptUI();
+            }
 
             const target = document.getElementById(id);
             target.classList.remove('hidden'); // Remove !important class
@@ -800,12 +827,50 @@
             });
         }
 
+        // --- DEPARTMENT COLORS ---
+        function getDeptColor(dept) {
+            dept = dept || "";
+            let c = '#6c757d'; // Default Gray
+            if (dept.match(/Pharmacy|เภสัช/i)) c = '#198754';
+            else if (dept.match(/General|ทั่วไป/i)) c = '#0dcaf0';
+            else if (dept.match(/IT|ไอที/i)) c = '#6f42c1';
+            else if (dept.match(/Admin|ธุรการ/i)) c = '#dc3545';
+            else if (dept.match(/Sales|การตลาด/i)) c = '#fd7e14';
+            return c;
+        }
+
+        // Apply department color to UI elements
+        function updateDeptUI() {
+            if (!currentUser || !currentUser.dept) return;
+            
+            const deptColor = getDeptColor(currentUser.dept);
+            
+            // Update header
+            const header = document.querySelector('.navbar');
+            if (header) header.style.backgroundColor = deptColor;
+            
+            // Update buttons
+            const buttons = document.querySelectorAll('.btn-primary');
+            buttons.forEach(btn => {
+                btn.style.backgroundColor = deptColor;
+                btn.style.borderColor = deptColor;
+            });
+            
+            // Update cards
+            const cards = document.querySelectorAll('.card-header');
+            cards.forEach(card => {
+                card.style.backgroundColor = deptColor;
+                card.style.color = 'white';
+            });
+        }
+
         // --- WORKING HOURS CALCULATION ---
         async function loadWorkingHours() {
             try {
                 const isPharmacistExtern = currentUser.dept === 'Pharmacist Extern';
 
                 const yearlyCard = document.getElementById('yearlyHoursCard');
+                const monthlyCard = document.getElementById('monthlyHoursCard');
                 const hours1Title = document.getElementById('hours1Title');
                 const hours1Desc = document.getElementById('hours1Desc');
                 const hours2Title = document.getElementById('hours2Title');
@@ -816,6 +881,7 @@
                     // 1) ระยะเวลาฝึกงานทั้งหมด
                     // 2) เดือนนี้ (1 -> เมื่อวาน)
                     yearlyCard.style.display = 'none';
+                    monthlyCard.style.display = 'block'; // Make sure monthly card is visible
                     hours1Title.innerText = 'ชม.ทำงานทั้งหมด';
                     hours1Desc.innerText = 'ตลอดระยะเวลาฝึกงาน';
                     hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
@@ -828,6 +894,7 @@
                     // 1) เดือนนี้ (1 -> เมื่อวาน)
                     // 2) ปีนี้ (1 ม.ค. -> เมื่อวาน)
                     yearlyCard.style.display = 'block';
+                    monthlyCard.style.display = 'block';
                     hours1Title.innerText = 'ชม.ทำงานปีนี้';
                     hours1Desc.innerText = 'ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน';
                     hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
