@@ -4,108 +4,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - ระบบลงเวลา</title>
+    <title>MLP TIME DASHBOARD</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&family=Roboto+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        body {
-            background-color: #f8f9fa;
+        :root {
+            --color-in: #198754;
+            --color-out: #dc3545;
+            --color-leave: #6c757d;
+            --bg-body: #f4f6f9;
+            --color-primary: #0d6efd;
+            --color-shift-am: #0d6efd;
+            --color-shift-pm: #fd7e14;
+            --color-shift-night: #6f42c1;
+            --color-work-actual: #157347;
         }
 
-        .container {
-            max-width: 1200px;
-            margin-top: 30px;
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.95rem;
         }
 
         .hidden {
             display: none !important;
         }
 
+        .d-none {
+            display: none !important;
+        }
+
+        .tab-section {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .table-responsive {
+            max-height: 70vh;
+            overflow-y: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa !important;
+            z-index: 10;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+            transition: 0.2s;
+        }
+
+        .col-user {
+            width: 250px;
+            min-width: 250px;
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .profile-thumb {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             object-fit: cover;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .status-in {
-            color: #198754;
-            font-weight: bold;
+        .mono-font {
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
         }
 
-        .status-out {
-            color: #dc3545;
-            font-weight: bold;
+        .badge-pill {
+            border-radius: 50px;
+            padding: 0.4em 0.8em;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 20px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            transition: 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--color-primary);
+            background: rgba(13, 110, 253, 0.05);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--color-primary);
+            border-bottom: 3px solid var(--color-primary);
+            background: transparent;
+        }
+
+        .login-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            background: white;
+            padding: 3rem;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .btn-google {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .btn-google:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-google img {
+            width: 20px;
+            margin-right: 10px;
+        }
+
+        .fc-event {
+            cursor: pointer;
+            border: none;
+            font-size: 0.85rem;
+            padding: 2px 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .fc-daygrid-event-dot {
+            display: none;
+        }
+
+        .card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
         }
     </style>
 </head>
 
 <body>
 
-    <div id="loginPage" class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
-        <div class="card p-4 shadow" style="width: 400px; text-align: center;">
-            <h3 class="mb-3">Admin Login</h3>
-            <p class="text-muted small">ระบบจะส่งลิงก์ล็อกอินไปที่อีเมลแอดมิน</p>
-
-            <div class="mb-3 text-start">
-                <label>Email</label>
-                <input type="email" id="email" class="form-control" value="medlifeplus@gmail.com" readonly>
+    <div id="loginPage" class="d-flex justify-content-center align-items-center"
+        style="height: 100vh; background: #eef2f6;">
+        <div class="login-card text-center">
+            <div class="mb-4"><i class="bi bi-hospital-fill text-primary" style="font-size: 4rem;"></i>
+                <h3 class="mt-3 fw-bold text-dark">MedLife Plus</h3>
+                <p class="text-muted">Admin Portal</p>
             </div>
-
-            <button onclick="sendLoginLink()" id="btnSend" class="btn btn-primary w-100">
-                ส่งลิงก์เข้าอีเมล (Magic Link)
-            </button>
-            <div id="loginMsg" class="mt-3 text-success small"></div>
+            <div class="alert alert-info small text-start"><i class="bi bi-info-circle me-1"></i> เฉพาะบัญชี
+                <b>medlifeplus@gmail.com</b></div>
+            <button onclick="loginWithGoogle()"
+                class="btn btn-google btn-lg w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center"><img
+                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                เข้าสู่ระบบด้วย Google</button>
         </div>
     </div>
 
-    <div id="dashboardPage" class="container hidden">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2>📅 Admin Dashboard</h2>
-                <span class="badge bg-info text-dark" id="adminEmailDisplay">...</span>
+    <div id="dashboardPage" class="hidden">
+        <nav class="navbar navbar-light bg-white border-bottom px-4 py-3 sticky-top">
+            <div class="d-flex align-items-center gap-3"><i class="bi bi-hospital-fill text-primary fs-3"></i>
+                <h5 class="mb-0 fw-bold d-none d-md-block">MedLife Plus <span class="text-muted fw-normal fs-6">|
+                        Admin</span></h5>
             </div>
-            <button onclick="logout()" class="btn btn-outline-danger btn-sm">ออกจากระบบ</button>
-        </div>
+            <div class="dropdown">
+                <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
+                    data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
+                        class="rounded-circle" style="width: 30px; height: 30px;"><span
+                        class="d-none d-sm-block small fw-bold" id="adminEmailDisplay">Admin</span></button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                    <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i
+                                class="bi bi-box-arrow-right me-2"></i>ออกจากระบบ</a></li>
+                </ul>
+            </div>
+        </nav>
 
-        <div class="card shadow-sm">
-            <div class="card-header bg-white py-3">
-                <div class="d-flex gap-2 align-items-center flex-wrap">
-                    <label>เลือกวันที่:</label>
-                    <input type="date" id="filterDate" class="form-control" style="width: auto;">
-                    <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
+        <div class="container-fluid px-4 py-4">
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="card p-3 border-start border-4 border-success shadow-sm h-100 card-hover"
+                        onclick="switchTab('attendance')"><small class="text-muted">เข้างานวันนี้</small>
+                        <h3 class="fw-bold my-1 text-success" id="statIn">0</h3>
+                        <div id="liveClock" class="mt-2 pt-2 border-top small text-secondary mono-font"><i
+                                class="bi bi-clock"></i> Loading...</div>
+                    </div>
                 </div>
-                <button onclick="exportCSV()" class="btn btn-success mt-2 mt-md-0">📥 Export Excel</button>
+                <div class="col-md-3 col-6">
+                    <div class="card p-3 border-start border-4 border-warning shadow-sm h-100 card-hover"
+                        onclick="switchTab('leave')">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div><small class="text-muted">รออนุมัติลา</small>
+                                <h3 class="fw-bold my-1 text-warning" id="statLeave">0</h3>
+                            </div><i class="bi bi-chevron-right text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card p-3 border-start border-4 border-info shadow-sm h-100 card-hover"
+                        onclick="switchTab('users')">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div><small class="text-muted">พนักงานทั้งหมด</small>
+                                <h3 class="fw-bold my-1 text-info" id="statTotalUsers">0</h3>
+                            </div><i class="bi bi-chevron-right text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card p-3 border-start border-4 border-danger shadow-sm h-100 card-hover"
+                        onclick="switchTab('users')">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div><small class="text-muted">สมาชิกใหม่</small>
+                                <h3 class="fw-bold my-1 text-danger" id="statNewUsers">0</h3>
+                            </div><i class="bi bi-chevron-right text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>เวลา</th>
-                                <th>รูป</th>
-                                <th>รหัส</th>
-                                <th>ชื่อ-สกุล</th>
-                                <th>แผนก</th>
-                                <th>สถานะ</th>
-                                <th>อุปกรณ์</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
+
+            <ul class="nav nav-tabs" id="mainTab" role="tablist">
+                <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')"><i
+                            class="bi bi-clock me-2"></i>เวลาเข้า-ออก</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('schedule')"><i
+                            class="bi bi-calendar-check me-2"></i>จัดตารางเวร</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('leave')"><i
+                            class="bi bi-send me-2"></i>คำขอลา</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('report')"><i
+                            class="bi bi-graph-up me-2"></i>รายงาน & ปฏิทิน</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('users')"><i
+                            class="bi bi-person-gear me-2"></i>พนักงาน</a></li>
+            </ul>
+
+            <div id="tabAttendance" class="tab-section">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex gap-2 mb-3"><input type="date" id="filterDate" class="form-control"
+                                style="width: auto;"><button onclick="loadData()"
+                                class="btn btn-primary">ค้นหา</button><button onclick="exportCSV()"
+                                class="btn btn-outline-success ms-auto">Export</button></div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3">เวลา</th>
+                                        <th>พนักงาน</th>
+                                        <th>แผนก</th>
+                                        <th>สถานะ</th>
+                                        <th>พิกัด</th>
+                                        <th class="text-end pe-3">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div id="noData" class="p-4 text-center text-muted hidden">ไม่พบข้อมูลในวันที่เลือก</div>
+            </div>
+
+            <div id="tabSchedule" class="tab-section hidden">
+                <div class="row g-4">
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white fw-bold py-3">สร้างเวรทำงาน</div>
+                            <div class="card-body">
+                                <form onsubmit="createSchedule(event)">
+                                    <div class="mb-3"><label class="small text-muted">พนักงาน</label><select
+                                            id="userSelect" class="form-select" required></select></div>
+                                    <div class="mb-3"><label class="small text-muted">วันที่</label><input type="date"
+                                            id="schedDate" class="form-control" required></div>
+                                    <div class="mb-3"><label class="small text-muted">กะ</label><select id="schedType"
+                                            class="form-select" onchange="toggleCustomTime()">
+                                            <option value="เช้า (08:00 - 17:00)">☀️ เช้า (08:00 - 17:00)</option>
+                                            <option value="บ่าย (13:00 - 22:00)">🌤️ บ่าย (13:00 - 22:00)</option>
+                                            <option value="ดึก (22:00 - 07:00)">🌙 ดึก (22:00 - 07:00)</option>
+                                            <option value="หยุด (Day Off)">🛑 หยุด (Day Off)</option>
+                                            <option value="custom">✏️ กำหนดเอง (Custom)</option>
+                                        </select></div>
+                                    <div id="customTimeBox" class="mb-4 p-3 bg-light rounded border d-none"><label
+                                            class="small fw-bold mb-2">ระบุเวลาเอง:</label>
+                                        <div class="d-flex gap-2 align-items-center"><input type="time" id="customStart"
+                                                class="form-control"><span>ถึง</span><input type="time" id="customEnd"
+                                                class="form-control"></div>
+                                    </div><button type="submit" class="btn btn-primary w-100">บันทึก</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white d-flex justify-content-between py-3"><span
+                                    class="fw-bold">รายการเวรล่าสุด</span><button onclick="loadSchedules()"
+                                    class="btn btn-sm btn-light border"><i class="bi bi-arrow-clockwise"></i></button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>วันที่</th>
+                                            <th>พนักงาน</th>
+                                            <th>กะ</th>
+                                            <th>ลบ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="schedTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabLeave" class="tab-section hidden">
+                <div class="card shadow-sm border-0 border-start border-4 border-warning">
+                    <div class="card-header bg-white py-3 fw-bold">รายการรออนุมัติ</div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">พนักงาน</th>
+                                    <th>ประเภท</th>
+                                    <th>วันที่</th>
+                                    <th>เหตุผล</th>
+                                    <th class="text-end pe-3">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaveTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabReport" class="tab-section hidden">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">ปฏิทินงาน & ชั่วโมงทำงาน</h5>
+                        <div class="d-flex align-items-center gap-2"><span class="badge bg-primary">ตารางเวร</span><span
+                                class="badge" style="background-color: var(--color-work-actual);">⏱️
+                                ชั่วโมงทำงานจริง</span></div>
+                    </div>
+                    <div class="card-body">
+                        <div id='calendar'></div>
+                    </div>
+                </div>
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold py-3">📊 อันดับชั่วโมงทำงานรายเดือน (Top Performers)</div>
+                    <div class="card-body">
+                        <div class="d-flex gap-2 mb-3 align-items-center">
+                            <label>เลือกเดือน:</label>
+                            <input type="month" id="chartMonth" class="form-control" style="width: 200px;">
+                            <button onclick="renderCharts()" class="btn btn-dark">แสดงกราฟ</button>
+                        </div>
+                        <div style="height: 400px;">
+                            <canvas id="workHoursChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabUsers" class="tab-section hidden">
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <div class="card shadow-sm border-0 border-start border-4 border-danger">
+                            <div class="card-header bg-white text-danger fw-bold py-3">รออนุมัติ (Pending)</div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <tbody id="pendingUsersTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="card shadow-sm border-0 border-start border-4 border-primary">
+                            <div class="card-header bg-white text-primary fw-bold py-3 d-flex justify-content-between">
+                                <span>พนักงานทั้งหมด</span><button onclick="loadAllUsers()"
+                                    class="btn btn-sm btn-outline-primary"><i
+                                        class="bi bi-arrow-clockwise"></i></button></div>
+                            <div class="table-responsive" style="max-height: 500px;">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="ps-3">ชื่อ</th>
+                                            <th>แผนก</th>
+                                            <th class="text-end pe-3">จัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="allUsersTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold">✏️ แก้ไขข้อมูล</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-3"><img id="editUserImg" src="" class="profile-thumb shadow-sm"
+                            style="width:80px; height:80px;"></div>
+                    <input type="hidden" id="editUserId">
+                    <div class="form-floating mb-3"><input type="text" id="editEmpId" class="form-control"
+                            placeholder="รหัส"><label>รหัสพนักงาน</label></div>
+                    <div class="form-floating mb-3"><input type="text" id="editUserName" class="form-control"
+                            placeholder="ชื่อ"><label>ชื่อ-นามสกุล</label></div>
+                    <div class="form-floating mb-3">
+                        <input type="text" id="editUserDept" class="form-control" list="deptOptions"
+                            placeholder="ระบุแผนก">
+                        <datalist id="deptOptions">
+                            <option value="General">
+                            <option value="Pharmacy">
+                            <option value="IT">
+                            <option value="Admin">
+                            <option value="Sales">
+                        </datalist>
+                        <label>แผนก</label>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="form-floating"><input type="date" id="editStartDate"
+                                    class="form-control"><label>วันที่เริ่มงาน</label></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating"><input type="date" id="editEndDate"
+                                    class="form-control"><label>สิ้นสุดงาน</label></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary px-4" onclick="saveEditUser()">บันทึก</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, onAuthStateChanged }
-            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs }
-            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIG ZONE ---
+        // --- 🔴 CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
             authDomain: "in-out-dashboard.firebaseapp.com",
@@ -115,185 +515,265 @@
             appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
             measurementId: "G-WN14VJSG17"
         };
-        const ADMIN_EMAIL = "medlifeplus@gmail.com"; // อีเมลที่อนุญาตให้เข้าใช้งาน
-        // -------------------
+        const ADMIN_EMAIL = "medlifeplus@gmail.com";
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        document.getElementById('filterDate').valueAsDate = new Date();
+        let calendarObj, editModal, barChart;
+        let userProfileMap = {};
+        window.allUserData = {};
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
 
-        // 1. ตรวจสอบสถานะ User เมื่อโหลดหน้าเว็บ
-        onAuthStateChanged(auth, (user) => {
+        // AUTH
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // เช็คว่าเป็นเมล Admin ตัวจริงไหม
-                if (user.email !== ADMIN_EMAIL) {
-                    alert("อีเมลนี้ไม่มีสิทธิ์เข้าถึง (Access Denied)");
-                    signOut(auth);
-                    return;
-                }
-                showDashboard(user);
+                if (user.email === ADMIN_EMAIL) {
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('dashboardPage').classList.remove('hidden');
+                    document.getElementById('adminEmailDisplay').innerText = user.displayName || user.email;
+                    document.getElementById('adminProfilePic').src = user.photoURL || "https://via.placeholder.com/30";
+                    await cacheUserProfiles(); loadInitialData();
+                    editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                    document.getElementById('chartMonth').value = new Date().toISOString().slice(0, 7);
+                    setInterval(updateLiveClock, 1000); updateLiveClock();
+                } else { await signOut(auth); Swal.fire('Access Denied', 'อีเมลนี้ไม่มีสิทธิ์เข้าถึง', 'error'); }
             } else {
-                // ถ้ายังไม่ล็อกอิน ให้เช็คว่าเป็นเคส "กดลิงก์จากเมลกลับมา" หรือไม่
-                checkIfComingFromEmailLink();
-            }
-        });
-
-        // 2. ฟังก์ชันส่งลิงก์ (Magic Link)
-        window.sendLoginLink = () => {
-            const email = document.getElementById('email').value;
-
-            if (email !== ADMIN_EMAIL) {
-                return alert("ระบบอนุญาตเฉพาะแอดมินเท่านั้น");
-            }
-
-            const actionCodeSettings = {
-                url: window.location.href, // ให้เด้งกลับมาที่หน้าปัจจุบัน
-                handleCodeInApp: true
-            };
-
-            const btn = document.getElementById('btnSend');
-            btn.disabled = true;
-            btn.innerText = "กำลังส่ง...";
-
-            sendSignInLinkToEmail(auth, email, actionCodeSettings)
-                .then(() => {
-                    window.localStorage.setItem('emailForSignIn', email);
-                    document.getElementById('loginMsg').innerText = `✅ ส่งลิงก์ไปที่ ${email} แล้ว! กรุณาเช็ค Inbox หรือ Junk Mail`;
-                    btn.innerText = "ส่งลิงก์สำเร็จ";
-                })
-                .catch((error) => {
-                    console.error(error);
-                    alert("เกิดข้อผิดพลาด: " + error.message);
-                    btn.disabled = false;
-                    btn.innerText = "ส่งลิงก์เข้าอีเมล";
-                });
-        };
-
-        // 3. ฟังก์ชันตรวจสอบเมื่อกดลิงก์จากเมลกลับมา
-        function checkIfComingFromEmailLink() {
-            if (isSignInWithEmailLink(auth, window.location.href)) {
-                let email = window.localStorage.getItem('emailForSignIn');
-                if (!email) {
-                    email = window.prompt('เพื่อความปลอดภัย กรุณายืนยันอีเมลของคุณอีกครั้ง:');
-                }
-
-                signInWithEmailLink(auth, email, window.location.href)
-                    .then((result) => {
-                        window.localStorage.removeItem('emailForSignIn');
-                        // เคลียร์ URL ไม่ให้รกรุงรัง
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                        // onAuthStateChanged จะทำงานต่อเองอัตโนมัติ
-                    })
-                    .catch((error) => {
-                        alert("ลิงก์หมดอายุหรือมีปัญหา กรุณากดขอลิงก์ใหม่");
-                        console.error(error);
-                    });
-            } else {
-                // ถ้าไม่ได้กดมาจากลิงก์ และยังไม่ล็อกอิน -> แสดงหน้า Login
                 document.getElementById('loginPage').classList.remove('hidden');
                 document.getElementById('dashboardPage').classList.add('hidden');
             }
+        });
+
+        function updateLiveClock() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const el = document.getElementById('liveClock');
+            if (el) el.innerHTML = `<i class="bi bi-calendar-event me-1"></i> ${dateStr} <br> <i class="bi bi-clock me-1"></i> ${timeStr}`;
         }
 
-        // 4. แสดงหน้า Dashboard
-        function showDashboard(user) {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('dashboardPage').classList.remove('hidden');
-            document.getElementById('adminEmailDisplay').innerText = user.email;
-            loadData();
-        }
+        window.loginWithGoogle = async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { Swal.fire('Login Error', e.message, 'error'); } };
 
-        window.logout = () => signOut(auth);
+        window.switchTab = (tabName) => {
+            document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+            if (target) target.classList.remove('hidden');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(l => { if (l.getAttribute('onclick').includes(tabName)) l.classList.add('active'); });
 
-        // 5. โหลดข้อมูล (พร้อมแก้ไขปัญหาภาพ)
-        window.loadData = async () => {
-            const dateVal = document.getElementById('filterDate').value;
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">กำลังโหลด...</td></tr>';
-            document.getElementById('noData').classList.add('hidden');
+            if (tabName === 'schedule') loadSchedules();
+            if (tabName === 'leave') loadLeaveRequests();
+            if (tabName === 'report') { setTimeout(initCalendar, 200); renderCharts(); }
+            if (tabName === 'users') { loadPendingUsers(); loadAllUsers(); }
+        };
 
-            const start = new Date(dateVal); start.setHours(0, 0, 0, 0);
-            const end = new Date(dateVal); end.setHours(23, 59, 59, 999);
-
-            try {
-                const q = query(
-                    collection(db, "attendance"),
-                    where("timestamp", ">=", start),
-                    where("timestamp", "<=", end)
-                );
-                const querySnapshot = await getDocs(q);
-                let html = "";
-                let rawData = [];
-
-                // ดึงข้อมูล user ไว้แสดงรูป
-                const userIds = [...new Set(querySnapshot.docs.map(doc => doc.data().userId))];
-                const userProfiles = {};
-                
-                for (const userId of userIds) {
-                    if (userId) {
-                        const userDoc = await getDoc(doc(db, "users", userId));
-                        if (userDoc.exists()) {
-                            userProfiles[userId] = userDoc.data().pictureUrl || '';
-                        }
-                    }
-                }
-
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    rawData.push(data);
-                });
-                rawData.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-
-                if (rawData.length === 0) {
-                    tbody.innerHTML = "";
-                    document.getElementById('noData').classList.remove('hidden');
-                    return;
-                }
-
-                rawData.forEach(item => {
-                    const time = item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "-";
-                    const statusClass = item.type === 'เข้างาน' ? 'status-in' : 'status-out';
-                    const userPicture = userProfiles[item.userId] || '';
-
-                    html += `
-                        <tr>
-                            <td>${time}</td>
-                            <td>${userPicture ? `<img src="${userPicture}" class="profile-thumb">` : '-'}</td>
-                            <td>${item.empId || '-'}</td>
-                            <td>${item.name}</td>
-                            <td>${item.dept || '-'}</td>
-                            <td class="${statusClass}">${item.type}</td>
-                            <td class="text-muted small">${item.userAgent.includes("Mobile") ? "Mobile" : "PC"}</td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-                window.currentData = rawData;
-
-            } catch (err) {
-                console.error(err);
-                tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">Error: ${err.message}</td></tr>`;
+        window.delAttendance = async (id) => {
+            if ((await Swal.fire({ title: 'ยืนยันลบ?', text: "ข้อมูลจะหายไปถาวร", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'ลบเลย' })).isConfirmed) {
+                try { await deleteDoc(doc(db, "attendance", id)); Toast.fire({ icon: 'success', title: 'ลบเรียบร้อย' }); loadData(); } catch (e) { Swal.fire('Error', e.message, 'error'); }
             }
         };
 
-        // 6. Export Excel (เหมือนเดิม)
-        window.exportCSV = () => {
-            if (!window.currentData || window.currentData.length === 0) return alert("ไม่มีข้อมูล");
-            let csvContent = "data:text/csv;charset=utf-8,Date,Time,EmpID,Name,Type\n";
-            window.currentData.forEach(row => {
-                const date = row.timestamp ? new Date(row.timestamp.seconds * 1000).toLocaleDateString('th-TH') : "-";
-                const time = row.timestamp ? new Date(row.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "-";
-                csvContent += `${date},${time},"${row.empId}","${row.name}",${row.type}\r\n`;
+        window.loadData = async () => {
+            const d = document.getElementById('filterDate').value;
+            const s = new Date(d); s.setHours(0, 0, 0, 0); const e = new Date(d); e.setHours(23, 59, 59, 999);
+            const t = document.getElementById('tableBody');
+            t.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>';
+            const q = query(collection(db, "attendance"), where("timestamp", ">=", s), where("timestamp", "<=", e));
+            const snap = await getDocs(q);
+            let h = "", c = 0;
+            window.currentData = [];
+            snap.forEach(doc => {
+                const v = doc.data();
+                window.currentData.push(v);
+                if (v.type === 'เข้างาน') c++;
+                const bg = v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger';
+                const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
+                h += `<tr>
+                    <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${v.name}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
+                    <td><span class="badge bg-light text-dark border">${v.dept}</span></td>
+                    <td><span class="badge ${bg} bg-opacity-10 text-${bg.split('-')[1]} badge-pill"><span class="status-dot ${bg}"></span>${v.type}</span></td>
+                    <td>${map}</td>
+                    <td class="text-end pe-3"><button onclick="delAttendance('${doc.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button></td>
+                </tr>`;
             });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `report_${document.getElementById('filterDate').value}.csv`);
-            document.body.appendChild(link);
-            link.click();
+            t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
+            document.getElementById('statIn').innerText = c;
         };
+
+        async function cacheUserProfiles() { const s = await getDocs(collection(db, "users")); document.getElementById('statTotalUsers').innerText = s.size; s.forEach(d => userProfileMap[d.data().lineUserId] = d.data().pictureUrl); }
+        function getProfileImg(uid) { return `<img src="${userProfileMap[uid] || 'https://via.placeholder.com/45'}" class="profile-thumb">`; }
+        function loadInitialData() { document.getElementById('filterDate').valueAsDate = new Date(); loadData(); loadUsersList(); loadPendingUsers(); }
+        window.loadSchedules = async () => { const s = await getDocs(query(collection(db, "schedules"), orderBy("date", "desc"))); let h = ""; s.forEach(d => { const v = d.data(); const img = getProfileImg(v.userId); h += `<tr><td>${v.date}</td><td><div class="user-cell">${img} ${v.name}</div></td><td><span class="badge bg-light text-dark border">${v.shiftDetail}</span></td><td><button onclick="delSched('${d.id}')" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></td></tr>` }); document.getElementById('schedTableBody').innerHTML = h };
+        window.createSchedule = async (e) => { e.preventDefault(); const u = document.getElementById('userSelect'); await setDoc(doc(db, "schedules", `${u.value}_${document.getElementById('schedDate').value}`), { userId: u.value, name: u.options[u.selectedIndex].text, date: document.getElementById('schedDate').value, shiftDetail: document.getElementById('schedType').value === 'custom' ? `กำหนดเอง (${document.getElementById('customStart').value} - ${document.getElementById('customEnd').value})` : document.getElementById('schedType').value }); Toast.fire({ icon: 'success', title: 'บันทึกสำเร็จ' }); loadSchedules() };
+        window.delSched = async (id) => { if ((await Swal.fire({ title: 'ลบรายการ?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "schedules", id)); loadSchedules(); } };
+        window.loadLeaveRequests = async () => { const s = await getDocs(query(collection(db, "leave_requests"), where("status", "==", "Pending"))); let h = ""; s.forEach(doc => { const d = doc.data(); const img = getProfileImg(d.userId); h += `<tr><td class="ps-3"><div class="user-cell">${img} <div><h6>${d.name}</h6><small>${d.dept}</small></div></div></td><td><span class="badge bg-warning text-dark">${d.type}</span></td><td>${d.startDate} - ${d.endDate}</td><td>${d.reason}</td><td class="text-end pe-3"><button onclick="updLeave('${doc.id}','Approved','${d.userId}','${d.name}','${d.startDate}','${d.endDate}','${d.type}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button><button onclick="updLeave('${doc.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button></td></tr>` }); document.getElementById('leaveTableBody').innerHTML = h || `<tr><td colspan="5" class="text-center py-4 text-muted">ไม่มีคำขอใหม่</td></tr>`; document.getElementById('statLeave').innerText = s.size; };
+        window.updLeave = async (id, st, uid, nm, s, e, tp) => { await setDoc(doc(db, "leave_requests", id), { status: st }, { merge: true }); if (st === 'Approved') { let c = new Date(s), end = new Date(e); while (c <= end) { let ds = c.toISOString().split('T')[0]; await setDoc(doc(db, "schedules", `${uid}_${ds}`), { userId: uid, name: nm, date: ds, shiftDetail: `🛑 ${tp}` }); c.setDate(c.getDate() + 1) } } Toast.fire({ icon: 'success', title: 'เรียบร้อย' }); loadLeaveRequests(); };
+        window.loadPendingUsers = async () => { const s = await getDocs(query(collection(db, "users"), where("status", "==", "Pending"))); let h = ""; s.forEach(d => { const v = d.data(); h += `<tr><td class="ps-3"><div class="user-cell"><img src="${v.pictureUrl}" class="profile-thumb"> <div><h6>${v.name}</h6><small class="text-danger">New Register</small></div></div></td><td class="text-end pe-3"><button onclick="appUser('${d.id}')" class="btn btn-sm btn-success px-3">อนุมัติ</button></td></tr>` }); document.getElementById('pendingUsersTable').innerHTML = h || `<tr><td colspan="2" class="text-center py-3 text-muted">ไม่มีผู้สมัครใหม่</td></tr>`; document.getElementById('statNewUsers').innerText = s.size; };
+
+        // --- 🟢 RENDER CHART (Horizontal Bar + Sorted) ---
+        window.renderCharts = async () => {
+            const m = document.getElementById('chartMonth').value; if (!m) return;
+            const start = new Date(m + "-01"); start.setHours(0, 0, 0, 0); const end = new Date(m + "-01"); end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23, 59, 59, 999);
+
+            // 1. Get All Users
+            const userSnap = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
+            let uH = {}; userSnap.forEach(doc => { uH[doc.data().name] = { logs: [] }; });
+
+            // 2. Get Attendance
+            const snap = await getDocs(query(collection(db, "attendance"), where("timestamp", ">=", start), where("timestamp", "<=", end)));
+            snap.forEach(d => { const v = d.data(); if (uH[v.name]) uH[v.name].logs.push({ t: v.type, time: v.timestamp.seconds }); });
+
+            // 3. Calc Hours
+            let chartData = [];
+            Object.keys(uH).forEach(n => {
+                const l = uH[n].logs.sort((a, b) => a.time - b.time);
+                let ms = 0, last = null;
+                l.forEach(x => {
+                    if (x.t === 'เข้างาน') last = x.time;
+                    else if (x.t === 'ออกงาน' && last) { ms += (x.time - last); last = null; }
+                });
+                chartData.push({ name: n, hours: parseFloat((ms / 3600).toFixed(2)) });
+            });
+
+            // 4. Sort (Highest hours first)
+            chartData.sort((a, b) => b.hours - a.hours);
+
+            const labels = chartData.map(d => d.name);
+            const data = chartData.map(d => d.hours);
+
+            if (barChart) barChart.destroy();
+            const ctx = document.getElementById('workHoursChart').getContext('2d');
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'ชั่วโมงทำงานรวม',
+                        data: data,
+                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // 🟢 Horizontal Bar
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true, grid: { display: true, color: '#f0f0f0' } },
+                        y: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: { label: (c) => ` ${c.raw} ชั่วโมง` }
+                        }
+                    }
+                }
+            });
+        };
+
+        window.loadAllUsers = async () => {
+            const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
+            let h = ""; window.allUserData = {};
+            s.forEach(d => {
+                const u = d.data(); window.allUserData[d.id] = u;
+                h += `<tr><td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"><h6>${u.name}</h6></div></td><td><span class="badge bg-light text-dark border">${u.dept}</span></td><td class="text-end pe-3"><button onclick="openEditUser('${d.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${d.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td></tr>`
+            });
+            document.getElementById('allUsersTable').innerHTML = h;
+        };
+
+        window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadPendingUsers(); loadAllUsers(); };
+        window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
+        window.openEditUser = (id) => {
+            const u = window.allUserData[id]; if (!u) return;
+            document.getElementById('editUserId').value = id; document.getElementById('editUserName').value = u.name; document.getElementById('editEmpId').value = u.empId || ''; document.getElementById('editUserDept').value = u.dept; document.getElementById('editStartDate').value = u.startDate || ''; document.getElementById('editEndDate').value = u.endDate || ''; document.getElementById('editUserImg').src = u.pictureUrl || "https://via.placeholder.com/80"; editModal.show();
+        };
+        window.saveEditUser = async () => { try { await updateDoc(doc(db, "users", document.getElementById('editUserId').value), { name: document.getElementById('editUserName').value, empId: document.getElementById('editEmpId').value, dept: document.getElementById('editUserDept').value, startDate: document.getElementById('editStartDate').value, endDate: document.getElementById('editEndDate').value }); Toast.fire({ icon: 'success', title: 'แก้ไขสำเร็จ' }); editModal.hide(); loadAllUsers(); } catch (e) { Swal.fire('Error', e.message, 'error') } };
+        window.logout = () => signOut(auth);
+        window.loadUsersList = async () => { const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved"))); let h = '<option value="">เลือกพนักงาน...</option>'; s.forEach(d => h += `<option value="${d.data().lineUserId}">${d.data().name}</option>`); document.getElementById('userSelect').innerHTML = h };
+        window.exportCSV = () => { if (!window.currentData?.length) return Toast.fire({ icon: 'warning', title: 'ไม่มีข้อมูล' }); let c = "Time,Name,Dept,Type,MapLink\n" + window.currentData.map(r => `${new Date(r.timestamp.seconds * 1000).toLocaleTimeString('th-TH')},${r.name},${r.dept},${r.type},${r.mapUrl || ''}`).join("\n"); const a = document.createElement("a"); a.href = "data:text/csv;charset=utf-8," + encodeURI(c); a.download = `attendance_${new Date().toISOString().split('T')[0]}.csv`; a.click() };
+
+        function getDeptColor(dept) {
+            dept = dept || "";
+            let c = '#6c757d'; // Default Gray
+            if (dept.match(/Pharmacy|เภสัช/i)) c = '#198754';
+            else if (dept.match(/General|ทั่วไป/i)) c = '#0dcaf0';
+            else if (dept.match(/IT|ไอที/i)) c = '#6f42c1';
+            else if (dept.match(/Admin|ธุรการ/i)) c = '#dc3545';
+            else if (dept.match(/Sales|การตลาด/i)) c = '#fd7e14';
+            return c;
+        }
+
+        function initCalendar() {
+            if (calendarObj) { calendarObj.render(); return }
+            calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'), {
+                initialView: 'dayGridMonth', locale: 'th', height: 'auto',
+                events: async (info, s, f) => {
+                    try {
+                        let ev = [];
+                        // 1. Schedules
+                        const sn = await getDocs(collection(db, "schedules"));
+                        sn.forEach(d => {
+                            const v = d.data();
+                            let c = 'var(--color-shift-am)';
+                            if (v.shiftDetail.includes('บ่าย')) c = 'var(--color-shift-pm)';
+                            else if (v.shiftDetail.includes('ดึก')) c = 'var(--color-shift-night)';
+                            else if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) c = 'var(--color-leave)';
+                            ev.push({ title: `${v.name}`, start: v.date, color: c })
+                        });
+
+                        // 2. Attendance (Actual Hours)
+                        const att = await getDocs(collection(db, "attendance"));
+                        let map = {};
+                        att.forEach(d => {
+                            const k = `${d.data().userId}_${new Date(d.data().timestamp.seconds * 1000).toISOString().split('T')[0]}`;
+                            if (!map[k]) map[k] = { n: d.data().name, d: d.data().dept, l: [] };
+                            map[k].l.push({ t: d.data().type, ts: d.data().timestamp.seconds })
+                        });
+
+                        Object.keys(map).forEach(k => {
+                            const i = map[k];
+                            i.l.sort((a, b) => a.ts - b.ts);
+                            let ms = 0, last = null;
+                            i.l.forEach(x => {
+                                if (x.t === 'เข้างาน') last = x.ts;
+                                else if (x.t === 'ออกงาน' && last) { ms += (x.ts - last); last = null; }
+                            });
+
+                            if (ms > 0) {
+                                // Color Logic
+                                let baseColor = getDeptColor(i.d);
+                                let isSub = false;
+                                if (i.d && (i.d.length > 10 || i.d.includes('-'))) isSub = true;
+
+                                let finalColor = baseColor;
+                                let className = '';
+                                if (isSub) className = 'opacity-75';
+
+                                ev.push({
+                                    title: `${(ms / 3600).toFixed(1)} ชม. ${i.n}`,
+                                    start: k.split('_')[1],
+                                    backgroundColor: finalColor,
+                                    borderColor: finalColor,
+                                    classNames: [className],
+                                    display: 'block'
+                                })
+                            }
+                        });
+                        s(ev)
+                    } catch (e) { f(e) }
+                }
+            });
+            calendarObj.render();
+        }
+
+        window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
     </script>
 </body>
 

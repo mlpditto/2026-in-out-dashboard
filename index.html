@@ -577,7 +577,7 @@
                 try {
                     btn.innerHTML = '💾 บันทึก...';
                     await addDoc(collection(db, "attendance"), {
-                        userId: currentUser.lineUserId, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
+                        userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
                         type: type, timestamp: serverTimestamp(),
                         location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`, userAgent: navigator.userAgent
                     });
@@ -660,7 +660,7 @@
 
             try {
                 await addDoc(collection(db, "attendance"), {
-                    userId: currentUser.lineUserId, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
+                    userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
                     type: 'ออกงาน',
                     timestamp: autoTime, // Force 23:00
                     location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`,
