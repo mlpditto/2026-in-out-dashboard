@@ -651,31 +651,32 @@
             if (!uid) return '';
             if (workHoursCache[uid]) return workHoursCache[uid];
 
-            const isExtern = getUserDept(uid, row.dept) === 'Pharmacist Extern';
+            const dept = getUserDept(uid, row.dept);
+            const isExtern = dept === 'Pharmacist Extern';
             const end = new Date();
             end.setDate(end.getDate() - 1);
             end.setHours(23, 59, 59, 999);
 
             const monthStart = new Date(end.getFullYear(), end.getMonth(), 1);
             monthStart.setHours(0, 0, 0, 0);
-            const yearStart = new Date(end.getFullYear(), 0, 1);
-            yearStart.setHours(0, 0, 0, 0);
 
             const monthHours = await calcHours(uid, monthStart, end);
             let html = `<div class="text-muted small">เดือนนี้: <span class="fw-bold">${monthHours.toFixed(2)}</span> ชม.</div>`;
 
             if (isExtern) {
                 const user = window.allUserData?.[uid];
-                const reg = user?.registrationDate || user?.createdAt;
-                if (reg) {
-                    const regStart = reg.toDate ? reg.toDate() : new Date(reg);
+                const startSource = user?.startDate || user?.registrationDate || user?.createdAt;
+                if (startSource) {
+                    const regStart = startSource.toDate ? startSource.toDate() : new Date(startSource);
                     regStart.setHours(0, 0, 0, 0);
                     const totalHours = await calcHours(uid, regStart, end);
-                    html = `<div class="text-muted small">สะสม: <span class="fw-bold">${totalHours.toFixed(2)}</span> ชม.</div>` + html;
+                    html += `<div class="text-muted small">สะสม: <span class="fw-bold text-primary">${totalHours.toFixed(2)}</span> ชม.</div>`;
                 }
             } else {
+                const yearStart = new Date(end.getFullYear(), 0, 1);
+                yearStart.setHours(0, 0, 0, 0);
                 const yearHours = await calcHours(uid, yearStart, end);
-                html = html + `<div class="text-muted small">ปีนี้: <span class="fw-bold">${yearHours.toFixed(2)}</span> ชม.</div>`;
+                html += `<div class="text-muted small">ปีนี้: <span class="fw-bold">${yearHours.toFixed(2)}</span> ชม.</div>`;
             }
 
             workHoursCache[uid] = html;
@@ -693,20 +694,35 @@
             t.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>';
             const q = query(collection(db, "attendance"), where("timestamp", ">=", s), where("timestamp", "<=", e));
             const snap = await getDocs(q);
-            let h = "", c = 0;
+            let h = "";
             window.currentData = [];
 
-            const docs = [];
-            snap.forEach(d0 => docs.push(d0));
+            const userStatusToday = {}; // {uid: {lastType, lastTs}}
 
-            for (const docSnap of docs) {
+            snap.forEach(docSnap => {
                 const v = docSnap.data();
+                v.id = docSnap.id;
                 window.currentData.push(v);
-                if (v.type === 'เข้างาน') c++;
+
+                const uid = v.userId;
+                const ts = v.timestamp?.seconds || 0;
+                if (!userStatusToday[uid] || ts > userStatusToday[uid].ts) {
+                    userStatusToday[uid] = { type: v.type, ts: ts };
+                }
+            });
+
+            const totalWhoClockedIn = Object.keys(userStatusToday).length;
+            const stillIn = Object.values(userStatusToday).filter(x => x.type === 'เข้างาน').length;
+
+            // Sort by sequence (latest first)
+            const sortedDocs = [...window.currentData].sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+
+            for (const v of sortedDocs) {
                 const deptText = getUserDept(v.userId, v.dept);
                 const bg = v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger';
                 const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
                 const hoursHtml = await getHoursHtml(v);
+
                 h += `<tr>
                     <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
                     <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${v.name}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
@@ -716,12 +732,12 @@
                         ${hoursHtml}
                     </td>
                     <td>${map}</td>
-                    <td class="text-end pe-3"><button onclick="delAttendance('${docSnap.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button></td>
+                    <td class="text-end pe-3"><button onclick="delAttendance('${v.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button></td>
                 </tr>`;
             }
 
             t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
-            document.getElementById('statIn').innerText = c;
+            document.getElementById('statIn').innerText = `${stillIn} / ${totalWhoClockedIn}`;
         };
 
         async function cacheUserProfiles() {
