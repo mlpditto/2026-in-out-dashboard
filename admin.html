@@ -723,14 +723,15 @@
             });
 
             const totalWhoClockedIn = Object.keys(userStatusToday).length;
-            const stillIn = Object.values(userStatusToday).filter(x => x.type === 'เข้างาน').length;
+            const stillIn = Object.values(userStatusToday).filter(x => (x.type || "").trim() === 'เข้างาน').length;
 
             // Sort by sequence (latest first)
             const sortedDocs = [...window.currentData].sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
 
             for (const v of sortedDocs) {
                 const deptText = getUserDept(v.userId, v.dept);
-                const bg = v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger';
+                const typeTrim = (v.type || "").trim();
+                const bg = typeTrim === 'เข้างาน' ? 'bg-success' : 'bg-danger';
                 const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
                 const hoursHtml = await getHoursHtml(v);
 

@@ -655,59 +655,80 @@
         };
 
         async function loadHistory() {
-            const start = new Date(); start.setHours(0, 0, 0, 0);
-            const q = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", start));
+            // Check logs from up to 2 days ago to catch forgotten clock-outs
+            const past = new Date();
+            past.setDate(past.getDate() - 2);
+            past.setHours(0, 0, 0, 0);
+
+            const q = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", past));
             const snap = await getDocs(q);
 
-            // 🟡 SMART BUTTONS LOGIC
-            const logs = snap.docs.map(d => d.data()).sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+            const allRecentLogs = snap.docs.map(d => ({ ...d.data(), id: d.id }))
+                .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+            const now = new Date();
+            const todayStr = now.toLocaleDateString('en-CA'); // YYYY-MM-DD
+
+            const todayLogs = allRecentLogs.filter(l => {
+                const lDate = new Date(l.timestamp.seconds * 1000).toLocaleDateString('en-CA');
+                return lDate === todayStr;
+            });
+
             const btnIn = document.getElementById('btnCheckIn');
             const btnOut = document.getElementById('btnCheckOut');
 
-            let lastType = null;
-            if (logs.length > 0) lastType = logs[logs.length - 1].type;
+            let lastLog = allRecentLogs.length > 0 ? allRecentLogs[allRecentLogs.length - 1] : null;
 
-            if (lastType === 'เข้างาน') {
-                btnIn.classList.add('hidden'); // Hide In
-                btnOut.classList.remove('hidden'); // Show Out
+            if (lastLog && (lastLog.type || '').trim() === 'เข้างาน') {
+                const logDate = new Date(lastLog.timestamp.seconds * 1000);
+                const logDateStr = logDate.toLocaleDateString('en-CA');
 
-                // 🔴 AUTO CHECKOUT LOGIC (23:00 Rule)
-                const now = new Date();
-                if (now.getHours() >= 23) {
-                    await performAutoCheckout();
-                    return; // Stop here, reload will happen inside
+                if (logDateStr !== todayStr) {
+                    // Clocked in on a previous day and never clocked out
+                    await performAutoCheckout(logDate);
+                    return;
                 }
 
+                // Clocked in today
+                btnIn.classList.add('hidden');
+                btnOut.classList.remove('hidden');
+
+                if (now.getHours() >= 23) {
+                    await performAutoCheckout(now);
+                    return;
+                }
             } else {
-                // No logs OR Last was 'ออกงาน' -> Show In, Hide Out
+                // No logs or last was "ออกงาน"
                 btnIn.classList.remove('hidden');
                 btnOut.classList.add('hidden');
             }
 
-            // Render List
+            // Render List (Today only)
             const list = document.getElementById('historyList'); list.innerHTML = "";
-            if (snap.empty) { list.innerHTML = "<p class='text-muted text-center small'>ยังไม่มีประวัติวันนี้</p>"; return; }
-            snap.forEach(d => {
-                const v = d.data();
+            if (todayLogs.length === 0) { list.innerHTML = "<p class='text-muted text-center small'>ยังไม่มีประวัติวันนี้</p>"; return; }
+            todayLogs.forEach(v => {
                 const time = v.timestamp ? new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "..";
-                const icon = v.type === 'เข้างาน' ? 'bi-geo-alt-fill text-success' : 'bi-box-arrow-right text-danger';
-                list.innerHTML += `<li class="history-item ${v.type === 'เข้างาน' ? 'in' : 'out'}">
+                const typeTrim = (v.type || '').trim();
+                const icon = typeTrim === 'เข้างาน' ? 'bi-geo-alt-fill text-success' : 'bi-box-arrow-right text-danger';
+                list.innerHTML += `<li class="history-item ${typeTrim === 'เข้างาน' ? 'in' : 'out'}">
                     <div class="d-flex align-items-center gap-2"><i class="bi ${icon}"></i> <span class="fw-bold">${v.type}</span></div>
                     <span class="mono-font badge bg-light text-dark border">${time} น.</span>
                 </li>`;
             });
         }
 
-        async function performAutoCheckout() {
+        async function performAutoCheckout(dateToFix = new Date()) {
+            const isToday = dateToFix.toDateString() === new Date().toDateString();
+
             Swal.fire({
-                title: 'เลยเวลา 23:00 น.',
-                text: 'ระบบทำการบันทึก "ออกงาน" ให้โดยอัตโนมัติ (Timestamp 23:00)',
+                title: isToday ? 'เลยเวลา 23:00 น.' : 'พบรายการค้างจากวันก่อน',
+                text: isToday ? 'ระบบทำการบันทึก "ออกงาน" ให้โดยอัตโนมัติ (Timestamp 23:00)' : 'ระบบทำการบันทึก "ออกงาน" ของวันก่อนหน้าให้โดยอัตโนมัติ (23:00 น.)',
                 icon: 'info',
                 timer: 4000
             });
 
-            // Calculate timestamp for Today 23:00:00
-            const autoTime = new Date();
+            // Calculate timestamp for the target date's 23:00:00
+            const autoTime = new Date(dateToFix);
             autoTime.setHours(23, 0, 0, 0);
 
             // Get location if possible, else 0,0
