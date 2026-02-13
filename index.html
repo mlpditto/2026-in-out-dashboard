@@ -276,6 +276,15 @@
                     <option value="Pharmacist Extern">
                 </datalist>
 
+                <!-- Internship Period Fields (initially hidden) -->
+                <div id="internshipFields" style="display: none;">
+                    <label class="small text-muted fw-bold ms-1 mt-3">วันเริ่มต้นฝึกงาน</label>
+                    <input type="date" id="internshipStartDate" class="form-control" min="2024-01-01">
+                    
+                    <label class="small text-muted fw-bold ms-1 mt-2">วันสิ้นสุดการฝึกงาน</label>
+                    <input type="date" id="internshipEndDate" class="form-control" min="2024-01-02">
+                </div>
+
                 <button type="submit" class="btn btn-primary mt-3">
                     <i class="bi bi-person-check-fill"></i> ยืนยันข้อมูล
                 </button>
@@ -540,6 +549,22 @@
             const fullName = document.getElementById('fullName').value;
             const department = document.getElementById('department').value;
             
+            // Validate internship dates if Pharmacist Extern
+            if (department === 'Pharmacist Extern') {
+                const startDate = document.getElementById('internshipStartDate').valueAsDate;
+                const endDate = document.getElementById('internshipEndDate').valueAsDate;
+                
+                if (!startDate || !endDate) {
+                    Swal.fire('ผิดพลาด', 'กรุณากรอกวันที่เริ่มต้นและสิ้นสุดการฝึกงานให้ครบถ้วน', 'error');
+                    return;
+                }
+                
+                if (endDate <= startDate) {
+                    Swal.fire('ผิดพลาด', 'วันที่สิ้นสุดการฝึกงานต้องมากกว่าวันที่เริ่มต้น', 'error');
+                    return;
+                }
+            }
+            
             try {
                 // Save user data with registration timestamp
                 await setDoc(doc(db, "users", currentUser.lineUserId), {
@@ -551,7 +576,11 @@
                     dept: department,
                     status: 'Pending',
                     registrationDate: serverTimestamp(),
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    ...(department === 'Pharmacist Extern' && {
+                        internshipStartDate: document.getElementById('internshipStartDate').valueAsDate,
+                        internshipEndDate: document.getElementById('internshipEndDate').valueAsDate
+                    })
                 });
                 
                 // Show pending page
@@ -779,26 +808,30 @@
                 const yearlyCard = document.getElementById('yearlyHoursCard');
                 const hours1Title = document.getElementById('hours1Title');
                 const hours1Desc = document.getElementById('hours1Desc');
+                const hours2Title = document.getElementById('hours2Title');
+                const hours2Desc = document.getElementById('hours2Desc');
 
                 if (isPharmacistExtern) {
                     // Pharmacist Extern:
-                    // 1) ตั้งแต่สมัครครั้งแรก -> เมื่อวาน
+                    // 1) ระยะเวลาฝึกงานทั้งหมด
                     // 2) เดือนนี้ (1 -> เมื่อวาน)
-                    // * ไม่แสดงปีนี้
                     yearlyCard.style.display = 'none';
-                    hours1Title.innerText = 'ชม.ทำงานสะสม (Extern)';
-                    hours1Desc.innerText = 'ตั้งแต่ครั้งแรกที่สมัคร ถึงเมื่อวาน';
+                    hours1Title.innerText = 'ชม.ทำงานทั้งหมด';
+                    hours1Desc.innerText = 'ตลอดระยะเวลาฝึกงาน';
+                    hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
+                    hours2Desc.innerText = 'ตั้งแต่วันที่ 1 ถึงเมื่อวาน';
 
-                    await calculateHoursFromRegistration();
+                    await calculateInternshipHours();
                     await calculateHoursFromMonthStart();
                 } else {
                     // ทุกแผนก (ยกเว้น Extern):
                     // 1) เดือนนี้ (1 -> เมื่อวาน)
                     // 2) ปีนี้ (1 ม.ค. -> เมื่อวาน)
-                    // * ไม่ต้องคำนวณตั้งแต่สมัคร
                     yearlyCard.style.display = 'block';
                     hours1Title.innerText = 'ชม.ทำงานปีนี้';
                     hours1Desc.innerText = 'ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน';
+                    hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
+                    hours2Desc.innerText = 'ตั้งแต่วันที่ 1 ถึงเมื่อวาน';
 
                     await calculateHoursFromMonthStart();
                     await calculateHoursFromYearStart();
@@ -809,31 +842,54 @@
             }
         }
 
-        async function calculateHoursFromRegistration() {
+        async function calculateInternshipHours() {
             try {
-                // Get user registration date
+                // Get user data including internship period
                 const userDoc = await getDoc(doc(db, "users", currentUser.lineUserId));
                 if (!userDoc.exists()) return;
 
-                
                 const userData = userDoc.data();
-                const registrationDate = userData.registrationDate || userData.createdAt;
                 
-                if (!registrationDate) {
-                    document.getElementById('hours1Value').innerText = '0.00';
-                    return;
+                // Use internship period if available, otherwise fall back to registration date
+                let startDate, endDate;
+                
+                if (userData.internshipStartDate && userData.internshipEndDate) {
+                    startDate = userData.internshipStartDate.toDate ? 
+                                userData.internshipStartDate.toDate() : 
+                                new Date(userData.internshipStartDate);
+                    
+                    endDate = userData.internshipEndDate.toDate ? 
+                              userData.internshipEndDate.toDate() : 
+                              new Date(userData.internshipEndDate);
+                    
+                    // If end date is in the future, use yesterday as end date
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    yesterday.setHours(23, 59, 59, 999);
+                    
+                    if (endDate > yesterday) {
+                        endDate = yesterday;
+                    }
+                } else {
+                    // Fallback to registration date if no internship period is set
+                    const registrationDate = userData.registrationDate || userData.createdAt;
+                    if (!registrationDate) {
+                        document.getElementById('hours1Value').innerText = '0.00';
+                        return;
+                    }
+                    startDate = registrationDate.toDate ? 
+                                registrationDate.toDate() : 
+                                new Date(registrationDate);
+                    endDate = new Date();
+                    endDate.setDate(endDate.getDate() - 1); // Yesterday
+                    endDate.setHours(23, 59, 59, 999);
                 }
-                
-                const startDate = registrationDate.toDate ? registrationDate.toDate() : new Date(registrationDate);
-                const endDate = new Date();
-                endDate.setDate(endDate.getDate() - 1); // Yesterday
-                endDate.setHours(23, 59, 59, 999);
                 
                 const hours = await calculateWorkingHours(startDate, endDate);
                 document.getElementById('hours1Value').innerText = hours.toFixed(2);
                 
             } catch (error) {
-                console.error('Error calculating hours from registration:', error);
+                console.error('Error calculating internship hours:', error);
                 document.getElementById('hours1Value').innerText = '0.00';
             }
         }
