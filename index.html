@@ -750,34 +750,36 @@
         // --- WORKING HOURS CALCULATION ---
         async function loadWorkingHours() {
             try {
-                const isPharmacistIntern = currentUser.dept === 'Pharmacy';
-                
-                // Hide/show yearly hours card based on department
+                const isPharmacistIntern = currentUser.dept === 'Pharmacist Intern';
+
                 const yearlyCard = document.getElementById('yearlyHoursCard');
-                yearlyCard.style.display = isPharmacistIntern ? 'none' : 'block';
-                
-                // Update title and description for first card
                 const hours1Title = document.getElementById('hours1Title');
                 const hours1Desc = document.getElementById('hours1Desc');
+
                 if (isPharmacistIntern) {
-                    hours1Title.innerText = 'ชั่วโมงทำงานทั้งหมด';
-                    hours1Desc.innerText = 'ตั้งแต่วันแรกที่สมัคร';
-                } else {
-                    hours1Title.innerText = 'ชั่วโมงทำงานปีนี้';
-                    hours1Desc.innerText = 'ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน';
-                }
-                
-                if (isPharmacistIntern) {
-                    // Pharmacist Intern: Calculate from first registration date
+                    // Pharmacist Intern:
+                    // 1) ตั้งแต่สมัครครั้งแรก -> เมื่อวาน
+                    // 2) เดือนนี้ (1 -> เมื่อวาน)
+                    // * ไม่แสดงปีนี้
+                    yearlyCard.style.display = 'none';
+                    hours1Title.innerText = 'ชม.ทำงานสะสม (Intern)';
+                    hours1Desc.innerText = 'ตั้งแต่ครั้งแรกที่สมัคร ถึงเมื่อวาน';
+
                     await calculateHoursFromRegistration();
+                    await calculateHoursFromMonthStart();
                 } else {
-                    // Other departments: Calculate from 1st January
+                    // ทุกแผนก (ยกเว้น Intern):
+                    // 1) เดือนนี้ (1 -> เมื่อวาน)
+                    // 2) ปีนี้ (1 ม.ค. -> เมื่อวาน)
+                    // * ไม่ต้องคำนวณตั้งแต่สมัคร
+                    yearlyCard.style.display = 'block';
+                    hours1Title.innerText = 'ชม.ทำงานปีนี้';
+                    hours1Desc.innerText = 'ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน';
+
+                    await calculateHoursFromMonthStart();
                     await calculateHoursFromYearStart();
                 }
-                
-                // All departments: Calculate from 1st of current month
-                await calculateHoursFromMonthStart();
-                
+
             } catch (error) {
                 console.error('Error loading working hours:', error);
             }
@@ -788,6 +790,7 @@
                 // Get user registration date
                 const userDoc = await getDoc(doc(db, "users", currentUser.lineUserId));
                 if (!userDoc.exists()) return;
+
                 
                 const userData = userDoc.data();
                 const registrationDate = userData.registrationDate || userData.createdAt;
