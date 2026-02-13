@@ -264,7 +264,11 @@
                                 <h3 class="fw-bold my-1 text-info" id="statTotalUsers">0</h3>
                             </div><i class="bi bi-chevron-right text-muted opacity-25"></i>
                         </div>
-                        <div id="deptBreakdown" class="mt-2 small"></div>
+                        <div class="mt-1 small text-secondary d-flex gap-2">
+                            <span>เดือนนี้: <b class="text-dark" id="statMonthUsers">0</b></span>
+                            <span>ปีนี้: <b class="text-dark" id="statYearUsers">0</b></span>
+                        </div>
+                        <div id="deptBreakdown" class="mt-2 pt-2 border-top small"></div>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
@@ -753,7 +757,13 @@
             window.allUserData = {};
 
             let approvedCount = 0;
+            let monthCount = 0;
+            let yearCount = 0;
             const byDept = {};
+
+            const now = new Date();
+            const curM = now.getMonth();
+            const curY = now.getFullYear();
 
             s.forEach(d => {
                 const u = d.data();
@@ -764,6 +774,18 @@
 
                     if (u.status === 'Approved') {
                         approvedCount++;
+
+                        const regRaw = u.registrationDate || u.createdAt || u.startDate;
+                        if (regRaw) {
+                            const rd = regRaw.toDate ? regRaw.toDate() : new Date(regRaw);
+                            if (rd.getFullYear() === curY) {
+                                yearCount++;
+                                if (rd.getMonth() === curM) {
+                                    monthCount++;
+                                }
+                            }
+                        }
+
                         const dept = u.dept || 'Unknown';
                         if (!byDept[dept]) byDept[dept] = [];
                         byDept[dept].push({ uid, pictureUrl: u.pictureUrl, name: u.name });
@@ -772,6 +794,8 @@
             });
 
             document.getElementById('statTotalUsers').innerText = approvedCount;
+            document.getElementById('statMonthUsers').innerText = monthCount;
+            document.getElementById('statYearUsers').innerText = yearCount;
             renderDeptBreakdown(byDept);
         }
 
@@ -866,6 +890,17 @@
         // --- RENDER CHART (Horizontal Bar + Sorted) ---
         window.renderCharts = async () => {
             const m = document.getElementById('chartMonth').value; if (!m) return;
+
+            // Clear previous chart or text
+            if (barChart) barChart.destroy();
+            const canvas = document.getElementById('workHoursChart');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "14px sans-serif";
+            ctx.fillStyle = "#888";
+            ctx.textAlign = "center";
+            ctx.fillText("กำลังโหลดข้อมูล...", canvas.width / 2, canvas.height / 2);
+
             const start = new Date(m + "-01"); start.setHours(0, 0, 0, 0); const end = new Date(m + "-01"); end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23, 59, 59, 999);
 
             // 1. Get All Users
@@ -896,7 +931,17 @@
             const data = chartData.map(d => d.hours);
 
             if (barChart) barChart.destroy();
-            const ctx = document.getElementById('workHoursChart').getContext('2d');
+            // Reuse canvas and ctx from above
+
+            if (chartData.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = "16px sans-serif";
+                ctx.fillStyle = "#666";
+                ctx.textAlign = "center";
+                ctx.fillText("ไม่พบข้อมูลชั่วโมงทำงานในเดือนนี้", canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
             barChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -1060,8 +1105,8 @@
             renderUsersPage();
         }
 
-        window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadPendingUsers(); loadAllUsers(); };
-        window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
+        window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); await cacheUserProfiles(); loadPendingUsers(); loadAllUsers(); };
+        window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); await cacheUserProfiles(); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
         window.openEditUser = (id) => {
             const u = window.allUserData[id]; if (!u) return;
             document.getElementById('editUserId').value = id; document.getElementById('editUserName').value = u.name; document.getElementById('editEmpId').value = u.empId || ''; document.getElementById('editUserDept').value = u.dept; document.getElementById('editStartDate').value = u.startDate || ''; document.getElementById('editEndDate').value = u.endDate || ''; document.getElementById('editUserImg').src = u.pictureUrl || "https://via.placeholder.com/80"; editModal.show();
@@ -1168,7 +1213,7 @@
             calendarObj.render();
         }
 
-        window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
+        window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
         window.openPendingUsers = openPendingUsers; window.changePage = changePage;
 
         window.changeChartMonth = (dir) => {
@@ -1178,7 +1223,7 @@
             let [y, m] = current.split('-').map(Number);
             let d = new Date(y, m - 1 + dir, 1);
             el.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            renderCharts();
+            window.renderCharts();
         };
     </script>
 </body>
