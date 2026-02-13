@@ -466,26 +466,39 @@
 
         async function checkUser() {
             try {
-                const s = await getDoc(doc(db, "users", currentUser.lineUserId));
-                if (s.exists()) {
-                    const d = s.data();
-                    await setDoc(
-                        doc(db, "users", currentUser.lineUserId),
-                        {
-                            pictureUrl: currentUser.pictureUrl,
-                            displayName: currentUser.displayName
-                        },
-                        { merge: true }
-                    );
-                    if (d.status === 'Pending') show('pendingPage', d);
-                    else if (d.status === 'Approved') { Object.assign(currentUser, d); show('mainPage'); }
-                    else Swal.fire('ระงับการใช้งาน', 'กรุณาติดต่อแอดมิน', 'error');
-                } else show('registerPage');
-            } catch (e) { Swal.fire('Connection Error', e.message, 'error'); }
+                const userDoc = await getDoc(doc(db, "users", currentUser.lineUserId));
+                
+                // Always update the user's profile picture and display name from LINE
+                await setDoc(
+                    doc(db, "users", currentUser.lineUserId),
+                    {
+                        pictureUrl: currentUser.pictureUrl,
+                        displayName: currentUser.displayName,
+                        lastProfileUpdate: serverTimestamp()
+                    },
+                    { merge: true }
+                );
+
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    // Update currentUser with existing data but keep the latest picture and name from LINE
+                    currentUser = { ...userData, ...currentUser };
+                    
+                    if (userData.status === 'Pending') {
+                        show('pendingPage', userData);
+                    } else if (userData.status === 'Approved') {
+                        show('mainPage');
+                    } else {
+                        Swal.fire('ระงับการใช้งาน', 'กรุณาติดต่อแอดมิน', 'error');
+                    }
+                } else {
+                    show('registerPage');
+                }
+            } catch (e) { 
+                console.error('Error in checkUser:', e);
+                Swal.fire('Connection Error', e.message, 'error'); 
+            }
         }
-
-
-
 
         function show(id, data) {
             ['loadingPage', 'registerPage', 'pendingPage', 'mainPage'].forEach(p => {

@@ -133,3 +133,18 @@
 
 - โปรเจคนี้เป็นไฟล์ HTML แบบ static ที่เชื่อม Firebase/LIFF ผ่าน CDN
 - การตั้งค่า Firebase และ LIFF ID ถูกกำหนดในไฟล์ HTML
+
+## สีประจำแผนก (Department Colors)
+
+ระบบจะแสดงสีที่แตกต่างกันสำหรับแต่ละแผนกเพื่อความสะดวกในการแยกแยะ ดังนี้:
+
+| แผนก (Department) | สี (Color) |
+|-------------------|------------|
+| Pharmacy / เภสัช | <span style="color:#198754">#198754 (เขียว)</span> |
+| General / ทั่วไป | <span style="color:#0dcaf0">#0dcaf0 (ฟ้าอมน้ำเงิน)</span> |
+| IT / ไอที | <span style="color:#6f42c1">#6f42c1 (ม่วง)</span> |
+| Admin / ธุรการ | <span style="color:#dc3545">#dc3545 (แดง)</span> |
+| Sales / การตลาด | <span style="color:#fd7e14">#fd7e14 (ส้ม)</span> |
+| อื่นๆ | <span style="color:#6c757d">#6c757d (เทา)</span> |
+
+สีเหล่านี้จะปรากฏในส่วนต่างๆ ของระบบ เช่น ตารางแสดงข้อมูลพนักงาน, ปฏิทิน, และรายงาน
