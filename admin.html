@@ -432,9 +432,16 @@
                     <div class="card-header bg-white fw-bold py-3">📊 อันดับชั่วโมงทำงานรายเดือน (Top Performers)</div>
                     <div class="card-body">
                         <div class="d-flex gap-2 mb-3 align-items-center">
-                            <label>เลือกเดือน:</label>
-                            <input type="month" id="chartMonth" class="form-control" style="width: 200px;">
-                            <button onclick="renderCharts()" class="btn btn-dark">แสดงกราฟ</button>
+                            <label class="small text-muted fw-bold">เลือกเดือน:</label>
+                            <div class="btn-group">
+                                <button class="btn btn-light border" onclick="changeMonth(-1)"><i
+                                        class="bi bi-chevron-left"></i></button>
+                                <input type="month" id="chartMonth" class="form-control"
+                                    style="width: auto; border-radius: 0;">
+                                <button class="btn btn-light border" onclick="changeMonth(1)"><i
+                                        class="bi bi-chevron-right"></i></button>
+                            </div>
+                            <button onclick="renderCharts()" class="btn btn-dark ms-2">แสดงกราฟ</button>
                         </div>
                         <div style="height: 400px;">
                             <canvas id="workHoursChart"></canvas>
@@ -903,6 +910,17 @@
             loadData();
         };
 
+        window.changeMonth = (delta) => {
+            const el = document.getElementById('chartMonth');
+            if (!el.value) return;
+            const parts = el.value.split('-');
+            const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1 + delta, 1);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            el.value = `${y}-${m}`;
+            renderCharts();
+        };
+
         window.openManualEntry = (uid, name, type) => {
             const modal = new bootstrap.Modal(document.getElementById('manualEntryModal'));
             const sel = document.getElementById('manualUserSelect');
@@ -1211,20 +1229,20 @@
             }
         };
 
-        // --- RENDER CHART (Horizontal Bar + Sorted) ---
+        // --- RENDER CHART (Horizontal Bar + Sorted + Professional Analytics) ---
         window.renderCharts = async () => {
             const m = document.getElementById('chartMonth').value; if (!m) return;
             const start = new Date(m + "-01"); start.setHours(0, 0, 0, 0); const end = new Date(m + "-01"); end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23, 59, 59, 999);
 
             // 1. Get All Users (Active Only)
             const userSnap = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
-            let uH = {}; userSnap.forEach(doc => { uH[doc.data().name] = { logs: [] }; });
+            let uH = {}; userSnap.forEach(doc => { uH[doc.data().name] = { logs: [], pictureUrl: doc.data().pictureUrl }; });
 
             // 2. Get Attendance
             const snap = await getDocs(query(collection(db, "attendance"), where("timestamp", ">=", start), where("timestamp", "<=", end)));
             snap.forEach(d => { const v = d.data(); if (uH[v.name]) uH[v.name].logs.push({ t: v.type, time: v.timestamp.seconds }); });
 
-            // 3. Calc Hours
+            // 3. Calc Hours (Filter 0 hours)
             let chartData = [];
             Object.keys(uH).forEach(n => {
                 const l = uH[n].logs.sort((a, b) => a.time - b.time);
@@ -1233,7 +1251,10 @@
                     if (x.t === 'เข้างาน') last = x.time;
                     else if (x.t === 'ออกงาน' && last) { ms += (x.time - last); last = null; }
                 });
-                chartData.push({ name: n, hours: parseFloat((ms / 3600).toFixed(2)) });
+                const hours = parseFloat((ms / 3600).toFixed(2));
+                if (hours > 0) {
+                    chartData.push({ name: n, hours: hours, pictureUrl: uH[n].pictureUrl });
+                }
             });
 
             // 4. Sort (Highest hours first)
@@ -1244,6 +1265,67 @@
 
             if (barChart) barChart.destroy();
             const ctx = document.getElementById('workHoursChart').getContext('2d');
+
+            // Custom plugin to draw labels and images
+            const barLabelsPlugin = {
+                id: 'barLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx, data } = chart;
+                    ctx.save();
+                    const dataset = data.datasets[0];
+                    const meta = chart.getDatasetMeta(0);
+
+                    meta.data.forEach((bar, i) => {
+                        const val = dataset.data[i];
+                        const xPos = bar.x + 5;
+                        const yPos = bar.y;
+
+                        // Text: Hours
+                        ctx.font = 'bold 12px Sarabun';
+                        ctx.fillStyle = '#495057';
+                        ctx.textBaseline = 'middle';
+                        const text = val.toFixed(2);
+                        ctx.fillText(text, xPos, yPos);
+                        const textWidth = ctx.measureText(text).width;
+
+                        // Image: Profile
+                        const picUrl = chartData[i].pictureUrl;
+                        if (picUrl) {
+                            if (!window.chartImageCache) window.chartImageCache = {};
+                            if (!window.chartImageCache[picUrl]) {
+                                const img = new Image();
+                                img.src = picUrl;
+                                img.onload = () => chart.draw();
+                                window.chartImageCache[picUrl] = img;
+                            }
+
+                            const img = window.chartImageCache[picUrl];
+                            if (img.complete && img.naturalWidth > 0) {
+                                const size = 26;
+                                const imgX = xPos + textWidth + 8;
+                                const imgY = yPos - (size / 2);
+
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.arc(imgX + size / 2, yPos, size / 2, 0, Math.PI * 2);
+                                ctx.closePath();
+                                ctx.clip();
+                                ctx.drawImage(img, imgX, imgY, size, size);
+                                ctx.restore();
+
+                                // Optional border for image
+                                ctx.strokeStyle = '#dee2e6';
+                                ctx.lineWidth = 1;
+                                ctx.beginPath();
+                                ctx.arc(imgX + size / 2, yPos, size / 2, 0, Math.PI * 2);
+                                ctx.stroke();
+                            }
+                        }
+                    });
+                    ctx.restore();
+                }
+            };
+
             barChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -1251,24 +1333,38 @@
                     datasets: [{
                         label: 'ชั่วโมงทำงานรวม',
                         data: data,
-                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                        borderColor: 'rgba(13, 110, 253, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                        barPercentage: 0.6
+                        backgroundColor: (c) => {
+                            const v = c.raw;
+                            if (v > 100) return 'rgba(25, 135, 84, 0.8)';
+                            if (v > 50) return 'rgba(13, 110, 253, 0.8)';
+                            return 'rgba(108, 117, 125, 0.7)';
+                        },
+                        borderRadius: 6,
+                        barPercentage: 0.5,
+                        categoryPercentage: 0.8
                     }]
                 },
+                plugins: [barLabelsPlugin],
                 options: {
-                    indexAxis: 'y', // 🟢 Horizontal Bar
+                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { right: 80 } },
                     scales: {
-                        x: { beginAtZero: true, grid: { display: true, color: '#f0f0f0' } },
-                        y: { grid: { display: false } }
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: '#f0f0f0' },
+                            title: { display: true, text: 'ชั่วโมงสะสม', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Sarabun', size: 11 } }
+                        }
                     },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
                             callbacks: { label: (c) => ` ${c.raw} ชั่วโมง` }
                         }
                     }
@@ -1277,7 +1373,7 @@
         };
 
         window.renderMainUserList = async () => {
-            const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
+            const s = await getDocs(query(collection(db, "users"), where("status", "in", ["Approved", "Inactive"])));
             window.allUserData = {};
             s.forEach(d => { window.allUserData[d.id] = d.data(); });
 
@@ -1285,57 +1381,85 @@
             const contentEl = document.getElementById('mainUsersContent');
             if (!tabsEl || !contentEl) return;
 
-            const users = Object.entries(window.allUserData || {}).map(([id, u]) => ({ id, ...u }));
+            const allUsers = Object.entries(window.allUserData || {}).map(([id, u]) => ({ id, ...u }));
+            const activeUsers = allUsers.filter(u => u.status === 'Approved');
+            const inactiveUsers = allUsers.filter(u => u.status === 'Inactive');
+
             const byDept = {};
-            users.forEach(u => {
+            activeUsers.forEach(u => {
                 const dept = u.dept || 'Unknown';
                 if (!byDept[dept]) byDept[dept] = [];
                 byDept[dept].push(u);
             });
 
             const deptEntries = Object.entries(byDept).sort((a, b) => b[1].length - a[1].length);
-            const allCount = users.length;
 
             const makeUserRows = (list) => {
                 const sorted = (list || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                 return sorted.map(u => {
                     const img = (u.pictureUrl || 'https://via.placeholder.com/45');
                     const dept = u.dept || '';
-                    return `<tr>
+                    const op = u.status === 'Inactive' ? 'opacity-50' : '';
+                    return `<tr class="${op}">
                         <td class="ps-3"><div class="user-cell"><img src="${img}" class="profile-thumb"><h6 class="mb-0">${u.name || ''}</h6></div></td>
                         <td><span class="badge bg-light text-dark border">${dept}</span></td>
-                        <td class="text-end pe-3"><button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${u.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td>
+                        <td class="text-end pe-3">
+                            <button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button>
+                            <button onclick="delUser('${u.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button>
+                        </td>
                     </tr>`;
                 }).join('');
             };
 
             const tabIdAll = 'deptTabAll';
-            tabsEl.innerHTML = `<li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#${tabIdAll}" type="button">ทั้งหมด <span class="badge bg-primary ms-1">${allCount}</span></button></li>`
-                + deptEntries.map(([dept, list], idx) => {
-                    const safe = `deptTab_${idx}`;
-                    const color = getDeptColor(dept);
-                    return `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${safe}" type="button"><span class="fw-bold" style="color:${color};">${dept}</span> <span class="badge bg-secondary ms-1">${list.length}</span></button></li>`;
-                }).join('');
+            const tabIdArchive = 'deptTabArchive';
 
-            contentEl.innerHTML = `<div class="tab-pane fade show active" id="${tabIdAll}">
+            // Build Tabs
+            let tabsHtml = `<li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#${tabIdAll}" type="button">Active <span class="badge bg-primary ms-1">${activeUsers.length}</span></button></li>`;
+            tabsHtml += deptEntries.map(([dept, list], idx) => {
+                const safe = `deptTab_${idx}`;
+                const color = getDeptColor(dept);
+                return `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${safe}" type="button"><span class="fw-bold" style="color:${color};">${dept}</span> <span class="badge bg-secondary ms-1">${list.length}</span></button></li>`;
+            }).join('');
+
+            if (inactiveUsers.length > 0) {
+                tabsHtml += `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${tabIdArchive}" type="button"><i class="bi bi-archive me-1"></i> Archive <span class="badge bg-dark ms-1">${inactiveUsers.length}</span></button></li>`;
+            }
+            tabsEl.innerHTML = tabsHtml;
+
+            // Build Content
+            let contentHtml = `<div class="tab-pane fade show active" id="${tabIdAll}">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="ps-3">ชื่อ (Active Only)</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
+                            <tbody>${makeUserRows(activeUsers) || ''}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+
+            contentHtml += deptEntries.map(([dept, list], idx) => {
+                const safe = `deptTab_${idx}`;
+                return `<div class="tab-pane fade" id="${safe}">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
-                            <tbody>${makeUserRows(users) || ''}</tbody>
+                            <tbody>${makeUserRows(list) || ''}</tbody>
                         </table>
                     </div>
-                </div>`
-                + deptEntries.map(([dept, list], idx) => {
-                    const safe = `deptTab_${idx}`;
-                    return `<div class="tab-pane fade" id="${safe}">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
-                                <tbody>${makeUserRows(list) || ''}</tbody>
-                            </table>
-                        </div>
-                    </div>`;
-                }).join('');
+                </div>`;
+            }).join('');
+
+            if (inactiveUsers.length > 0) {
+                contentHtml += `<div class="tab-pane fade" id="${tabIdArchive}">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="ps-3">ชื่อ (Inactive)</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
+                            <tbody>${makeUserRows(inactiveUsers) || ''}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+            }
+            contentEl.innerHTML = contentHtml;
         };
 
 
@@ -1430,14 +1554,14 @@
                             if (v.shiftDetail.includes('บ่าย')) c = 'var(--color-shift-pm)';
                             else if (v.shiftDetail.includes('ดึก')) c = 'var(--color-shift-night)';
                             else if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) c = 'var(--color-leave)';
-                            ev.push({ title: `${v.name}`, start: v.date, color: c })
+                            ev.push({ title: `${v.name} `, start: v.date, color: c })
                         });
 
                         // 2. Attendance (Actual Hours)
                         const att = await getDocs(collection(db, "attendance"));
                         let map = {};
                         att.forEach(d => {
-                            const k = `${d.data().userId}_${new Date(d.data().timestamp.seconds * 1000).toISOString().split('T')[0]}`;
+                            const k = `${d.data().userId}_${new Date(d.data().timestamp.seconds * 1000).toISOString().split('T')[0]} `;
                             if (!map[k]) map[k] = { n: d.data().name, d: d.data().dept, l: [] };
                             map[k].l.push({ t: d.data().type, ts: d.data().timestamp.seconds })
                         });
@@ -1462,7 +1586,7 @@
                                 if (isSub) className = 'opacity-75';
 
                                 ev.push({
-                                    title: `${(ms / 3600).toFixed(1)} ชม. ${i.n}`,
+                                    title: `${(ms / 3600).toFixed(1)} ชม.${i.n}`,
                                     start: k.split('_')[1],
                                     backgroundColor: finalColor,
                                     borderColor: finalColor,
