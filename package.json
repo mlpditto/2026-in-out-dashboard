@@ -4,7 +4,7 @@
   "description": "MLP Time Dashboard - Employee Attendance and Management System",
   "main": "index.js",
   "scripts": {
-    "build": "if not exist dist mkdir dist && xcopy /Y /E /I *.html dist\\ && xcopy /Y /E /I *.css dist\\ && xcopy /Y /E /I *.js dist\\ && if exist images xcopy /Y /E /I images dist\\images",
+    "build": "if not exist dist mkdir dist && xcopy /Y /I *.html dist\\ && if exist *.css xcopy /Y /I *.css dist\\ && if exist *.js xcopy /Y /I *.js dist\\ && if exist images xcopy /Y /E /I images dist\\images",
     "deploy": "gh-pages -d dist"
   },
   "repository": {
