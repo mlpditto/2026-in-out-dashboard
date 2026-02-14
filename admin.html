@@ -195,6 +195,61 @@
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
         }
+
+        /* Calendar Custom Styles */
+        .calendar-event-user {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 2px;
+            overflow: hidden;
+            background: rgba(13, 110, 253, 0.08);
+            border-radius: 4px;
+            border: 1px solid rgba(13, 110, 253, 0.2);
+            margin-bottom: 1px;
+        }
+
+        .calendar-event-user img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid #fff;
+        }
+
+        .calendar-event-user .event-hours {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #0d6efd;
+            white-space: nowrap;
+        }
+
+        .calendar-event-user.att-event {
+            background: rgba(25, 135, 84, 0.08);
+            border-color: rgba(25, 135, 84, 0.2);
+        }
+
+        .calendar-event-user.att-event .event-hours {
+            color: #198754;
+        }
+
+        .calendar-event-user.sched-event {
+            background: rgba(108, 117, 125, 0.08);
+            border-color: rgba(108, 117, 125, 0.2);
+        }
+
+        .calendar-event-user .event-name {
+            font-size: 0.7rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fc-event-title-container {
+            overflow: visible !important;
+        }
     </style>
 </head>
 
@@ -1550,7 +1605,38 @@
         function initCalendar() {
             if (calendarObj) { calendarObj.render(); return }
             calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'dayGridMonth', locale: 'th', height: 'auto',
+                initialView: 'dayGridMonth',
+                locale: 'th',
+                height: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,layerGrid'
+                },
+                eventContent: function (arg) {
+                    const type = arg.event.extendedProps.type;
+                    const img = arg.event.extendedProps.image || 'https://via.placeholder.com/20';
+                    const title = arg.event.title;
+
+                    if (type === 'attendance') {
+                        return {
+                            html: `
+                            <div class="calendar-event-user att-event">
+                                <img src="${img}" onerror="this.src='https://via.placeholder.com/20'">
+                                <span class="event-hours">${title}</span>
+                            </div>`
+                        };
+                    } else if (type === 'schedule') {
+                        return {
+                            html: `
+                            <div class="calendar-event-user sched-event" style="background:${arg.event.backgroundColor}22; border-color:${arg.event.backgroundColor}">
+                                <img src="${img}" onerror="this.src='https://via.placeholder.com/20'">
+                                <span class="event-name" style="color:${arg.event.backgroundColor}">${title}</span>
+                            </div>`
+                        };
+                    }
+                    return { text: title };
+                },
                 events: async (info, s, f) => {
                     try {
                         let ev = [];
@@ -1558,20 +1644,32 @@
                         const sn = await getDocs(collection(db, "schedules"));
                         sn.forEach(d => {
                             const v = d.data();
+                            const uid = v.userId;
+                            const prof = window.allUserData?.[uid] || {};
                             let c = 'var(--color-shift-am)';
                             if (v.shiftDetail.includes('บ่าย')) c = 'var(--color-shift-pm)';
                             else if (v.shiftDetail.includes('ดึก')) c = 'var(--color-shift-night)';
                             else if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) c = 'var(--color-leave)';
-                            ev.push({ title: `${v.name} `, start: v.date, color: c })
+
+                            ev.push({
+                                title: v.name,
+                                start: v.date,
+                                backgroundColor: c,
+                                extendedProps: {
+                                    type: 'schedule',
+                                    image: prof.pictureUrl
+                                }
+                            })
                         });
 
                         // 2. Attendance (Actual Hours)
                         const att = await getDocs(collection(db, "attendance"));
                         let map = {};
                         att.forEach(d => {
-                            const k = `${d.data().userId}_${new Date(d.data().timestamp.seconds * 1000).toISOString().split('T')[0]} `;
-                            if (!map[k]) map[k] = { n: d.data().name, d: d.data().dept, l: [] };
-                            map[k].l.push({ t: d.data().type, ts: d.data().timestamp.seconds })
+                            const data = d.data();
+                            const k = `${data.userId}_${new Date(data.timestamp.seconds * 1000).toISOString().split('T')[0]}`;
+                            if (!map[k]) map[k] = { n: data.name, d: data.dept, uid: data.userId, l: [] };
+                            map[k].l.push({ t: data.type, ts: data.timestamp.seconds })
                         });
 
                         Object.keys(map).forEach(k => {
@@ -1584,21 +1682,21 @@
                             });
 
                             if (ms > 0) {
-                                // Color Logic
                                 let baseColor = getDeptColor(i.d);
-                                let isSub = false;
-                                if (i.d && (i.d.length > 10 || i.d.includes('-'))) isSub = true;
-
-                                let finalColor = baseColor;
-                                let className = '';
-                                if (isSub) className = 'opacity-75';
+                                let prof = window.allUserData?.[i.uid] || {};
 
                                 ev.push({
-                                    title: `${(ms / 3600).toFixed(1)} ชม.${i.n}`,
+                                    title: `${(ms / 3600).toFixed(1)} ชม.`,
                                     start: k.split('_')[1],
-                                    backgroundColor: finalColor,
-                                    borderColor: finalColor,
-                                    classNames: [className],
+                                    backgroundColor: 'transparent',
+                                    borderColor: 'transparent',
+                                    textColor: '#333',
+                                    extendedProps: {
+                                        type: 'attendance',
+                                        image: prof.pictureUrl || i.pictureUrl,
+                                        dept: i.d,
+                                        name: i.n
+                                    },
                                     display: 'block'
                                 })
                             }
