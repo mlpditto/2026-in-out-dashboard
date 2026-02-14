@@ -776,7 +776,7 @@
                 const forceOutBtn = typeTrim === 'เข้างาน' ? `<button onclick="forceClockOut('${uid}', '${v.name.replace(/'/g, "\\'")}', '${v.dept}', '${v.empId || ''}', '${d}')" class="btn btn-sm btn-outline-primary border-0 me-1" title="Force Out"><i class="bi bi-box-arrow-right"></i></button>` : '';
 
                 h += `<tr>
-                    <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false })}</td>
                     <td class="col-user"><div class="user-cell">${getProfileImg(uid)}<div><h6 class="mb-0">${v.name}${flagHtml}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
                     <td><span class="badge bg-light text-dark border">${deptText}</span></td>
                     <td>
