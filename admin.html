@@ -962,29 +962,37 @@
             const s = new Date(d); s.setHours(0, 0, 0, 0); const e = new Date(d); e.setHours(23, 59, 59, 999);
             const t = document.getElementById('tableBody');
             t.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>';
+
             const q = query(collection(db, "attendance"), where("timestamp", ">=", s), where("timestamp", "<=", e));
             const snap = await getDocs(q);
+
+            // Sort and determine status
+            window.currentData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            window.currentData.sort((a, b) => a.timestamp.seconds - b.timestamp.seconds);
+
+            const currentStatusMap = {};
+            window.currentData.forEach(v => {
+                currentStatusMap[v.userId] = v.type;
+            });
+
             let h = "", c = 0;
-            window.currentData = [];
-
-            const docs = [];
-            snap.forEach(d0 => docs.push(d0));
-
-            for (const docSnap of docs) {
-                const v = docSnap.data();
-                window.currentData.push(v);
+            for (const v of window.currentData) {
                 if (v.type === 'เข้างาน') c++;
                 const deptText = getUserDept(v.userId, v.dept);
                 const bg = v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger';
                 const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
                 const hoursHtml = await getHoursHtml(v);
 
-                let actionBtns = `<button onclick="delAttendance('${docSnap.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>`;
+                // Highlight row if user is currently IN
+                const isStillIn = (v.type === 'เข้างาน' && currentStatusMap[v.userId] === 'เข้างาน');
+                const rowClass = isStillIn ? 'table-success shadow-sm' : '';
+
+                let actionBtns = `<button onclick="delAttendance('${v.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>`;
                 if (v.type === 'เข้างาน') {
                     actionBtns = `<button onclick="openManualEntry('${v.userId}', '${v.name}', 'ออกงาน')" class="btn btn-sm btn-outline-warning me-1" title="ลงเวลาออกงาน"><i class="bi bi-box-arrow-right"></i></button>` + actionBtns;
                 }
 
-                h += `<tr>
+                h += `<tr class="${rowClass}">
                     <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false })}</td>
                     <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${v.name}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
                     <td><span class="badge bg-light text-dark border">${deptText}</span></td>
@@ -998,24 +1006,14 @@
             }
 
             t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
-            t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
 
             // STATS CALCULATION
             const uniqueUsersToday = new Set();
-            const currentStatusMap = {}; // uid -> lastType
-
-            // Sort by time to trace status
-            window.currentData.sort((a, b) => a.timestamp.seconds - b.timestamp.seconds);
-
-            window.currentData.forEach(v => {
-                uniqueUsersToday.add(v.userId);
-                currentStatusMap[v.userId] = v.type;
-            });
-
             let currentlyInCount = 0;
             const activeProfiles = [];
 
             Object.entries(currentStatusMap).forEach(([uid, status]) => {
+                uniqueUsersToday.add(uid);
                 if (status === 'เข้างาน') {
                     currentlyInCount++;
                     const u = window.allUserData[uid];
