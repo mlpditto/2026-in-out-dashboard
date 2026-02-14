@@ -1330,7 +1330,14 @@
 
 
 
-        window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadPendingUsers(); loadAllUsers(); };
+        window.loadAllUsers = async () => {
+            await cacheUserProfiles();
+            await renderMainUserList();
+            loadUsersList();
+            loadPendingUsers();
+        };
+
+        window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadAllUsers(); };
         window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
         window.openEditUser = (id) => {
             const u = window.allUserData[id]; if (!u) return;

@@ -272,7 +272,7 @@
 
                 <label class="small text-muted fw-bold ms-1">แผนก</label>
                 <input type="text" id="department" class="form-control" list="deptOptions"
-                    placeholder="เลือกจากรายการหรือพิมพ์เพิ่ม" required>
+                    placeholder="เลือกจากรายการหรือพิมพ์เพิ่ม" onchange="toggleInternshipFields()" required>
                 <datalist id="deptOptions">
                     <option value="General">
                     <option value="Pharmacy">
@@ -280,6 +280,7 @@
                     <option value="Admin">
                     <option value="Sales">
                     <option value="Pharmacist Extern">
+                    <option value="Pharmacist Intern (ex)">
                 </datalist>
 
                 <!-- Internship Period Fields (initially hidden) -->
@@ -607,6 +608,16 @@
             }
         }
 
+        window.toggleInternshipFields = () => {
+            const dept = document.getElementById('department').value;
+            const fields = document.getElementById('internshipFields');
+            if (dept.includes('Extern') || dept.includes('Intern')) {
+                fields.style.display = 'block';
+            } else {
+                fields.style.display = 'none';
+            }
+        };
+
         // --- 🟢 REGISTRATION ---
         window.handleRegister = async (event) => {
             event.preventDefault();
@@ -615,8 +626,9 @@
             const fullName = document.getElementById('fullName').value;
             const department = document.getElementById('department').value;
 
-            // Validate internship dates if Pharmacist Extern
-            if (department === 'Pharmacist Extern') {
+            // Validate internship dates if Pharmacist Extern or Intern
+            const isStudent = department.includes('Extern') || department.includes('Intern');
+            if (isStudent) {
                 const startDate = document.getElementById('internshipStartDate').valueAsDate;
                 const endDate = document.getElementById('internshipEndDate').valueAsDate;
 
@@ -643,7 +655,7 @@
                     status: 'Pending',
                     registrationDate: serverTimestamp(),
                     createdAt: serverTimestamp(),
-                    ...(department === 'Pharmacist Extern' && {
+                    ...(isStudent && {
                         internshipStartDate: document.getElementById('internshipStartDate').valueAsDate,
                         internshipEndDate: document.getElementById('internshipEndDate').valueAsDate
                     })
