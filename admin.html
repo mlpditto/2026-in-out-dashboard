@@ -208,7 +208,8 @@
                 <p class="text-muted">Admin Portal</p>
             </div>
             <div class="alert alert-info small text-start"><i class="bi bi-info-circle me-1"></i> เฉพาะบัญชี
-                <b>medlifeplus@gmail.com</b></div>
+                <b>medlifeplus@gmail.com</b>
+            </div>
             <button onclick="loginWithGoogle()"
                 class="btn btn-google btn-lg w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center"><img
                     src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
@@ -239,8 +240,14 @@
             <div class="row g-3 mb-4">
                 <div class="col-md-3 col-6">
                     <div class="card p-3 border-start border-4 border-success shadow-sm h-100 card-hover"
-                        onclick="switchTab('attendance')"><small class="text-muted">เข้างานวันนี้</small>
-                        <h3 class="fw-bold my-1 text-success" id="statIn">0</h3>
+                        onclick="switchTab('attendance')">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div><small class="text-muted">เข้างานวันนี้</small>
+                                <h3 class="fw-bold my-1 text-success" id="statIn">0 / 0</h3>
+                            </div>
+                            <div id="activeUserProfiles" class="d-flex align-items-center" style="margin-right: 8px;">
+                            </div>
+                        </div>
                         <div id="liveClock" class="mt-2 pt-2 border-top small text-secondary mono-font"><i
                                 class="bi bi-clock"></i> Loading...</div>
                     </div>
@@ -248,10 +255,19 @@
                 <div class="col-md-3 col-6">
                     <div class="card p-3 border-start border-4 border-warning shadow-sm h-100 card-hover"
                         onclick="switchTab('leave')">
-                        <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
                             <div><small class="text-muted">รออนุมัติลา</small>
                                 <h3 class="fw-bold my-1 text-warning" id="statLeave">0</h3>
-                            </div><i class="bi bi-chevron-right text-muted opacity-25"></i>
+                            </div>
+                            <div class="text-end">
+                                <small class="d-block text-muted" style="font-size:0.75rem;">อนุมัติเดือนนี้: <span
+                                        class="fw-bold text-dark" id="statLeaveMonth">0</span></small>
+                                <small class="d-block text-muted" style="font-size:0.75rem;">อนุมัติปีนี้: <span
+                                        class="fw-bold text-dark" id="statLeaveYear">0</span></small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mt-2 pt-2 border-top" id="leaveApprovedProfiles"
+                            style="min-height: 25px;">
                         </div>
                     </div>
                 </div>
@@ -294,10 +310,20 @@
             <div id="tabAttendance" class="tab-section">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <div class="d-flex gap-2 mb-3"><input type="date" id="filterDate" class="form-control"
-                                style="width: auto;"><button onclick="loadData()"
-                                class="btn btn-primary">ค้นหา</button><button onclick="exportCSV()"
-                                class="btn btn-outline-success ms-auto">Export</button></div>
+                        <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+                            <div class="btn-group">
+                                <button class="btn btn-light border" onclick="changeDate(-1)"><i
+                                        class="bi bi-chevron-left"></i></button>
+                                <input type="date" id="filterDate" class="form-control"
+                                    style="width: auto; border-radius: 0;">
+                                <button class="btn btn-light border" onclick="changeDate(1)"><i
+                                        class="bi bi-chevron-right"></i></button>
+                            </div>
+                            <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
+                            <button onclick="openManualEntry()" class="btn btn-outline-primary"><i
+                                    class="bi bi-plus-circle me-1"></i>บันทึกเวลาเอง</button>
+                            <button onclick="exportCSV()" class="btn btn-outline-success ms-auto">Export</button>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
@@ -435,7 +461,8 @@
                                 <span>พนักงานทั้งหมด</span><button onclick="loadAllUsers()"
                                     class="btn btn-sm btn-outline-primary"><i
                                         class="bi bi-arrow-clockwise"></i></button>
-                                <button onclick="openUsersByDept()" class="btn btn-sm btn-light border">ดูตามแผนก</button>
+                                <button onclick="openUsersByDept()"
+                                    class="btn btn-sm btn-light border">ดูตามแผนก</button>
                             </div>
                             <div class="table-responsive" style="max-height: 500px;">
                                 <table class="table table-hover align-middle mb-0">
@@ -578,6 +605,7 @@
         window.loginWithGoogle = async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { Swal.fire('Login Error', e.message, 'error'); } };
 
         window.switchTab = (tabName) => {
+            if (tabName === 'newMembers') tabName = 'users';
             document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
             const target = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
             if (target) target.classList.remove('hidden');
@@ -594,6 +622,121 @@
         window.delAttendance = async (id) => {
             if ((await Swal.fire({ title: 'ยืนยันลบ?', text: "ข้อมูลจะหายไปถาวร", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'ลบเลย' })).isConfirmed) {
                 try { await deleteDoc(doc(db, "attendance", id)); Toast.fire({ icon: 'success', title: 'ลบเรียบร้อย' }); loadData(); } catch (e) { Swal.fire('Error', e.message, 'error'); }
+            }
+        };
+
+        window.toggleCustomTime = () => {
+            const v = document.getElementById('schedType').value;
+            const b = document.getElementById('customTimeBox');
+            if (v === 'custom') b.classList.remove('d-none'); else b.classList.add('d-none');
+        };
+
+        window.createSchedule = async (e) => {
+            e.preventDefault();
+            const uId = document.getElementById('userSelect').value;
+            const uName = document.getElementById('userSelect').options[document.getElementById('userSelect').selectedIndex].text;
+            const date = document.getElementById('schedDate').value;
+            const type = document.getElementById('schedType').value;
+            if (!uId || !date) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุพนักงานและวันที่', 'warning');
+
+            let detail = type;
+            if (type === 'custom') {
+                const s = document.getElementById('customStart').value;
+                const en = document.getElementById('customEnd').value;
+                if (!s || !en) return Swal.fire('ระบุเวลา', 'กรุณาระบุเวลาให้ครบ', 'warning');
+                detail = `${s} - ${en}`;
+            }
+
+            try {
+                await setDoc(doc(db, "schedules", `${uId}_${date}`), {
+                    userId: uId, name: uName, date: date, shiftDetail: detail, timestamp: new Date()
+                });
+                Toast.fire({ icon: 'success', title: 'บันทึกตารางเวรแล้ว' });
+                loadSchedules();
+            } catch (err) { Swal.fire('Error', err.message, 'error'); }
+        };
+
+        window.loadSchedules = async () => {
+            const t = document.getElementById('schedTableBody');
+            t.innerHTML = '<tr><td colspan="4" class="text-center">กำลังโหลด...</td></tr>';
+            const q = query(collection(db, "schedules"), orderBy("date", "desc"));
+            const s = await getDocs(q);
+            let h = '';
+            s.forEach(d => {
+                const v = d.data();
+                h += `<tr><td>${v.date}</td><td>${v.name}</td><td>${v.shiftDetail}</td><td><button onclick="delSched('${d.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
+            });
+            t.innerHTML = h || '<tr><td colspan="4" class="text-center text-muted">ไม่พบข้อมูล</td></tr>';
+        };
+
+        window.delSched = async (id) => {
+            if ((await Swal.fire({ title: 'ลบรายการนี้?', showCancelButton: true })).isConfirmed) {
+                await deleteDoc(doc(db, "schedules", id));
+                loadSchedules();
+            }
+        };
+
+        window.loadLeaveRequests = async () => {
+            const t = document.getElementById('leaveTableBody');
+            t.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
+            const q = query(collection(db, "leave_requests"), orderBy("timestamp", "desc"));
+            const s = await getDocs(q);
+            let h = '';
+            let pendingCount = 0;
+            let mCount = 0, yCount = 0;
+            const now = new Date();
+            const thisMonth = now.getMonth();
+            const thisYear = now.getFullYear();
+            const usersApprovedYear = new Set();
+
+            s.forEach(d => {
+                const v = d.data();
+                const dDate = v.timestamp ? (v.timestamp.toDate ? v.timestamp.toDate() : new Date(v.timestamp.seconds * 1000)) : new Date();
+
+                if (v.status === 'Pending') pendingCount++;
+                if (v.status === 'Approved') {
+                    if (dDate.getFullYear() === thisYear) {
+                        yCount++;
+                        usersApprovedYear.add(v.userId);
+                        if (dDate.getMonth() === thisMonth) mCount++;
+                    }
+                }
+
+                let badge = 'bg-warning text-dark';
+                if (v.status === 'Approved') badge = 'bg-success';
+                if (v.status === 'Rejected') badge = 'bg-danger';
+
+                const rowClass = v.status === 'Pending' ? 'table-warning' : '';
+
+                let acts = '';
+                if (v.status === 'Pending') {
+                    acts = `<button onclick="updLeave('${d.id}','Approved','${v.userId}','${v.name}','${v.startDate}','${v.endDate}','${v.leaveType}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
+                             <button onclick="updLeave('${d.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
+                } else {
+                    acts = `<small class="text-muted">${v.status}</small>`;
+                }
+
+                h += `<tr class="${rowClass}">
+                     <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${v.userId}</small></td>
+                     <td><span class="badge bg-light text-dark border">${v.leaveType}</span></td>
+                     <td>${v.startDate} ถึง ${v.endDate}</td>
+                     <td>${v.reason || '-'}</td>
+                     <td class="text-end pe-3">${acts}</td>
+                 </tr>`;
+            });
+            t.innerHTML = h || '<tr><td colspan="5" class="text-center text-muted">ไม่มีคำขอลา</td></tr>';
+
+            const sl = document.getElementById('statLeave'); if (sl) sl.innerText = pendingCount;
+            const sm = document.getElementById('statLeaveMonth'); if (sm) sm.innerText = mCount;
+            const sy = document.getElementById('statLeaveYear'); if (sy) sy.innerText = yCount;
+
+            const lp = document.getElementById('leaveApprovedProfiles');
+            if (lp) {
+                const uList = [];
+                usersApprovedYear.forEach(uid => {
+                    if (window.allUserData && window.allUserData[uid]) uList.push(window.allUserData[uid]);
+                });
+                lp.innerHTML = uList.slice(0, 5).map(u => `<img src="${u.pictureUrl || 'https://via.placeholder.com/20'}" title="${u.name}" style="width:20px;height:20px;border-radius:50%;margin-right:-5px;border:1px solid #fff;">`).join('') + (uList.length > 5 ? `<span class="small ms-2 text-muted">+${uList.length - 5}</span>` : '');
             }
         };
 
@@ -724,7 +867,42 @@
             }
 
             t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
-            document.getElementById('statIn').innerText = c;
+            t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
+
+            // STATS CALCULATION
+            const uniqueUsersToday = new Set();
+            const currentStatusMap = {}; // uid -> lastType
+
+            // Sort by time to trace status
+            window.currentData.sort((a, b) => a.timestamp.seconds - b.timestamp.seconds);
+
+            window.currentData.forEach(v => {
+                uniqueUsersToday.add(v.userId);
+                currentStatusMap[v.userId] = v.type;
+            });
+
+            let currentlyInCount = 0;
+            const activeProfiles = [];
+
+            Object.entries(currentStatusMap).forEach(([uid, status]) => {
+                if (status === 'เข้างาน') {
+                    currentlyInCount++;
+                    const u = window.allUserData[uid];
+                    if (u) activeProfiles.push(u);
+                }
+            });
+
+            document.getElementById('statIn').innerText = `${currentlyInCount} / ${uniqueUsersToday.size}`;
+
+            // Render Active Profiles
+            const profileContainer = document.getElementById('activeUserProfiles');
+            if (profileContainer) {
+                profileContainer.innerHTML = activeProfiles.slice(0, 5).map(u =>
+                    `<img src="${u.pictureUrl || 'https://via.placeholder.com/30'}" 
+                          title="${u.name}" 
+                          style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid #fff;margin-left:-10px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">`
+                ).join('') + (activeProfiles.length > 5 ? `<span class="small text-muted ms-1">+${activeProfiles.length - 5}</span>` : '');
+            }
         };
 
         async function cacheUserProfiles() {
@@ -809,10 +987,10 @@
                         <div class="spinner-border text-danger"></div>
                         <div class="mt-2 text-muted">กำลังโหลด...</div>
                     </td></tr>`;
-                
+
                 const s = await getDocs(query(collection(db, "users"), where("status", "==", "Pending")));
                 let h = "";
-                s.forEach(d => { 
+                s.forEach(d => {
                     const v = d.data();
                     h += `
                     <tr>
@@ -838,7 +1016,7 @@
                         </td>
                     </tr>`;
                 });
-                
+
                 pendingTable.innerHTML = h || `
                     <tr>
                         <td colspan="3" class="text-center py-5 text-muted">
@@ -846,18 +1024,18 @@
                             ไม่มีผู้สมัครใหม่ที่รอการอนุมัติ
                         </td>
                     </tr>`;
-                
+
                 // Update stats and show notification if there are new users
                 const newUserCount = s.size;
                 document.getElementById('statNewUsers').innerText = newUserCount;
-                
+
                 // Show notification badge on the tab
                 const newMemberBadge = document.getElementById('newMemberBadge');
                 if (newMemberBadge) {
                     if (newUserCount > 0) {
                         newMemberBadge.classList.remove('d-none');
                         newMemberBadge.textContent = newUserCount;
-                        
+
                         // Show popup notification if this is the first load
                         if (!window.hasShownNewMemberNotification) {
                             window.hasShownNewMemberNotification = true;
@@ -880,7 +1058,7 @@
                         newMemberBadge.classList.add('d-none');
                     }
                 }
-                
+
             } catch (error) {
                 console.error('Error loading pending users:', error);
                 document.getElementById('pendingUsersTable').innerHTML = `
