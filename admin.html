@@ -854,7 +854,12 @@
         }
 
         function loadInitialData() {
-            document.getElementById('filterDate').valueAsDate = new Date();
+            const el = document.getElementById('filterDate');
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            el.value = `${y}-${m}-${d}`;
             loadData();
             loadUsersList();
             loadPendingUsers();
@@ -1313,13 +1318,20 @@
         }
 
         window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
-        window.openPendingUsers = openPendingUsers; window.changeDate = (dir) => {
+        async function changeDate(dir) {
             const el = document.getElementById('filterDate');
-            const d = new Date(el.value || new Date());
+            let d = el.value ? new Date(el.value) : new Date();
+            if (isNaN(d.getTime())) d = new Date();
             d.setDate(d.getDate() + dir);
-            el.valueAsDate = d;
-            loadData();
-        };
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            el.value = `${y}-${m}-${day}`;
+            await window.loadData();
+        }
+
+        window.openPendingUsers = openPendingUsers;
+        window.changeDate = changeDate;
 
         window.editAttendance = async (id, currentTs) => {
             const dt = new Date(currentTs * 1000);
@@ -1361,7 +1373,11 @@
             }
         };
 
-        window.changePage = changePage; window.delAttendance = delAttendance; window.forceClockOut = forceClockOut; window.openManualEntry = openManualEntry; window.changeDate = changeDate; window.editAttendance = editAttendance;
+        window.changePage = window.changePage;
+        window.delAttendance = window.delAttendance;
+        window.forceClockOut = window.forceClockOut;
+        window.openManualEntry = window.openManualEntry;
+        window.editAttendance = window.editAttendance;
 
         window.changeChartMonth = (dir) => {
             const el = document.getElementById('chartMonth');
