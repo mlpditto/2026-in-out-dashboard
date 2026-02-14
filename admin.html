@@ -254,7 +254,7 @@
                 </div>
                 <div class="col-md-3 col-6">
                     <div class="card p-3 border-start border-4 border-warning shadow-sm h-100 card-hover"
-                        onclick="switchTab('leave')">
+                        onclick="switchTab('manage')">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div><small class="text-muted">รออนุมัติลา</small>
                                 <h3 class="fw-bold my-1 text-warning" id="statLeave">0</h3>
@@ -297,10 +297,8 @@
             <ul class="nav nav-tabs" id="mainTab" role="tablist">
                 <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')"><i
                             class="bi bi-clock me-2"></i>เวลาเข้า-ออก</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('schedule')"><i
-                            class="bi bi-calendar-check me-2"></i>จัดตารางเวร</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('leave')"><i
-                            class="bi bi-send me-2"></i>คำขอลา</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('manage')"><i
+                            class="bi bi-calendar-check me-2"></i>จัดการเวร & การลา</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('report')"><i
                             class="bi bi-graph-up me-2"></i>รายงาน & ปฏิทิน</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('users')"><i
@@ -343,11 +341,37 @@
                 </div>
             </div>
 
-            <div id="tabSchedule" class="tab-section hidden">
+            <div id="tabManage" class="tab-section hidden">
+                <!-- Leave Requests Section (Prioritized) -->
+                <div class="card shadow-sm border-0 border-start border-4 border-warning mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold"><i
+                                class="bi bi-send-exclamation-fill me-2 text-warning"></i>คำขอลาที่รออนุมัติ</span>
+                        <button onclick="loadLeaveRequests()" class="btn btn-sm btn-light border"><i
+                                class="bi bi-arrow-clockwise"></i></button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">พนักงาน</th>
+                                    <th>ประเภท</th>
+                                    <th>วันที่</th>
+                                    <th>เหตุผล</th>
+                                    <th class="text-end pe-3">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaveTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Schedule Section -->
                 <div class="row g-4">
                     <div class="col-lg-4">
                         <div class="card shadow-sm border-0 h-100">
-                            <div class="card-header bg-white fw-bold py-3">สร้างเวรทำงาน</div>
+                            <div class="card-header bg-white fw-bold py-3"><i
+                                    class="bi bi-plus-circle-fill me-2 text-primary"></i>สร้างเวรทำงาน</div>
                             <div class="card-body">
                                 <form onsubmit="createSchedule(event)">
                                     <div class="mb-3"><label class="small text-muted">พนักงาน</label><select
@@ -375,8 +399,10 @@
                     <div class="col-lg-8">
                         <div class="card shadow-sm border-0 h-100">
                             <div class="card-header bg-white d-flex justify-content-between py-3"><span
-                                    class="fw-bold">รายการเวรล่าสุด</span><button onclick="loadSchedules()"
-                                    class="btn btn-sm btn-light border"><i class="bi bi-arrow-clockwise"></i></button>
+                                    class="fw-bold"><i
+                                        class="bi bi-list-task me-2 text-primary"></i>รายการเวรล่าสุด</span><button
+                                    onclick="loadSchedules()" class="btn btn-sm btn-light border"><i
+                                        class="bi bi-arrow-clockwise"></i></button>
                             </div>
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0">
@@ -392,26 +418,6 @@
                                 </table>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tabLeave" class="tab-section hidden">
-                <div class="card shadow-sm border-0 border-start border-4 border-warning">
-                    <div class="card-header bg-white py-3 fw-bold">รายการรออนุมัติ</div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-3">พนักงาน</th>
-                                    <th>ประเภท</th>
-                                    <th>วันที่</th>
-                                    <th>เหตุผล</th>
-                                    <th class="text-end pe-3">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaveTableBody"></tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -676,8 +682,7 @@
             const links = document.querySelectorAll('.nav-link');
             links.forEach(l => { if (l.getAttribute('onclick').includes(tabName)) l.classList.add('active'); });
 
-            if (tabName === 'schedule') loadSchedules();
-            if (tabName === 'leave') loadLeaveRequests();
+            if (tabName === 'manage') { loadSchedules(); loadLeaveRequests(); }
             if (tabName === 'report') { setTimeout(initCalendar, 200); renderCharts(); }
             if (tabName === 'users') { renderMainUserList(); loadPendingUsers(); }
         };
