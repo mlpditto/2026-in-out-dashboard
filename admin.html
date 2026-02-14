@@ -713,12 +713,22 @@
             const s = new Date(d); s.setHours(0, 0, 0, 0); const e = new Date(d); e.setHours(23, 59, 59, 999);
             const t = document.getElementById('tableBody');
             t.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>';
+
+            // PRE-FETCH LEAVE STATUS
+            const schedSnap = await getDocs(query(collection(db, "schedules"), where("date", "==", d)));
+            const leaveToday = {};
+            schedSnap.forEach(docS => {
+                const sv = docS.data();
+                if (sv.shiftDetail && (sv.shiftDetail.includes('ลา') || sv.shiftDetail.includes('🛑'))) leaveToday[sv.userId] = true;
+            });
+
             const q = query(collection(db, "attendance"), where("timestamp", ">=", s), where("timestamp", "<=", e));
             const snap = await getDocs(q);
             let h = "";
             window.currentData = [];
 
             const userStatusToday = {}; // {uid: {lastType, lastTs}}
+            const userLogsToday = {};
 
             snap.forEach(docSnap => {
                 const v = docSnap.data();
@@ -728,28 +738,46 @@
                 const uid = v.userId;
                 const ts = v.timestamp?.seconds || 0;
                 if (!userStatusToday[uid] || ts > userStatusToday[uid].ts) {
-                    userStatusToday[uid] = { type: v.type, ts: ts };
+                    userStatusToday[uid] = { type: (v.type || "").trim(), ts: ts };
                 }
+
+                if (!userLogsToday[uid]) userLogsToday[uid] = [];
+                userLogsToday[uid].push({
+                    type: (v.type || "").trim(),
+                    timestamp: v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp.seconds * 1000)
+                });
             });
 
-            const totalWhoClockedIn = Object.keys(userStatusToday).length;
-            const stillIn = Object.values(userStatusToday).filter(x => (x.type || "").trim() === 'เข้างาน').length;
+            const usersHoursToday = {};
+            for (const uid in userLogsToday) {
+                userLogsToday[uid].sort((a, b) => a.timestamp - b.timestamp);
+                usersHoursToday[uid] = calcHoursFromLogs(userLogsToday[uid]);
+            }
 
-            // Sort by sequence (latest first)
+            const totalWhoClockedIn = Object.keys(userStatusToday).length;
+            const stillIn = Object.values(userStatusToday).filter(x => x.type === 'เข้างาน').length;
+
             const sortedDocs = [...window.currentData].sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
 
             for (const v of sortedDocs) {
-                const deptText = getUserDept(v.userId, v.dept);
+                const uid = v.userId;
+                const deptText = getUserDept(uid, v.dept);
                 const typeTrim = (v.type || "").trim();
                 const bg = typeTrim === 'เข้างาน' ? 'bg-success' : 'bg-danger';
                 const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
                 const hoursHtml = await getHoursHtml(v);
 
-                const forceOutBtn = typeTrim === 'เข้างาน' ? `<button onclick="forceClockOut('${v.userId}', '${v.name.replace(/'/g, "\\'")}', '${v.dept}', '${v.empId || ''}', '${d}')" class="btn btn-sm btn-outline-primary border-0 me-1" title="Force Out"><i class="bi bi-box-arrow-right"></i></button>` : '';
+                // FLAGS LOGIC
+                let flagHtml = "";
+                const hoursToday = usersHoursToday[uid] || 0;
+                if (hoursToday > 10) flagHtml += ` <i class="bi bi-flag-fill text-warning ms-1" title="ชั่วโมงเยอะผิดปกติ (${hoursToday.toFixed(1)} ชม.)"></i>`;
+                if (leaveToday[uid]) flagHtml += ` <i class="bi bi-flag-fill text-danger ms-1" title="ลางานในวันนี้"></i>`;
+
+                const forceOutBtn = typeTrim === 'เข้างาน' ? `<button onclick="forceClockOut('${uid}', '${v.name.replace(/'/g, "\\'")}', '${v.dept}', '${v.empId || ''}', '${d}')" class="btn btn-sm btn-outline-primary border-0 me-1" title="Force Out"><i class="bi bi-box-arrow-right"></i></button>` : '';
 
                 h += `<tr>
                     <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
-                    <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${v.name}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
+                    <td class="col-user"><div class="user-cell">${getProfileImg(uid)}<div><h6 class="mb-0">${v.name}${flagHtml}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
                     <td><span class="badge bg-light text-dark border">${deptText}</span></td>
                     <td>
                         <span class="badge ${bg} bg-opacity-10 text-${bg.split('-')[1]} badge-pill"><span class="status-dot ${bg}"></span>${v.type}</span>
@@ -1263,12 +1291,16 @@
                         let ev = [];
                         // 1. Schedules
                         const sn = await getDocs(collection(db, "schedules"));
+                        const leaveMap = {};
                         sn.forEach(d => {
                             const v = d.data();
                             let c = 'var(--color-shift-am)';
                             if (v.shiftDetail.includes('บ่าย')) c = 'var(--color-shift-pm)';
                             else if (v.shiftDetail.includes('ดึก')) c = 'var(--color-shift-night)';
-                            else if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) c = 'var(--color-leave)';
+                            else if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา') || v.shiftDetail.includes('🛑')) {
+                                c = 'var(--color-leave)';
+                                if (v.shiftDetail.includes('ลา') || v.shiftDetail.includes('🛑')) leaveMap[`${v.userId}_${v.date}`] = true;
+                            }
                             ev.push({ title: `${v.name}`, start: v.date, color: c })
                         });
 
@@ -1278,7 +1310,7 @@
                         att.forEach(d => {
                             const k = `${d.data().userId}_${new Date(d.data().timestamp.seconds * 1000).toISOString().split('T')[0]}`;
                             if (!map[k]) map[k] = { n: d.data().name, d: d.data().dept, l: [] };
-                            map[k].l.push({ t: d.data().type, ts: d.data().timestamp.seconds })
+                            map[k].l.push({ t: (d.data().type || "").trim(), ts: d.data().timestamp.seconds })
                         });
 
                         Object.keys(map).forEach(k => {
@@ -1291,6 +1323,11 @@
                             });
 
                             if (ms > 0) {
+                                const hours = ms / 3600;
+                                let flags = "";
+                                if (hours > 10) flags += "🚩";
+                                if (leaveMap[k]) flags += "❌";
+
                                 // Color Logic
                                 let baseColor = getDeptColor(i.d);
                                 let isSub = false;
@@ -1301,7 +1338,7 @@
                                 if (isSub) className = 'opacity-75';
 
                                 ev.push({
-                                    title: `${(ms / 3600).toFixed(1)} ชม. ${i.n}`,
+                                    title: `${flags}${hours.toFixed(1)} ชม. ${i.n}`,
                                     start: k.split('_')[1],
                                     backgroundColor: finalColor,
                                     borderColor: finalColor,
