@@ -588,7 +588,7 @@
         function updateLiveClock() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
             const el = document.getElementById('liveClock');
             if (el) el.innerHTML = `<i class="bi bi-calendar-event me-1"></i> ${dateStr} <br> <i class="bi bi-clock me-1"></i> ${timeStr}`;
         }
@@ -1259,7 +1259,7 @@
 
             const header = "Time,Name,EmpId,Dept,Type,MapLink\n";
             const rows = window.currentData.map(r => {
-                const time = new Date(r.timestamp.seconds * 1000).toLocaleTimeString('th-TH');
+                const time = new Date(r.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour12: false });
                 const dept = getUserDept(r.userId, r.dept);
                 const empId = window.allUserData?.[r.userId]?.empId || r.empId || '';
                 return [time, r.name || '', empId, dept, r.type || '', r.mapUrl || ''].map(esc).join(',');
