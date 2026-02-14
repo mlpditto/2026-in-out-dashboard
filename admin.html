@@ -1358,7 +1358,10 @@
                                 img.crossOrigin = "anonymous";
                                 img.src = picUrl;
                                 img.onload = () => chart.draw();
-                                img.onerror = () => { img.src = 'https://via.placeholder.com/26'; };
+                                img.onerror = () => {
+                                    console.error("Failed to load image:", picUrl);
+                                    img.src = 'https://via.placeholder.com/26';
+                                };
                                 window.chartImageCache[picUrl] = img;
                             }
 
