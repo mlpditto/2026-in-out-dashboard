@@ -540,12 +540,14 @@
                     currentUser = { ...userData, ...currentUser };
                     window.log('ยินดีต้อนรับกลับ ' + (userData.name || ''));
 
-                    // Update profile info silently
-                    setDoc(userRef, {
-                        pictureUrl: currentUser.pictureUrl,
-                        displayName: currentUser.displayName,
-                        lastProfileUpdate: serverTimestamp()
-                    }, { merge: true }).catch(err => console.error(err));
+                    // Update profile info silently if changed
+                    if (currentUser.pictureUrl && currentUser.pictureUrl !== userData.pictureUrl) {
+                        updateDoc(userRef, {
+                            pictureUrl: currentUser.pictureUrl,
+                            displayName: currentUser.displayName,
+                            lastProfileUpdate: serverTimestamp()
+                        }).catch(err => console.error("Silent sync error:", err));
+                    }
 
                     if (userData.status === 'Pending') {
                         show('pendingPage', userData);

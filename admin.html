@@ -1112,7 +1112,7 @@
                 const color = getDeptColor(dept);
                 const thumbs = list.slice(0, 8).map(u => {
                     const src = u.pictureUrl || 'https://via.placeholder.com/18';
-                    return `<img src="${src}" title="${u.name || ''}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;">`;
+                    return `<img src="${src}" title="${u.name || ''}" onerror="this.src='https://via.placeholder.com/18'" style="width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;">`;
                 }).join('');
                 const more = list.length > 8 ? `<span class="text-muted" style="margin-left:6px;">+${list.length - 8}</span>` : '';
                 return `
@@ -1130,7 +1130,8 @@
         }
 
         function getProfileImg(uid) {
-            return `<img src="${userProfileMap[uid] || 'https://via.placeholder.com/45'}" class="profile-thumb">`;
+            const src = userProfileMap[uid] || 'https://via.placeholder.com/45';
+            return `<img src="${src}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'">`;
         }
 
         function loadInitialData() {
@@ -1299,8 +1300,10 @@
                             if (!window.chartImageCache) window.chartImageCache = {};
                             if (!window.chartImageCache[picUrl]) {
                                 const img = new Image();
+                                img.crossOrigin = "anonymous";
                                 img.src = picUrl;
                                 img.onload = () => chart.draw();
+                                img.onerror = () => { img.src = 'https://via.placeholder.com/26'; };
                                 window.chartImageCache[picUrl] = img;
                             }
 
@@ -1406,7 +1409,7 @@
                     const dept = u.dept || '';
                     const op = u.status === 'Inactive' ? 'opacity-50' : '';
                     return `<tr class="${op}">
-                        <td class="ps-3"><div class="user-cell"><img src="${img}" class="profile-thumb"><h6 class="mb-0">${u.name || ''}</h6></div></td>
+                        <td class="ps-3"><div class="user-cell"><img src="${img}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><h6 class="mb-0">${u.name || ''}</h6></div></td>
                         <td><span class="badge bg-light text-dark border">${dept}</span></td>
                         <td class="text-end pe-3">
                             <button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button>
