@@ -505,6 +505,13 @@
                         </datalist>
                         <label>แผนก</label>
                     </div>
+                    <div class="form-floating mb-3">
+                        <select id="editUserStatus" class="form-select">
+                            <option value="Approved">ใช้งานปกติ (Active)</option>
+                            <option value="Inactive">ปิดการใช้งาน (Inactive)</option>
+                        </select>
+                        <label>สถานะพนักงาน</label>
+                    </div>
                     <div class="row g-2">
                         <div class="col-6">
                             <div class="form-floating"><input type="date" id="editStartDate"
@@ -545,7 +552,8 @@
                             </div>
                             <div class="col-5">
                                 <label class="text-muted small">เวลา</label>
-                                <input type="time" id="manualTime" class="form-control" required>
+                                <input type="time" id="manualTime" class="form-control" placeholder="00:00" lang="en-GB"
+                                    required>
                             </div>
                         </div>
                         <div class="mb-4">
@@ -911,7 +919,10 @@
 
             const now = new Date();
             document.getElementById('manualDate').valueAsDate = now;
-            document.getElementById('manualTime').value = now.toTimeString().slice(0, 5);
+            // Force 24h HH:mm format
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('manualTime').value = `${hh}:${mm}`;
 
             if (type) {
                 if (type === 'เข้างาน') document.getElementById('typeIn').checked = true;
@@ -1205,7 +1216,7 @@
             const m = document.getElementById('chartMonth').value; if (!m) return;
             const start = new Date(m + "-01"); start.setHours(0, 0, 0, 0); const end = new Date(m + "-01"); end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23, 59, 59, 999);
 
-            // 1. Get All Users
+            // 1. Get All Users (Active Only)
             const userSnap = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
             let uH = {}; userSnap.forEach(doc => { uH[doc.data().name] = { logs: [] }; });
 
@@ -1341,9 +1352,31 @@
         window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
         window.openEditUser = (id) => {
             const u = window.allUserData[id]; if (!u) return;
-            document.getElementById('editUserId').value = id; document.getElementById('editUserName').value = u.name; document.getElementById('editEmpId').value = u.empId || ''; document.getElementById('editUserDept').value = u.dept; document.getElementById('editStartDate').value = u.startDate || ''; document.getElementById('editEndDate').value = u.endDate || ''; document.getElementById('editUserImg').src = u.pictureUrl || "https://via.placeholder.com/80"; editModal.show();
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editUserName').value = u.name;
+            document.getElementById('editEmpId').value = u.empId || '';
+            document.getElementById('editUserDept').value = u.dept;
+            document.getElementById('editUserStatus').value = u.status || 'Approved';
+            document.getElementById('editStartDate').value = u.startDate || '';
+            document.getElementById('editEndDate').value = u.endDate || '';
+            document.getElementById('editUserImg').src = u.pictureUrl || "https://via.placeholder.com/80";
+            editModal.show();
         };
-        window.saveEditUser = async () => { try { await updateDoc(doc(db, "users", document.getElementById('editUserId').value), { name: document.getElementById('editUserName').value, empId: document.getElementById('editEmpId').value, dept: document.getElementById('editUserDept').value, startDate: document.getElementById('editStartDate').value, endDate: document.getElementById('editEndDate').value }); Toast.fire({ icon: 'success', title: 'แก้ไขสำเร็จ' }); editModal.hide(); loadAllUsers(); } catch (e) { Swal.fire('Error', e.message, 'error') } };
+        window.saveEditUser = async () => {
+            try {
+                await updateDoc(doc(db, "users", document.getElementById('editUserId').value), {
+                    name: document.getElementById('editUserName').value,
+                    empId: document.getElementById('editEmpId').value,
+                    dept: document.getElementById('editUserDept').value,
+                    status: document.getElementById('editUserStatus').value,
+                    startDate: document.getElementById('editStartDate').value,
+                    endDate: document.getElementById('editEndDate').value
+                });
+                Toast.fire({ icon: 'success', title: 'แก้ไขสำเร็จ' });
+                editModal.hide();
+                loadAllUsers();
+            } catch (e) { Swal.fire('Error', e.message, 'error') }
+        };
 
         window.logout = () => signOut(auth);
         window.loadUsersList = async () => { const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved"))); let h = '<option value="">เลือกพนักงาน...</option>'; s.forEach(d => h += `<option value="${d.data().lineUserId}">${d.data().name}</option>`); document.getElementById('userSelect').innerHTML = h };
