@@ -595,7 +595,7 @@
 
         window.loginWithGoogle = async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { Swal.fire('Login Error', e.message, 'error'); } };
 
-        window.switchTab = (tabName) => {
+        window.switchTab = async (tabName) => {
             document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
             const target = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
             if (target) target.classList.remove('hidden');
@@ -606,7 +606,7 @@
             if (tabName === 'schedule') loadSchedules();
             if (tabName === 'leave') loadLeaveRequests();
             if (tabName === 'report') { setTimeout(initCalendar, 200); renderCharts(); }
-            if (tabName === 'users') { loadPendingUsers(); loadAllUsers(); }
+            if (tabName === 'users') { await cacheUserProfiles(); loadPendingUsers(); loadAllUsers(); }
         };
 
         window.delAttendance = async (id) => {
@@ -709,6 +709,7 @@
         }
 
         window.loadData = async () => {
+            await cacheUserProfiles(); // Refresh profiles to get latest images
             const d = document.getElementById('filterDate').value;
             const s = new Date(d); s.setHours(0, 0, 0, 0); const e = new Date(d); e.setHours(23, 59, 59, 999);
             const t = document.getElementById('tableBody');
@@ -878,7 +879,8 @@
         }
 
         function getProfileImg(uid) {
-            return `<img src="${userProfileMap[uid] || 'https://via.placeholder.com/45'}" class="profile-thumb">`;
+            const url = userProfileMap[uid] || 'https://via.placeholder.com/45';
+            return `<img src="${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}" class="profile-thumb">`;
         }
 
         function loadInitialData() {
@@ -913,7 +915,7 @@
                     <tr>
                         <td class="ps-3">
                             <div class="user-cell">
-                                <img src="${v.pictureUrl}" class="profile-thumb">
+                                <img src="${v.pictureUrl}${v.pictureUrl && v.pictureUrl.includes('?') ? '&' : '?'}t=${Date.now()}" class="profile-thumb">
                                 <div>
                                     <h6 class="mb-0">${v.name}</h6>
                                     <small class="text-muted">${v.empId || 'ยังไม่มีรหัสพนักงาน'}</small>
@@ -1103,8 +1105,9 @@
             const makeUserRows = (list) => {
                 const sorted = (list || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
                 return sorted.map(u => {
+                    const pic = u.pictureUrl || 'https://via.placeholder.com/45';
                     return `<tr>
-                        <td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl || 'https://via.placeholder.com/45'}" class="profile-thumb"><div><h6 class="mb-0">${u.name}</h6><small class="text-muted">${u.empId || ''}</small></div></div></td>
+                        <td class="ps-3"><div class="user-cell"><img src="${pic}${pic.includes('?') ? '&' : '?'}t=${Date.now()}" class="profile-thumb"><div><h6 class="mb-0">${u.name}</h6><small class="text-muted">${u.empId || ''}</small></div></div></td>
                         <td><span class="badge bg-light text-dark border">${u.dept || ''}</span></td>
                         <td class="text-end pe-3"><button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border shadow-sm me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${u.id}')" class="btn btn-sm btn-light border shadow-sm text-danger"><i class="bi bi-trash"></i></button></td>
                     </tr>`;
