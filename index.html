@@ -255,6 +255,10 @@
         <div id="loadingPage" class="loader-container">
             <div class="spinner"></div>
             <p id="loadingText">กำลังเชื่อมต่อระบบ...</p>
+            <button onclick="location.href=location.href+'?v='+Date.now()" class="btn btn-outline py-1 small mt-2"
+                style="width:auto; font-size:12px;">
+                <i class="bi bi-arrow-clockwise"></i> ล้าง Cache และโหลดใหม่
+            </button>
         </div>
 
         <!-- Register -->
@@ -496,11 +500,11 @@
 
         // MAIN
         async function main() {
-            window.log('เริ่มเชื่อมต่อ LIFF...');
+            window.log('กำลังตรวจสอบสถานะ LIFF...');
             try {
                 // Initialize LIFF
                 await liff.init({ liffId: LIFF_ID });
-                window.log('เชื่อมต่อ LIFF สำเร็จ');
+                window.log('เชื่อมต่อ LIFF สำเร็จ (Init OK)');
 
                 if (!liff.isLoggedIn()) {
                     window.log('กรุณาเข้าสู่ระบบ LINE...');
