@@ -284,7 +284,7 @@
                 </div>
                 <div class="col-md-3 col-6">
                     <div class="card p-3 border-start border-4 border-danger shadow-sm h-100 card-hover"
-                        onclick="switchTab('users')">
+                        onclick="openPendingModal()">
                         <div class="d-flex justify-content-between align-items-start">
                             <div><small class="text-muted">สมาชิกใหม่</small>
                                 <h3 class="fw-bold my-1 text-danger" id="statNewUsers">0</h3>
@@ -444,43 +444,12 @@
             </div>
 
             <div id="tabUsers" class="tab-section hidden">
-                <div class="row g-4">
-                    <div class="col-lg-5">
-                        <div class="card shadow-sm border-0 border-start border-4 border-danger">
-                            <div class="card-header bg-white text-danger fw-bold py-3">รออนุมัติ (Pending)</div>
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <tbody id="pendingUsersTable"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-7">
-                        <div class="card shadow-sm border-0 border-start border-4 border-primary">
-                            <div class="card-header bg-white text-primary fw-bold py-3 d-flex justify-content-between">
-                                <span>พนักงานทั้งหมด</span><button onclick="loadAllUsers()"
-                                    class="btn btn-sm btn-outline-primary"><i
-                                        class="bi bi-arrow-clockwise"></i></button>
-                                <button onclick="openUsersByDept()"
-                                    class="btn btn-sm btn-light border">ดูตามแผนก</button>
-                            </div>
-                            <div class="table-responsive" style="max-height: 500px;">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="ps-3">ชื่อ</th>
-                                            <th>แผนก</th>
-                                            <th class="text-end pe-3">จัดการ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="allUsersTable"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
+    </div>
+    </div>
+    </div>
+    </div>
     </div>
 
     <!-- All Users by Department Modal -->
@@ -547,10 +516,82 @@
         </div>
     </div>
 
+    <!-- Manual Entry Modal -->
+    <div class="modal fade" id="manualEntryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold">📝 ลงเวลาแทนพนักงาน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form onsubmit="submitManualEntry(event)">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">พนักงาน</label>
+                            <select id="manualUserSelect" class="form-select" required></select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-7">
+                                <label class="text-muted small">วันที่</label>
+                                <input type="date" id="manualDate" class="form-control" required>
+                            </div>
+                            <div class="col-5">
+                                <label class="text-muted small">เวลา</label>
+                                <input type="time" id="manualTime" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-muted small">ประเภท</label>
+                            <div class="d-flex gap-2">
+                                <input type="radio" class="btn-check" name="manualType" id="typeIn" value="เข้างาน"
+                                    checked>
+                                <label class="btn btn-outline-success flex-fill" for="typeIn">🟢 เข้างาน</label>
+                                <input type="radio" class="btn-check" name="manualType" id="typeOut" value="ออกงาน">
+                                <label class="btn btn-outline-danger flex-fill" for="typeOut">🔴 ออกงาน</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">บันทึกข้อมูล</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Pending Users Modal -->
+    <div class="modal fade" id="pendingUsersModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>อนุมัติสมาชิกใหม่</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">ข้อมูลสมาชิก</th>
+                                    <th>แผนก</th>
+                                    <th class="text-end pe-3">ดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingUsersModalBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- 🔴 CONFIG ---
         const firebaseConfig = {
@@ -584,7 +625,6 @@
                     document.getElementById('adminProfilePic').src = user.photoURL || "https://via.placeholder.com/30";
                     await cacheUserProfiles(); loadInitialData();
                     editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-                    usersByDeptModal = new bootstrap.Modal(document.getElementById('usersByDeptModal'));
                     document.getElementById('chartMonth').value = new Date().toISOString().slice(0, 7);
                     setInterval(updateLiveClock, 1000); updateLiveClock();
                 } else { await signOut(auth); Swal.fire('Access Denied', 'อีเมลนี้ไม่มีสิทธิ์เข้าถึง', 'error'); }
@@ -616,7 +656,13 @@
             if (tabName === 'schedule') loadSchedules();
             if (tabName === 'leave') loadLeaveRequests();
             if (tabName === 'report') { setTimeout(initCalendar, 200); renderCharts(); }
-            if (tabName === 'users') { loadPendingUsers(); loadAllUsers(); }
+            if (tabName === 'users') { renderMainUserList(); loadPendingUsers(); }
+        };
+
+        window.openPendingModal = () => {
+            const m = new bootstrap.Modal(document.getElementById('pendingUsersModal'));
+            loadPendingUsers();
+            m.show();
         };
 
         window.delAttendance = async (id) => {
@@ -832,6 +878,77 @@
             return window.allUserData?.[uid]?.dept || fallbackDept || '';
         }
 
+        window.changeDate = (days) => {
+            const el = document.getElementById('filterDate');
+            if (!el) return;
+            const d = new Date(el.value);
+            d.setDate(d.getDate() + days);
+            el.valueAsDate = d;
+            loadData();
+        };
+
+        window.openManualEntry = (uid, name, type) => {
+            const modal = new bootstrap.Modal(document.getElementById('manualEntryModal'));
+            const sel = document.getElementById('manualUserSelect');
+
+            // Populate users if empty
+            if (sel.options.length === 0) {
+                sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>' +
+                    Object.values(window.allUserData || {}).sort((a, b) => a.name.localeCompare(b.name)).map(u =>
+                        `<option value="${u.lineUserId || u.id}">${u.name}</option>`
+                    ).join('');
+            }
+
+            if (uid) sel.value = uid; else sel.value = "";
+
+            const now = new Date();
+            document.getElementById('manualDate').valueAsDate = now;
+            document.getElementById('manualTime').value = now.toTimeString().slice(0, 5);
+
+            if (type) {
+                if (type === 'เข้างาน') document.getElementById('typeIn').checked = true;
+                if (type === 'ออกงาน') document.getElementById('typeOut').checked = true;
+            } else {
+                document.getElementById('typeIn').checked = true;
+            }
+
+            modal.show();
+        };
+
+        window.submitManualEntry = async (e) => {
+            e.preventDefault();
+            const uid = document.getElementById('manualUserSelect').value;
+            const dStr = document.getElementById('manualDate').value;
+            const tStr = document.getElementById('manualTime').value;
+            const type = document.querySelector('input[name="manualType"]:checked').value;
+
+            if (!uid || !dStr || !tStr) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุให้ครบถ้วน', 'warning');
+
+            const user = window.allUserData[uid];
+            if (!user) return Swal.fire('Error', 'ไม่พบข้อมูลพนักงาน', 'error');
+
+            const dt = new Date(`${dStr}T${tStr}`);
+
+            try {
+                await addDoc(collection(db, "attendance"), {
+                    userId: uid,
+                    name: user.name,
+                    dept: user.dept || '',
+                    empId: user.empId || '',
+                    type: type,
+                    timestamp: dt,
+                    userAgent: 'Admin Manual Entry',
+                    location: { lat: 0, lng: 0 },
+                    mapUrl: ''
+                });
+                Toast.fire({ icon: 'success', title: 'บันทึกเรียบร้อย' });
+                bootstrap.Modal.getInstance(document.getElementById('manualEntryModal')).hide();
+                loadData();
+            } catch (err) {
+                Swal.fire('Error', err.message, 'error');
+            }
+        };
+
         window.loadData = async () => {
             const d = document.getElementById('filterDate').value;
             const s = new Date(d); s.setHours(0, 0, 0, 0); const e = new Date(d); e.setHours(23, 59, 59, 999);
@@ -853,6 +970,12 @@
                 const bg = v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger';
                 const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
                 const hoursHtml = await getHoursHtml(v);
+
+                let actionBtns = `<button onclick="delAttendance('${docSnap.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>`;
+                if (v.type === 'เข้างาน') {
+                    actionBtns = `<button onclick="openManualEntry('${v.userId}', '${v.name}', 'ออกงาน')" class="btn btn-sm btn-outline-warning me-1" title="ลงเวลาออกงาน"><i class="bi bi-box-arrow-right"></i></button>` + actionBtns;
+                }
+
                 h += `<tr>
                     <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
                     <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${v.name}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
@@ -862,7 +985,7 @@
                         ${hoursHtml}
                     </td>
                     <td>${map}</td>
-                    <td class="text-end pe-3"><button onclick="delAttendance('${docSnap.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button></td>
+                    <td class="text-end pe-3">${actionBtns}</td>
                 </tr>`;
             }
 
@@ -981,7 +1104,9 @@
 
         window.loadPendingUsers = async () => {
             try {
-                const pendingTable = document.getElementById('pendingUsersTable');
+                const pendingTable = document.getElementById('pendingUsersModalBody');
+                if (!pendingTable) return;
+
                 pendingTable.innerHTML = `
                     <tr><td colspan="3" class="text-center py-5">
                         <div class="spinner-border text-danger"></div>
@@ -1049,7 +1174,7 @@
                                     cancelButtonText: 'ปิด',
                                 }).then((result) => {
                                     if (result.isConfirmed) {
-                                        switchTab('newMembers');
+                                        openPendingModal();
                                     }
                                 });
                             }, 1000);
@@ -1061,7 +1186,8 @@
 
             } catch (error) {
                 console.error('Error loading pending users:', error);
-                document.getElementById('pendingUsersTable').innerHTML = `
+                const pt = document.getElementById('pendingUsersModalBody');
+                if (pt) pt.innerHTML = `
                     <tr><td colspan="3" class="text-center py-5 text-danger">
                         <i class="bi bi-exclamation-triangle"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล
                     </td></tr>`;
@@ -1133,25 +1259,13 @@
             });
         };
 
-        window.loadAllUsers = async () => {
+        window.renderMainUserList = async () => {
             const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
-            let h = ""; window.allUserData = {};
-            s.forEach(d => {
-                const u = d.data(); window.allUserData[d.id] = u;
-                h += `<tr><td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"><h6>${u.name}</h6></div></td><td><span class="badge bg-light text-dark border">${u.dept}</span></td><td class="text-end pe-3"><button onclick="openEditUser('${d.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${d.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td></tr>`
-            });
-            document.getElementById('allUsersTable').innerHTML = h;
-        };
+            window.allUserData = {};
+            s.forEach(d => { window.allUserData[d.id] = d.data(); });
 
-        window.openUsersByDept = async () => {
-            await loadAllUsers();
-            renderUsersByDeptTabs();
-            usersByDeptModal.show();
-        };
-
-        function renderUsersByDeptTabs() {
-            const tabsEl = document.getElementById('deptUsersTabs');
-            const contentEl = document.getElementById('deptUsersTabContent');
+            const tabsEl = document.getElementById('mainUsersTabs');
+            const contentEl = document.getElementById('mainUsersContent');
             if (!tabsEl || !contentEl) return;
 
             const users = Object.entries(window.allUserData || {}).map(([id, u]) => ({ id, ...u }));
@@ -1178,39 +1292,6 @@
                 }).join('');
             };
 
-            const overviewItems = deptEntries.map(([dept, list]) => {
-                const color = getDeptColor(dept);
-                const thumbs = list.slice(0, 10).map(u => {
-                    const src = u.pictureUrl || 'https://via.placeholder.com/18';
-                    return `<img src="${src}" title="${u.name || ''}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;">`;
-                }).join('');
-                const more = list.length > 10 ? `<span class="text-muted" style="margin-left:6px;">+${list.length - 10}</span>` : '';
-                return `<div class="d-flex justify-content-between align-items-center" style="gap:10px;padding:.35rem .25rem;border-bottom:1px solid rgba(0,0,0,.05);">
-                    <div class="text-truncate" style="max-width:220px;"><span class="fw-bold" style="color:${color};">${dept}</span> <span class="text-muted">(${list.length})</span></div>
-                    <div class="d-flex align-items-center" style="padding-left:6px;">${thumbs}${more}</div>
-                </div>`;
-            }).join('');
-
-            const overviewHtml = `<div class="row g-3">
-                <div class="col-lg-4">
-                    <div class="p-3 bg-light rounded border">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold">ภาพรวมตามแผนก</div>
-                            <div class="text-muted small">ทั้งหมด ${allCount}</div>
-                        </div>
-                        <div>${overviewItems || ''}</div>
-                    </div>
-                </div>
-                <div class="col-lg-8">
-                    <div class="table-responsive" style="max-height:520px;">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
-                            <tbody>${makeUserRows(users) || ''}</tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>`;
-
             const tabIdAll = 'deptTabAll';
             tabsEl.innerHTML = `<li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#${tabIdAll}" type="button">ทั้งหมด <span class="badge bg-primary ms-1">${allCount}</span></button></li>`
                 + deptEntries.map(([dept, list], idx) => {
@@ -1219,15 +1300,18 @@
                     return `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${safe}" type="button"><span class="fw-bold" style="color:${color};">${dept}</span> <span class="badge bg-secondary ms-1">${list.length}</span></button></li>`;
                 }).join('');
 
-            contentEl.innerHTML = `<div class="tab-pane fade show active" id="${tabIdAll}">${overviewHtml}</div>`
+            contentEl.innerHTML = `<div class="tab-pane fade show active" id="${tabIdAll}">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
+                            <tbody>${makeUserRows(users) || ''}</tbody>
+                        </table>
+                    </div>
+                </div>`
                 + deptEntries.map(([dept, list], idx) => {
                     const safe = `deptTab_${idx}`;
                     return `<div class="tab-pane fade" id="${safe}">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold">${dept}</div>
-                            <div class="text-muted small">${list.length} คน</div>
-                        </div>
-                        <div class="table-responsive" style="max-height:520px;">
+                        <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
                                 <tbody>${makeUserRows(list) || ''}</tbody>
@@ -1235,7 +1319,10 @@
                         </div>
                     </div>`;
                 }).join('');
-        }
+        };
+
+
+
 
         window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadPendingUsers(); loadAllUsers(); };
         window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
