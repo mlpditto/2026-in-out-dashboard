@@ -702,7 +702,7 @@
                     });
 
                     if (liff.isInClient()) {
-                        liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` }]).catch(e => console.error(e));
+                        liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}` }]).catch(e => console.error(e));
                     }
                     if (!isAuto) Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
                     loadHistory(); // Reload to toggle buttons
@@ -747,7 +747,7 @@
             if (snap.empty) { list.innerHTML = "<p class='text-muted text-center small'>ยังไม่มีประวัติวันนี้</p>"; return; }
             snap.forEach(d => {
                 const v = d.data();
-                const time = v.timestamp ? new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH') : "..";
+                const time = v.timestamp ? new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour12: false }) : "..";
                 const icon = v.type === 'เข้างาน' ? 'bi-geo-alt-fill text-success' : 'bi-box-arrow-right text-danger';
                 list.innerHTML += `<li class="history-item ${v.type === 'เข้างาน' ? 'in' : 'out'}">
                     <div class="d-flex align-items-center gap-2"><i class="bi ${icon}"></i> <span class="fw-bold">${v.type}</span></div>
