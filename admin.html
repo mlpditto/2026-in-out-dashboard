@@ -1317,7 +1317,7 @@
             calendarObj.render();
         }
 
-        window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
+        // All major functions are already assigned to window directly where they are defined.
         async function changeDate(dir) {
             const el = document.getElementById('filterDate');
             let d = el.value ? new Date(el.value) : new Date();
@@ -1330,10 +1330,7 @@
             await window.loadData();
         }
 
-        window.openPendingUsers = openPendingUsers;
-        window.changeDate = changeDate;
-
-        window.editAttendance = async (id, currentTs) => {
+        async function editAttendance(id, currentTs) {
             const dt = new Date(currentTs * 1000);
             const dateStr = dt.toISOString().split('T')[0];
             const timeStr = dt.toTimeString().slice(0, 5);
@@ -1371,13 +1368,10 @@
                     loadData();
                 } catch (e) { Swal.fire('Error', e.message, 'error'); }
             }
-        };
+        }
 
-        window.changePage = window.changePage;
-        window.delAttendance = window.delAttendance;
-        window.forceClockOut = window.forceClockOut;
-        window.openManualEntry = window.openManualEntry;
-        window.editAttendance = window.editAttendance;
+        window.changeDate = changeDate;
+        window.editAttendance = editAttendance;
 
         window.changeChartMonth = (dir) => {
             const el = document.getElementById('chartMonth');
