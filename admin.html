@@ -299,10 +299,13 @@
             <div id="tabAttendance" class="tab-section">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <div class="d-flex gap-2 mb-3"><input type="date" id="filterDate" class="form-control"
-                                style="width: auto;"><button onclick="loadData()"
-                                class="btn btn-primary">ค้นหา</button><button onclick="exportCSV()"
-                                class="btn btn-outline-success ms-auto">Export</button></div>
+                        <div class="d-flex gap-2 mb-3 align-items-center">
+                            <input type="date" id="filterDate" class="form-control" style="width: auto;">
+                            <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
+                            <button onclick="openManualEntry()" class="btn btn-outline-primary"><i
+                                    class="bi bi-plus-circle me-1"></i>บันทึกเวลาเอง</button>
+                            <button onclick="exportCSV()" class="btn btn-outline-success ms-auto">Export</button>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
@@ -735,6 +738,8 @@
                 const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
                 const hoursHtml = await getHoursHtml(v);
 
+                const forceOutBtn = typeTrim === 'เข้างาน' ? `<button onclick="forceClockOut('${v.userId}', '${v.name.replace(/'/g, "\\'")}', '${v.dept}', '${v.empId || ''}', '${d}')" class="btn btn-sm btn-outline-primary border-0 me-1" title="Force Out"><i class="bi bi-box-arrow-right"></i></button>` : '';
+
                 h += `<tr>
                     <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
                     <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${v.name}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
@@ -744,7 +749,10 @@
                         ${hoursHtml}
                     </td>
                     <td>${map}</td>
-                    <td class="text-end pe-3"><button onclick="delAttendance('${v.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button></td>
+                    <td class="text-end pe-3">
+                        ${forceOutBtn}
+                        <button onclick="delAttendance('${v.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>
+                    </td>
                 </tr>`;
             }
 
@@ -1114,6 +1122,88 @@
         };
         window.saveEditUser = async () => { try { await updateDoc(doc(db, "users", document.getElementById('editUserId').value), { name: document.getElementById('editUserName').value, empId: document.getElementById('editEmpId').value, dept: document.getElementById('editUserDept').value, startDate: document.getElementById('editStartDate').value, endDate: document.getElementById('editEndDate').value }); Toast.fire({ icon: 'success', title: 'แก้ไขสำเร็จ' }); editModal.hide(); loadAllUsers(); } catch (e) { Swal.fire('Error', e.message, 'error') } };
 
+        window.delAttendance = async (id) => { if ((await Swal.fire({ title: 'ลบรายการนี้?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "attendance", id)); loadData(); Toast.fire('ลบสำเร็จ', '', 'success'); } };
+
+        window.forceClockOut = async (userId, name, dept, empId, dateStr) => {
+            const { value: time } = await Swal.fire({
+                title: 'Force Clock Out',
+                html: `<p class="mb-2">พนักงาน: <b>${name}</b><br>วันที่: ${dateStr}</p>
+                       <label class="small text-muted d-block text-start mb-1">ระบุเวลาออกงาน:</label>
+                       <input type="time" id="forceOutTime" class="form-control" value="23:00">`,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึก',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: () => document.getElementById('forceOutTime').value
+            });
+
+            if (time) {
+                const [h, m] = time.split(':');
+                const ts = new Date(dateStr);
+                ts.setHours(h, m, 0, 0);
+
+                try {
+                    await addDoc(collection(db, "attendance"), {
+                        userId, name, dept, empId,
+                        type: 'ออกงาน',
+                        timestamp: ts,
+                        userAgent: 'Admin Force (Manual)'
+                    });
+                    Toast.fire({ icon: 'success', title: 'ลงเวลาออกงานแล้ว' });
+                    loadData();
+                } catch (e) { Swal.fire('Error', e.message, 'error'); }
+            }
+        };
+
+        window.openManualEntry = async () => {
+            const users = cachedApprovedUsers;
+            const userOptions = users.map(u => `<option value="${u.id}">${u.name} (${u.dept})</option>`).join('');
+
+            const { value: formValues } = await Swal.fire({
+                title: 'บันทึกเวลาทำงานโดยแอดมิน',
+                html:
+                    '<div class="text-start mb-2"><label class="small fw-bold">เลือกพนักงาน:</label><select id="swal-user" class="form-select mb-2">' + userOptions + '</select></div>' +
+                    '<div class="row g-2 text-start mb-2">' +
+                    '<div class="col-6"><label class="small fw-bold">วันที่:</label><input type="date" id="swal-date" class="form-control" value="' + new Date().toISOString().split('T')[0] + '"></div>' +
+                    '<div class="col-6"><label class="small fw-bold">เวลา:</label><input type="time" id="swal-time" class="form-control" value="' + new Date().toTimeString().slice(0, 5) + '"></div>' +
+                    '</div>' +
+                    '<div class="text-start"><label class="small fw-bold">ประเภท:</label><select id="swal-type" class="form-select"><option value="เข้างาน">เข้างาน (In)</option><option value="ออกงาน">ออกงาน (Out)</option></select></div>',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึก',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: () => {
+                    return {
+                        uid: document.getElementById('swal-user').value,
+                        date: document.getElementById('swal-date').value,
+                        time: document.getElementById('swal-time').value,
+                        type: document.getElementById('swal-type').value
+                    }
+                }
+            });
+
+            if (formValues) {
+                const u = window.allUserData[formValues.uid];
+                const [yh, ym] = formValues.time.split(':');
+                const ts = new Date(formValues.date);
+                ts.setHours(yh, ym, 0, 0);
+
+                try {
+                    await addDoc(collection(db, "attendance"), {
+                        userId: u.lineUserId || u.id,
+                        name: u.name,
+                        dept: u.dept,
+                        empId: u.empId || '',
+                        type: formValues.type,
+                        timestamp: ts,
+                        userAgent: 'Admin Manual Entry'
+                    });
+                    Toast.fire({ icon: 'success', title: 'บันทึกสำเร็จ' });
+                    loadData();
+                } catch (e) { Swal.fire('Error', e.message, 'error'); }
+            }
+        };
+
         window.logout = () => signOut(auth);
         window.loadUsersList = async () => { const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved"))); let h = '<option value="">เลือกพนักงาน...</option>'; s.forEach(d => h += `<option value="${d.data().lineUserId}">${d.data().name}</option>`); document.getElementById('userSelect').innerHTML = h };
         window.exportCSV = () => {
@@ -1215,7 +1305,7 @@
         }
 
         window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
-        window.openPendingUsers = openPendingUsers; window.changePage = changePage;
+        window.openPendingUsers = openPendingUsers; window.changePage = changePage; window.delAttendance = delAttendance; window.forceClockOut = forceClockOut; window.openManualEntry = openManualEntry;
 
         window.changeChartMonth = (dir) => {
             const el = document.getElementById('chartMonth');
