@@ -178,15 +178,24 @@ function renderSchedPage() {
         const safeDateRange = dateRange.replace(/'/g, "\\'");
         const safeReason = (v.reason || v.shiftDetail || 'ระบุผ่านตารางเวร').replace(/'/g, "\\'").replace(/"/g, "&quot;");
         const safeDetail = (v.shiftDetail || '').replace(/'/g, "\\'");
+        const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+        let linkHtml = '';
+        if (safeLink) {
+            linkHtml = `<p><b>🔗 ลิงก์แนบ:</b> <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info py-0">เปิดดูเอกสาร</a></p>`;
+        }
 
         if (sd.includes('ลาป่วย')) {
-            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🤒 ลาป่วย',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#dc3545'})">🤒 ลาป่วย</span>`;
+            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🤒 ลาป่วย',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>',confirmButtonText:'ปิด',confirmButtonColor:'#dc3545'})">🤒 ลาป่วย</span>`;
         } else if (sd.includes('ลาพักร้อน') || sd.includes('ลาพักผ่อน')) {
-            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🌴 ลาพักร้อน',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d9488'})">🌴 ลาพักร้อน</span>`;
+            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🌴 ลาพักร้อน',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d9488'})">🌴 ลาพักร้อน</span>`;
         } else if (sd.includes('ลากิจ')) {
-            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'📋 ลากิจ',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d6efd'})">📋 ลากิจ</span>`;
+            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'📋 ลากิจ',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d6efd'})">📋 ลากิจ</span>`;
         } else if (sd.includes('หยุด') || sd.includes('day off')) {
             detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🚫 หยุด',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateDisplay}</p><p><b>📝 รายละเอียด:</b> ${safeDetail}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#6c757d'})">🚫 ${v.shiftDetail}</span>`;
+        } else {
+            // Normal shift - use a neutral clickable badge
+            detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'⏰ เวรทำงาน',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateDisplay}</p><p><b>📝 รายละเอียด:</b> ${v.shiftDetail}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#6c757d'})">${v.shiftDetail}</span>`;
         }
         h += `<tr><td class="ps-3">${v.date}</td><td>${v.name}</td><td>${detailHtml}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
     });
@@ -301,7 +310,13 @@ window.loadLeaveRequests = async () => {
             else if (lt.includes('คลอด')) { leaveEmoji = '👶'; leaveColor = '#e91e8c'; }
             else if (lt.includes('บวช')) { leaveEmoji = '🙏'; leaveColor = '#f59e0b'; }
             const safeReason = (v.reason || 'ไม่ได้ระบุเหตุผล').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem; cursor:pointer;" onclick="Swal.fire({title:'${leaveEmoji} ${displayType}',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${v.name}</p><p><b>📅 วันที่:</b> ${v.startDate} ถึง ${v.endDate}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'${leaveColor}'})">${leaveEmoji} ${displayType}</span>`;
+            const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            let linkHtml = '';
+            if (safeLink) {
+                linkHtml = `<p><b>🔗 ลิงก์แนบ:</b> <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info py-0">เปิดดูเอกสาร</a></p>`;
+            }
+
+            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem; cursor:pointer;" onclick="Swal.fire({title:'${leaveEmoji} ${displayType}',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${v.name}</p><p><b>📅 วันที่:</b> ${v.startDate} ถึง ${v.endDate}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>',confirmButtonText:'ปิด',confirmButtonColor:'${leaveColor}'})">${leaveEmoji} ${displayType}</span>`;
 
             // Get user info for display (empId instead of raw userId)
             const uData = window.allUserData?.[v.userId] || {};
@@ -309,7 +324,7 @@ window.loadLeaveRequests = async () => {
 
             if (v.status === 'Pending') {
                 const lType = v.type || v.leaveType;
-                const acts = `<button onclick="updLeave('${v.id}','Approved','${v.userId}','${v.name}','${v.startDate}','${v.endDate}','${lType}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
+                const acts = `<button onclick="updLeave('${v.id}','Approved','${v.userId}','${v.name}','${v.startDate}','${v.endDate}','${lType}','${safeReason}','${safeLink}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
                              <button onclick="updLeave('${v.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
 
                 hPending += `<tr class="table-warning">
@@ -705,14 +720,17 @@ function loadInitialData() {
     loadPendingUsers();
 }
 
-window.updLeave = async (id, st, uid, nm, s, e, tp) => {
+window.updLeave = async (id, st, uid, nm, s, e, tp, rs, ln) => {
     await setDoc(doc(db, "leave_requests", id), { status: st }, { merge: true });
     if (st === 'Approved') {
         let c = new Date(s), end = new Date(e);
-        const emoji = tp.includes('ป่วย') ? '🤒' : (tp.includes('พักผ่อน') ? '🌴' : '🛑');
+        const emoji = tp.includes('ป่วย') ? '🤒' : (tp.includes('พักผ่อน') ? '🌴' : (tp.includes('กิจ') ? '📋' : '🛑'));
         while (c <= end) {
             let ds = c.toISOString().split('T')[0];
-            await setDoc(doc(db, "schedules", `${uid}_${ds}`), { userId: uid, name: nm, date: ds, shiftDetail: `${emoji} ${tp}` });
+            await setDoc(doc(db, "schedules", `${uid}_${ds}`), {
+                userId: uid, name: nm, date: ds, shiftDetail: `${emoji} ${tp}`,
+                reason: rs || '', attachLink: ln || '', endDate: e
+            });
             c.setDate(c.getDate() + 1);
         }
     }

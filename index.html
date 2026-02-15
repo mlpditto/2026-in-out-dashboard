@@ -370,7 +370,11 @@
                 </div>
 
                 <label class="fw-bold mb-1 d-block">เหตุผล</label>
-                <textarea id="leaveReason" class="form-control" rows="3" placeholder="ระบุเหตุผล..."></textarea>
+                <textarea id="leaveReason" class="form-control mb-2" rows="2" placeholder="ระบุเหตุผล..."></textarea>
+
+                <label class="fw-bold mb-1 d-block small text-muted">แนบลิงก์ประกอบ (เช่น รูปใบรับรองแพทย์จาก
+                    Drive/iCloud)</label>
+                <input type="url" id="leaveLink" class="form-control mb-3" placeholder="https://...">
 
                 <button onclick="submitLeaveRequest()" class="btn btn-primary mt-2">ส่งใบลา</button>
 
@@ -929,13 +933,14 @@
             const start = document.getElementById('leaveStart').value;
             const end = document.getElementById('leaveEnd').value;
             const reason = document.getElementById('leaveReason').value;
+            const attachLink = document.getElementById('leaveLink').value;
             if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันให้ครบถ้วน', 'warning');
             if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
 
             try {
                 await addDoc(collection(db, "leave_requests"), {
                     userId: currentUser.lineUserId, name: currentUser.name, dept: currentUser.dept,
-                    type, startDate: start, endDate: end, reason, status: "Pending", requestedAt: serverTimestamp()
+                    type, startDate: start, endDate: end, reason, attachLink, status: "Pending", requestedAt: serverTimestamp()
                 });
                 Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
                 toggleLeaveForm();
