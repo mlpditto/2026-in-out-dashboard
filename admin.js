@@ -410,9 +410,6 @@ function calcHoursFromLogs(logs) {
         byDay[k].push(x);
     });
 
-    const now = new Date();
-    const todayStr = now.toLocaleDateString('sv'); // YYYY-MM-DD
-
     Object.keys(byDay).forEach(k => {
         const list = byDay[k];
         list.sort((a, b) => a.timestamp - b.timestamp);
@@ -427,19 +424,7 @@ function calcHoursFromLogs(logs) {
             }
         });
 
-        if (inTime) {
-            let endTime;
-            if (k === todayStr) {
-                endTime = now; // Calculate until live 'now'
-            } else {
-                endTime = new Date(inTime);
-                endTime.setHours(23, 59, 59, 999); // End of that specific day
-            }
-
-            if (endTime > inTime) {
-                dayHours += (endTime - inTime) / 3600000;
-            }
-        }
+        // Ignore open inTime (only show hours after clock out)
 
         total += dayHours;
     });
@@ -484,7 +469,7 @@ async function getHoursHtml(row, todayHours = 0) {
     const monthHours = await calcHours(uid, monthStart, end);
     const mTotal = monthHours + todayHours; // Add today to month total
 
-    let html = `<div class="text-muted small">วันนี้: <span class="fw-bold text-primary">${todayHours.toFixed(2)}</span> ชม.</div>`;
+    let html = todayHours > 0 ? `<div class="text-muted small">วันนี้: <span class="fw-bold text-primary">${todayHours.toFixed(2)}</span> ชม.</div>` : '';
     html += `<div class="text-muted small">เดือนนี้: <span class="fw-bold">${mTotal.toFixed(2)}</span> ชม.</div>`;
 
     if (isExtern) {
