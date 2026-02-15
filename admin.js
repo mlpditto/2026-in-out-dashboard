@@ -597,32 +597,73 @@ window.loadPendingUsers = async () => {
 
         const s = await getDocs(query(collection(db, "users"), where("status", "==", "Pending")));
         let h = "";
+
+        // Calculate New Members Stats (Month/Year) - based on 'createdAt' or 'joinedAt' if available
+        // We might need to look at ALL users for this, not just pending.
+        // We'll trust loadUsersList to handle the global stats if possible, 
+        // OR we do a separate lightweight query here for "recently joined".
+        // For now, let's just stick to Pending count for the main badge, 
+        // and if we want "New Members This Month", we should probably calculate it in loadUsersList
+        // where we have all users.
+
+        // However, we need to populate the card content.
+        // Let's assume this function ONLY updates the Modal content and valid Pending count.
+        // I will add the stats calculation to 'loadUsersList' instead, as it iterates all users.
+
         s.forEach(d => {
             const v = d.data();
+            const deptColor = getDeptCategoryColor(v.department || v.dept);
             h += `
             <tr>
                 <td class="ps-3">
                     <div class="user-cell">
-                        <img src="${v.pictureUrl}" class="profile-thumb">
+                        <img src="${v.pictureUrl || 'https://via.placeholder.com/45'}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'">
                         <div>
-                            <h6 class="mb-0">${v.name}</h6>
-                            <small class="text-muted">${v.empId || 'ยังไม่มีรหัสพนักงาน'}</small>
+                            <h6 class="mb-0 fw-bold">${v.name}</h6>
+                            <small class="text-muted">${v.empId || 'No ID'}</small>
                         </div>
                     </div>
                 </td>
-                <td><span class="badge" style="background:${getDeptCategoryColor(v.dept)} !important; color:white !important; border:none; font-weight:600; min-width:80px; text-align:center;">${v.dept || 'ยังไม่ระบุ'}</span></td>
+                <td><span class="badge" style="background:${deptColor} !important; color:white !important; border:none; font-weight:600; min-width:80px; text-align:center;">${v.department || v.dept || 'N/A'}</span></td>
                 <td class="text-end pe-3">
-                    <div class="btn-group">
-                        <button onclick="appUser('${d.id}')" class="btn btn-sm btn-success">
-                            <i class="bi bi-check-lg"></i> อนุมัติ
-                        </button>
-                        <button onclick="delUser('${d.id}')" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
-                    </div>
+                    <button onclick="approveUser('${d.id}')" class="btn btn-sm btn-success shadow-sm me-1"><i class="bi bi-check-lg"></i> รับเข้า</button>
+                    <button onclick="rejectUser('${d.id}')" class="btn btn-sm btn-outline-danger shadow-sm"><i class="bi bi-x-lg"></i></button>
                 </td>
             </tr>`;
         });
+
+        // Update main pending count
+        const sn = document.getElementById('statNewUsers');
+        if (sn) sn.innerText = s.size;
+
+        // Calculate New Members (Approved) Stats based on createdAt or startDate
+        let nm = 0, ny = 0;
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+
+        if (window.allUserData) {
+            Object.values(window.allUserData).forEach(u => {
+                let joinedDate = null;
+                // Prefer createdAt, fallback to startDate
+                if (u.createdAt) {
+                    if (u.createdAt.seconds) joinedDate = new Date(u.createdAt.seconds * 1000);
+                    else joinedDate = new Date(u.createdAt);
+                } else if (u.startDate) {
+                    joinedDate = new Date(u.startDate);
+                }
+
+                if (joinedDate && !isNaN(joinedDate.getTime())) {
+                    if (joinedDate.getFullYear() === thisYear) {
+                        ny++;
+                        if (joinedDate.getMonth() === thisMonth) nm++;
+                    }
+                }
+            });
+        }
+
+        const elNm = document.getElementById('statNewMonth'); if (elNm) elNm.innerText = nm;
+        const elNy = document.getElementById('statNewYear'); if (elNy) elNy.innerText = ny;
 
         pendingTable.innerHTML = h || `
             <tr>
