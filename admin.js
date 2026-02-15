@@ -480,10 +480,9 @@ window.openManualEntry = (uid, name, type) => {
     document.getElementById('manualTime').value = `${hh}:${mm}`;
 
     if (type) {
-        if (type === 'เข้างาน') document.getElementById('typeIn').checked = true;
-        if (type === 'ออกงาน') document.getElementById('typeOut').checked = true;
+        document.getElementById('manualType').value = type;
     } else {
-        document.getElementById('typeIn').checked = true;
+        document.getElementById('manualType').value = 'เข้างาน';
     }
 
     modal.show();
@@ -494,7 +493,7 @@ window.submitManualEntry = async (e) => {
     const uid = document.getElementById('manualUserSelect').value;
     const dStr = document.getElementById('manualDate').value;
     const tStr = document.getElementById('manualTime').value;
-    const type = document.querySelector('input[name="manualType"]:checked').value;
+    const type = document.getElementById('manualType').value;
 
     if (!uid || !dStr || !tStr) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุให้ครบถ้วน', 'warning');
 
@@ -1051,7 +1050,7 @@ window.renderMainUserList = async () => {
     tabsHtml += deptEntries.map(([dept, list], idx) => {
         const safe = `deptTab_${idx}`;
         const color = getDeptCategoryColor(dept);
-        return `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${safe}" type="button"><span class="fw-bold" style="color:${color};">${dept}</span> <span class="badge ms-1" style="background:${color}">${list.length}</span></button></li>`;
+        return `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${safe}" type="button"><span class="badge me-1" style="background:${color}">${list.length}</span><span class="fw-bold" style="color:${color};">${dept}</span></button></li>`;
     }).join('');
 
     if (inactiveUsers.length > 0) {
