@@ -365,8 +365,45 @@
     }
 
     .sectionRow {
-      background: color-mix(in srgb, var(--brand) 10%, transparent);
       font-weight: 950;
+      border-left: 4px solid var(--sec-color, var(--brand));
+      background: color-mix(in srgb, var(--sec-color, var(--brand)) 10%, transparent);
+    }
+
+    .sectionRow td {
+      color: var(--sec-color, var(--brand));
+    }
+
+    .sec-c0 {
+      --sec-color: #3b82f6;
+    }
+
+    .sec-c1 {
+      --sec-color: #10b981;
+    }
+
+    .sec-c2 {
+      --sec-color: #f59e0b;
+    }
+
+    .sec-c3 {
+      --sec-color: #ef4444;
+    }
+
+    .sec-c4 {
+      --sec-color: #8b5cf6;
+    }
+
+    .sec-c5 {
+      --sec-color: #14b8a6;
+    }
+
+    .sec-c6 {
+      --sec-color: #f97316;
+    }
+
+    .sec-c7 {
+      --sec-color: #d946ef;
     }
 
     .scoreGrid {
@@ -1351,10 +1388,12 @@
 
       // table
       tbody.innerHTML = "";
+      let secIdx = 0;
       for (const it of form.items) {
         if (it.type === "section") {
           const tr = document.createElement("tr");
-          tr.className = "sectionRow";
+          tr.className = `sectionRow sec-c${secIdx % 8}`;
+          secIdx++;
           tr.innerHTML = `<td colspan="3">${escapeHTML(it.text)}</td>`;
           tbody.appendChild(tr);
           continue;
