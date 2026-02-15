@@ -252,26 +252,45 @@
                                     class="bi bi-plus-circle me-2"></i>สร้างเวรทำงาน</div>
                             <div class="card-body">
                                 <form onsubmit="createSchedule(event)">
+                                    <!-- Employee Picker with Profile Pictures -->
                                     <div class="mb-3">
                                         <label class="form-label small text-muted">พนักงาน</label>
-                                        <select id="userSelect" class="form-select" required></select>
+                                        <input type="text" id="userSearchInput"
+                                            class="form-control form-control-sm mb-2" placeholder="🔍 ค้นหาชื่อ...">
+                                        <input type="hidden" id="userSelect" required>
+                                        <div id="userPickerList"
+                                            style="max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding-right:4px;">
+                                        </div>
                                     </div>
+                                    <!-- Date -->
                                     <div class="mb-3">
                                         <label class="form-label small text-muted">วันที่</label>
                                         <input type="date" id="schedDate" class="form-control" required>
                                     </div>
+                                    <!-- Shift Chip Buttons -->
                                     <div class="mb-3">
                                         <label class="form-label small text-muted">กะ / รายละเอียด</label>
-                                        <select id="schedType" class="form-select" onchange="toggleCustomTime()">
-                                            <option value="☀️ เช้า (08:00 - 17:00)">☀️ เช้า (08:00 - 17:00)</option>
-                                            <option value="🌙 บ่าย (13:00 - 22:00)">🌙 บ่าย (13:00 - 22:00)</option>
-                                            <option value="🌑 ดึก (22:00 - 08:00)">🌑 ดึก (22:00 - 08:00)</option>
-                                            <option value="🚫 หยุด (Day Off)">🚫 หยุด (Day Off)</option>
-                                            <option value="🤒 ลาป่วย">🤒 ลาป่วย</option>
-                                            <option value="🌴 ลาพักร้อน">🌴 ลาพักร้อน</option>
-                                            <option value="📋 ลากิจ">📋 ลากิจ</option>
-                                            <option value="custom">⚙️ กำหนดเอง...</option>
-                                        </select>
+                                        <div id="shiftChips" class="d-flex flex-wrap gap-2">
+                                            <button type="button" class="shift-chip active"
+                                                data-value="☀️ เช้า (08:00 - 17:00)" onclick="selectShiftChip(this)">☀️
+                                                เช้า</button>
+                                            <button type="button" class="shift-chip"
+                                                data-value="🌙 บ่าย (13:00 - 22:00)" onclick="selectShiftChip(this)">🌙
+                                                บ่าย</button>
+                                            <button type="button" class="shift-chip" data-value="🌑 ดึก (22:00 - 08:00)"
+                                                onclick="selectShiftChip(this)">🌑 ดึก</button>
+                                            <button type="button" class="shift-chip" data-value="🚫 หยุด (Day Off)"
+                                                onclick="selectShiftChip(this)">🚫 หยุด</button>
+                                            <button type="button" class="shift-chip" data-value="🤒 ลาป่วย"
+                                                onclick="selectShiftChip(this)">🤒 ลาป่วย</button>
+                                            <button type="button" class="shift-chip" data-value="🌴 ลาพักร้อน"
+                                                onclick="selectShiftChip(this)">🌴 ลาพักร้อน</button>
+                                            <button type="button" class="shift-chip" data-value="📋 ลากิจ"
+                                                onclick="selectShiftChip(this)">📋 ลากิจ</button>
+                                            <button type="button" class="shift-chip" data-value="custom"
+                                                onclick="selectShiftChip(this)">⚙️ กำหนดเอง</button>
+                                        </div>
+                                        <input type="hidden" id="schedType" value="☀️ เช้า (08:00 - 17:00)">
                                     </div>
                                     <div id="customTimeBox" class="d-none mb-3">
                                         <label class="form-label small text-muted">เวลา (เริ่ม - สิ้นสุด)</label>
@@ -704,10 +723,10 @@
 
     <div
         style="position: fixed; bottom: 10px; left: 10px; z-index: 10000; font-size: 11px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
-        v3.9 - Stable
+        v3.11 - Stable
     </div>
 
-    <script type="module" src="admin.js?v=3.9"></script>
+    <script type="module" src="admin.js?v=3.11"></script>
 </body>
 
 </html>

@@ -112,10 +112,24 @@ window.toggleCustomTime = () => {
     if (v === 'custom') b.classList.remove('d-none'); else b.classList.add('d-none');
 };
 
+window.selectShiftChip = (btn) => {
+    document.querySelectorAll('#shiftChips .shift-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('schedType').value = btn.getAttribute('data-value');
+    toggleCustomTime();
+};
+
+window.selectUserPick = (el) => {
+    document.querySelectorAll('#userPickerList .user-pick-item').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('userSelect').value = el.getAttribute('data-uid');
+};
+
 window.createSchedule = async (e) => {
     e.preventDefault();
     const uId = document.getElementById('userSelect').value;
-    const uName = document.getElementById('userSelect').options[document.getElementById('userSelect').selectedIndex].text;
+    const activeItem = document.querySelector('#userPickerList .user-pick-item.active');
+    const uName = activeItem ? activeItem.getAttribute('data-name') : '';
     const date = document.getElementById('schedDate').value;
     const type = document.getElementById('schedType').value;
     if (!uId || !date) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุพนักงานและวันที่', 'warning');
@@ -1182,7 +1196,37 @@ window.saveEditUser = async () => {
 };
 
 window.logout = () => signOut(auth);
-window.loadUsersList = async () => { const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved"))); let h = '<option value="">เลือกพนักงาน...</option>'; s.forEach(d => h += `<option value="${d.data().lineUserId}">${d.data().name}</option>`); document.getElementById('userSelect').innerHTML = h };
+window.loadUsersList = async () => {
+    const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
+    const listEl = document.getElementById('userPickerList');
+    const searchInput = document.getElementById('userSearchInput');
+    let users = [];
+    s.forEach(d => {
+        const u = d.data();
+        users.push({ uid: u.lineUserId || d.id, name: u.name || 'ไม่ทราบชื่อ', dept: u.dept || '', pic: u.pictureUrl || '' });
+    });
+    users.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
+
+    function renderPickerList(filter) {
+        const q = (filter || '').toLowerCase();
+        const filtered = q ? users.filter(u => u.name.toLowerCase().includes(q) || u.dept.toLowerCase().includes(q)) : users;
+        let h = '';
+        for (const u of filtered) {
+            const pic = u.pic || 'https://via.placeholder.com/28';
+            h += `<div class="user-pick-item" data-uid="${u.uid}" data-name="${u.name}" onclick="selectUserPick(this)">
+                <img src="${pic}" onerror="this.src='https://via.placeholder.com/28'">
+                <div style="overflow:hidden">
+                    <div class="user-pick-name">${u.name}</div>
+                    ${u.dept ? `<div class="user-pick-dept">${u.dept}</div>` : ''}
+                </div>
+            </div>`;
+        }
+        listEl.innerHTML = h || '<div class="text-muted small p-2">ไม่พบพนักงาน</div>';
+    }
+
+    renderPickerList('');
+    searchInput.oninput = () => renderPickerList(searchInput.value);
+};
 window.exportCSV = () => {
     if (!window.currentData?.length) return Toast.fire({ icon: 'warning', title: 'ไม่มีข้อมูล' });
 
