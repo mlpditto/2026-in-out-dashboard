@@ -543,7 +543,7 @@
           </div>
           <div class="row">
             <button id="btnTheme" class="btn small" title="สลับโหมดสี">🌙 Dark</button>
-            <span class="pill">Local only</span>
+            <span class="pill" id="storageMode">Local only</span>
           </div>
         </div>
       </div>
@@ -1106,6 +1106,21 @@
       const max = form.maxScore ?? form.weightPct ?? 0;
       return { score: (sum * max) / (rated * 5), rated };
     }
+    function calcCompletionPct(student) {
+      let totalItems = 0, answeredItems = 0;
+      for (const f of (student.forms || [])) {
+        const ans = student.answers?.[f.key];
+        const bucket = ans ? (f.hasWeeks ? ans.week6 : ans.single) : {};
+        for (const it of f.items) {
+          if (it.type !== "criterion") continue;
+          totalItems++;
+          const v = bucket?.[it.id];
+          if (v !== null && v !== undefined && v !== "") answeredItems++;
+        }
+      }
+      return totalItems === 0 ? 0 : Math.round((answeredItems / totalItems) * 100);
+    }
+
     function calcTotal70(student) {
       let total = 0, done = 0;
       for (const f of student.forms) {
@@ -1165,6 +1180,7 @@
 
       for (const st of filtered) {
         const { total, done, count } = (st.forms?.length) ? calcTotal70(st) : { total: null, done: 0, count: 0 };
+        const pct = calcCompletionPct(st);
 
         // Try to find profile picture from parent window
         let picHtml = '';
@@ -1195,6 +1211,12 @@
             <span class="pill">ฟอร์ม ${done}/${count}</span>
             <span class="pill good">${total === null ? "รวม —" : `รวม ${fmtNum(total, 2)}`}</span>
             ${st.hidden ? `<span class="pill warn">ซ่อนอยู่</span>` : ``}
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+            <div style="flex:1; height:5px; background:var(--line); border-radius:3px; overflow:hidden;">
+              <div style="width:${pct}%; height:100%; background:${pct >= 100 ? 'var(--good)' : 'var(--brand)'}; border-radius:3px; transition:width 0.3s;"></div>
+            </div>
+            <span class="mini" style="white-space:nowrap; font-weight:700; color:${pct >= 100 ? 'var(--good)' : 'var(--muted)'}">${pct}%</span>
           </div>
           <div class="mini" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
             แหล่งฝึก: ${escapeHTML(st.meta.site || "—")} • ไฟล์: ${escapeHTML(st.fileName || "—")}
@@ -1908,6 +1930,14 @@
         document.getElementById("studentSearch").value = root.ui.studentSearch || "";
       }
       renderAll();
+
+      // Detect storage mode
+      try {
+        if (window.parent && window.parent.allUserData && Object.keys(window.parent.allUserData).length > 0) {
+          const badge = document.getElementById('storageMode');
+          if (badge) { badge.textContent = 'Online'; badge.classList.add('good'); }
+        }
+      } catch (e) { }
     })();
   </script>
 </body>
