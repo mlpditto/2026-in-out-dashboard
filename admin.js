@@ -652,12 +652,12 @@ window.loadData = async () => {
     // Render Active Profiles
     const profileContainer = document.getElementById('activeUserProfiles');
     if (profileContainer) {
-        profileContainer.innerHTML = activeProfiles.slice(0, 5).map(u => {
+        profileContainer.innerHTML = activeProfiles.slice(0, 8).map(u => {
             const dColor = getDeptCategoryColor(u.dept);
-            return `<img src="${u.pictureUrl || 'https://via.placeholder.com/30'}" 
+            return `<img src="${u.pictureUrl || 'https://via.placeholder.com/22'}" 
                   title="${u.name} (${u.dept || ''})" 
-                  style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid ${dColor};margin-left:-10px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">`;
-        }).join('') + (activeProfiles.length > 5 ? `<span class="small text-white-50 ms-1">+${activeProfiles.length - 5}</span>` : '');
+                  style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid ${dColor};margin-left:-6px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">`;
+        }).join('') + (activeProfiles.length > 8 ? `<span class="small text-white-50 ms-1">+${activeProfiles.length - 8}</span>` : '');
     }
 };
 
@@ -1170,6 +1170,7 @@ window.openEditUser = (id) => {
     document.getElementById('editUserId').value = u._docId || id;
     document.getElementById('editUserName').value = u.name;
     document.getElementById('editEmpId').value = u.empId || '';
+    document.getElementById('editUserPhone').value = u.phone || '';
     document.getElementById('editUserDept').value = u.dept;
     document.getElementById('editUserStatus').value = u.status || 'Approved';
     document.getElementById('editStartDate').value = u.startDate || '';
@@ -1184,6 +1185,7 @@ window.saveEditUser = async () => {
         await updateDoc(doc(db, "users", docId), {
             name: document.getElementById('editUserName').value,
             empId: document.getElementById('editEmpId').value,
+            phone: document.getElementById('editUserPhone').value,
             dept: document.getElementById('editUserDept').value,
             status: document.getElementById('editUserStatus').value,
             startDate: document.getElementById('editStartDate').value,
