@@ -48,6 +48,14 @@ function updateLiveClock() {
     const now = new Date();
     const dateStr = now.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
     const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+
+    // Update new stats card elements
+    const elDate = document.getElementById('statDate');
+    const elTime = document.getElementById('statTime');
+    if (elDate) elDate.innerText = dateStr;
+    if (elTime) elTime.innerText = timeStr;
+
+    // Fallback/Legacy
     const el = document.getElementById('liveClock');
     if (el) el.innerHTML = `<i class="bi bi-calendar-event me-1"></i> ${dateStr} <br> <i class="bi bi-clock me-1"></i> ${timeStr}`;
 }
@@ -482,7 +490,9 @@ window.loadData = async () => {
         }
     });
 
-    document.getElementById('statIn').innerText = `${currentlyInCount} / ${uniqueUsersToday.size}`;
+    // Use total approved users from window.allUserData
+    const totalApproved = Object.values(window.allUserData || {}).filter(u => u.status === 'Approved').length;
+    document.getElementById('statIn').innerText = `${currentlyInCount} / ${totalApproved}`;
 
     // Render Active Profiles
     const profileContainer = document.getElementById('activeUserProfiles');

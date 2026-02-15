@@ -58,74 +58,8 @@
 
         <div class="container-fluid px-4 py-4">
 
-            <div class="row g-3 mb-4">
-                <div class="col-md-3 col-6">
-                    <div class="card p-3 border-0 shadow-sm h-100 card-hover"
-                        style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); cursor:pointer; color: #1b5e20;"
-                        onclick="switchTab('attendance')">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div><small style="opacity: 0.8;">เข้างานวันนี้</small>
-                                <h3 class="fw-bold my-1" id="statIn">0 / 0</h3>
-                            </div>
-                            <div id="activeUserProfiles" class="d-flex align-items-center" style="margin-right: 8px;">
-                            </div>
-                        </div>
-                        <div id="liveClock" class="mt-2 pt-2 border-top border-dark border-opacity-10 small mono-font"
-                            style="opacity: 0.8;"><i class="bi bi-clock"></i> Loading...</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="card p-3 border-0 shadow-sm h-100 card-hover"
-                        style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); cursor:pointer; color: #e65100;"
-                        onclick="switchTab('manage')">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div><small style="opacity: 0.8;">รออนุมัติลา</small>
-                                <h3 class="fw-bold my-1" id="statLeave">0</h3>
-                            </div>
-                            <div class="text-end">
-                                <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">อนุมัติเดือนนี้: <span
-                                        class="fw-bold" id="statLeaveMonth">0</span></small>
-                                <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">อนุมัติปีนี้: <span
-                                        class="fw-bold" id="statLeaveYear">0</span></small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center mt-2 pt-2 border-top border-dark border-opacity-10"
-                            id="leaveApprovedProfiles" style="min-height: 25px;">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="card p-3 border-0 shadow-sm h-100 card-hover"
-                        style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); cursor:pointer; color: #0d47a1;"
-                        onclick="switchTab('users')">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div><small style="opacity: 0.8;">พนักงานทั้งหมด</small>
-                                <h3 class="fw-bold my-1" id="statTotalUsers">0</h3>
-                            </div><i class="bi bi-chevron-right" style="opacity: 0.5;"></i>
-                        </div>
-                        <div id="deptBreakdown" class="mt-2 small" style="opacity: 0.9;"></div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="card p-3 border-0 shadow-sm h-100 card-hover"
-                        style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); cursor:pointer; color: #b71c1c;"
-                        onclick="openPendingModal()">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div><small style="opacity: 0.8;">สมาชิกใหม่</small>
-                                <h3 class="fw-bold my-1" id="statNewUsers">0</h3>
-                            </div><i class="bi bi-chevron-right" style="opacity: 0.5;"></i>
-                        </div>
-                        <div class="text-end border-top border-dark border-opacity-10 pt-2">
-                            <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">สมาชิกใหม่ในเดือนนี้: <span
-                                    class="fw-bold" id="statNewMonth">0</span> ท่าน</small>
-                            <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">สมาชิกใหม่ในปีนี้: <span
-                                    class="fw-bold" id="statNewYear">0</span> ท่าน</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <ul class="nav nav-tabs" id="mainTab" role="tablist">
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs mb-4" id="mainTab" role="tablist">
                 <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')"><i
                             class="bi bi-clock me-2"></i>เวลาเข้า-ออก</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('manage')"><i
@@ -136,16 +70,87 @@
                             class="bi bi-person-gear me-2"></i>พนักงาน</a></li>
             </ul>
 
+
+            <!-- Attendance Tab -->
             <div id="tabAttendance" class="tab-section">
-                <div class="card shadow-sm border-0">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card shadow-sm border-0 border-start border-4 border-success h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div><small class="text-muted">เข้างานวันนี้</small>
+                                        <h2 class="fw-bold mb-0 text-success" id="statPresent">0 / 0</h2>
+                                    </div>
+                                    <div class="bg-success bg-opacity-10 p-3 rounded-circle"><i
+                                            class="bi bi-person-check-fill text-success fs-4"></i></div>
+                                </div>
+                                <div class="mt-3 small text-muted"><i class="bi bi-calendar3 me-1"></i> <span
+                                        id="statDate">...</span><br><i class="bi bi-clock me-1"></i> <span
+                                        id="statTime">...</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card shadow-sm border-0 border-start border-4 border-warning h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div><small class="text-muted">รออนุมัติลา</small>
+                                        <h2 class="fw-bold mb-0 text-warning" id="statLeave">0</h2>
+                                    </div>
+                                </div>
+                                <div class="text-end border-top border-warning border-opacity-10 pt-2"><small
+                                        class="d-block" style="font-size:0.75rem; opacity: 0.8;">อนุมัติเดือนนี้:
+                                        <span class="fw-bold" id="statLeaveMonth">0</span></small><small class="d-block"
+                                        style="font-size:0.75rem; opacity: 0.8;">อนุมัติปีนี้: <span class="fw-bold"
+                                            id="statLeaveYear">0</span></small></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card shadow-sm border-0 border-start border-4 border-info h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div><small class="text-muted">พนักงานทั้งหมด</small>
+                                        <h2 class="fw-bold mb-0 text-info" id="statTotalUsers">0</h2>
+                                    </div>
+                                    <div class="bg-info bg-opacity-10 p-3 rounded-circle"><i
+                                            class="bi bi-people-fill text-info fs-4"></i></div>
+                                </div>
+                                <div class="mt-3 small" id="deptBadges"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card shadow-sm border-0 border-start border-4 border-danger h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div><small class="text-muted">สมาชิกใหม่</small>
+                                        <h2 class="fw-bold mb-0 text-danger" id="statNewUsers">0</h2>
+                                    </div>
+                                    <div class="bg-danger bg-opacity-10 p-3 rounded-circle"><i
+                                            class="bi bi-person-plus-fill text-danger fs-4"></i></div>
+                                </div>
+                                <div class="text-end border-top border-dark border-opacity-10 pt-2">
+                                    <small class="d-block"
+                                        style="font-size:0.75rem; opacity: 0.8;">สมาชิกใหม่ในเดือนนี้: <span
+                                            class="fw-bold" id="statNewMonth">0</span> ท่าน</small>
+                                    <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">สมาชิกใหม่ในปีนี้:
+                                        <span class="fw-bold" id="statNewYear">0</span> ท่าน</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body">
                         <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
-                            <div class="btn-group">
-                                <button class="btn btn-light border" onclick="changeDate(-1)"><i
+                            <div class="input-group" style="width: 250px;">
+                                <button class="btn btn-outline-secondary" onclick="changeDate(-1)"><i
                                         class="bi bi-chevron-left"></i></button>
-                                <input type="date" id="filterDate" class="form-control"
-                                    style="width: auto; border-radius: 0;">
-                                <button class="btn btn-light border" onclick="changeDate(1)"><i
+                                <input type="date" id="filterDate" class="form-control text-center fw-bold"
+                                    onchange="loadData()">
+                                <button class="btn btn-outline-secondary" onclick="changeDate(1)"><i
                                         class="bi bi-chevron-right"></i></button>
                             </div>
                             <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
@@ -305,7 +310,8 @@
                     </div>
                 </div>
                 <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white fw-bold py-3">📊 อันดับชั่วโมงทำงานรายเดือน (Top Performers)</div>
+                    <div class="card-header bg-white fw-bold py-3">📊 อันดับชั่วโมงทำงานรายเดือน (Top Performers)
+                    </div>
                     <div class="card-body">
                         <div class="d-flex gap-2 mb-4 align-items-center">
                             <label class="small text-muted fw-bold">เลือกเดือน:</label>
@@ -487,10 +493,10 @@
 
     <div
         style="position: fixed; bottom: 10px; left: 10px; z-index: 10000; font-size: 11px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
-        v2.3
+        v2.5
     </div>
 
-    <script type="module" src="admin.js?v=2.3"></script>
+    <script type="module" src="admin.js?v=2.5"></script>
 </body>
 
 </html>
