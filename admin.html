@@ -159,7 +159,13 @@
                                         class="bi bi-chevron-right"></i></button>
                             </div>
                             <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
-                            <button onclick="exportCSV()" class="btn btn-outline-success ms-auto">Export</button>
+                            <div class="ms-auto d-flex gap-2">
+                                <button onclick="copyAttendanceSummary()" class="btn btn-outline-primary"
+                                    title="คัดลอกสรุปเข้างานประจำวัน">
+                                    <i class="bi bi-clipboard-check"></i> คัดลอกสรุป
+                                </button>
+                                <button onclick="exportCSV()" class="btn btn-outline-success">Export</button>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
