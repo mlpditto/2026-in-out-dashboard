@@ -152,8 +152,6 @@
                                         class="bi bi-chevron-right"></i></button>
                             </div>
                             <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
-                            <button onclick="openManualEntry()" class="btn btn-outline-primary"><i
-                                    class="bi bi-plus-circle me-1"></i>บันทึกเวลาเอง</button>
                             <button onclick="exportCSV()" class="btn btn-outline-success ms-auto">Export</button>
                         </div>
                         <div class="table-responsive">
@@ -234,11 +232,11 @@
 
                 <div class="row g-4">
                     <div class="col-md-4">
-                        <div class="card shadow-sm border-0 h-100">
+                        <div class="card shadow-sm border-0 mb-3">
                             <div class="card-header bg-white py-3 fw-bold"><i
                                     class="bi bi-plus-circle me-2"></i>สร้างเวรทำงาน</div>
                             <div class="card-body">
-                                <form onsubmit="saveSchedule(event)">
+                                <form onsubmit="createSchedule(event)">
                                     <div class="mb-3">
                                         <label class="form-label small text-muted">พนักงาน</label>
                                         <select id="userSelect" class="form-select" required></select>
@@ -248,15 +246,35 @@
                                         <input type="date" id="schedDate" class="form-control" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label small text-muted">กะ</label>
-                                        <select id="shiftDetail" class="form-select">
+                                        <label class="form-label small text-muted">กะ / รายละเอียด</label>
+                                        <select id="schedType" class="form-select" onchange="toggleCustomTime()">
                                             <option value="☀️ เช้า (08:00 - 17:00)">☀️ เช้า (08:00 - 17:00)</option>
-                                            <option value="🌙 บ่าย (13:00 - 22:00)">� บ่าย (13:00 - 22:00)</option>
-                                            <option value="🌑 ดึก (22:00 - 08:00)">� ดึก (22:00 - 08:00)</option>
+                                            <option value="🌙 บ่าย (13:00 - 22:00)">🌙 บ่าย (13:00 - 22:00)</option>
+                                            <option value="🌑 ดึก (22:00 - 08:00)">🌑 ดึก (22:00 - 08:00)</option>
+                                            <option value="🚫 หยุด (Day Off)">🚫 หยุด (Day Off)</option>
+                                            <option value="🤒 ลาป่วย">🤒 ลาป่วย</option>
+                                            <option value="🌴 ลาพักร้อน">🌴 ลาพักร้อน</option>
+                                            <option value="📋 ลากิจ">📋 ลากิจ</option>
+                                            <option value="custom">⚙️ กำหนดเอง...</option>
                                         </select>
+                                    </div>
+                                    <div id="customTimeBox" class="d-none mb-3">
+                                        <label class="form-label small text-muted">เวลา (เริ่ม - สิ้นสุด)</label>
+                                        <div class="d-flex gap-2">
+                                            <input type="time" id="customStart" class="form-control" value="08:00">
+                                            <span class="align-self-center">-</span>
+                                            <input type="time" id="customEnd" class="form-control" value="17:00">
+                                        </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100 py-2">บันทึก</button>
                                 </form>
+                            </div>
+                        </div>
+                        <!-- Manual Entry Button -->
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <button onclick="openManualEntry()" class="btn btn-outline-warning w-100 py-2"><i
+                                        class="bi bi-plus-circle me-1"></i>บันทึกเวลาเอง</button>
                             </div>
                         </div>
                     </div>
@@ -491,12 +509,113 @@
         </div>
     </div>
 
-    <div
-        style="position: fixed; bottom: 10px; left: 10px; z-index: 10000; font-size: 11px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
-        v3.2 - Stable
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>แก้ไขข้อมูลพนักงาน</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editUserId">
+                    <div class="text-center mb-3">
+                        <img id="editUserImg" src="https://via.placeholder.com/80" class="rounded-circle" width="80"
+                            height="80" style="object-fit:cover;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">ชื่อ-นามสกุล</label>
+                        <input type="text" id="editUserName" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">รหัสพนักงาน</label>
+                        <input type="text" id="editEmpId" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">แผนก</label>
+                        <select id="editUserDept" class="form-select">
+                            <option value="Pharmacy">Pharmacy</option>
+                            <option value="General">General</option>
+                            <option value="IT">IT</option>
+                            <option value="Pharmacist Extern #6">Pharmacist Extern #6</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">สถานะ</label>
+                        <select id="editUserStatus" class="form-select">
+                            <option value="Approved">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small text-muted">วันเริ่มต้น</label>
+                            <input type="date" id="editStartDate" class="form-control">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small text-muted">วันสิ้นสุด</label>
+                            <input type="date" id="editEndDate" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEditUser()">บันทึก</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script type="module" src="admin.js?v=3.2"></script>
+    <!-- Manual Entry Modal -->
+    <div class="modal fade" id="manualEntryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning text-dark border-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>บันทึกเวลาเอง</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="submitManualEntry(event)">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">พนักงาน</label>
+                            <select id="manualUserSelect" class="form-select" required></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">วันที่</label>
+                            <input type="date" id="manualDate" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">เวลา</label>
+                            <input type="time" id="manualTime" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">ประเภท</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="manualType" id="typeIn"
+                                        value="เข้างาน" checked>
+                                    <label class="form-check-label" for="typeIn">🟢 เข้างาน</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="manualType" id="typeOut"
+                                        value="ออกงาน">
+                                    <label class="form-check-label" for="typeOut">🔴 ออกงาน</label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100 py-2 fw-bold">บันทึก</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div
+        style="position: fixed; bottom: 10px; left: 10px; z-index: 10000; font-size: 11px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
+        v3.3 - Stable
+    </div>
+
+    <script type="module" src="admin.js?v=3.3"></script>
 </body>
 
 </html>
