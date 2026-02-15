@@ -143,18 +143,19 @@ window.loadLeaveRequests = async () => {
     t.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
 
     try {
-        const q = query(collection(db, "leave_requests"), orderBy("requestedAt", "desc"));
+        const q = query(collection(db, "leave_requests")); // Removed orderBy to avoid index issues
         const s = await getDocs(q);
-        let h = '';
-        let pendingCount = 0;
-        let mCount = 0, yCount = 0;
-        const now = new Date();
-        const thisMonth = now.getMonth();
-        const thisYear = now.getFullYear();
-        const usersApprovedYear = new Set();
+        const docs = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Sort locally
+        docs.sort((a, b) => {
+            const tA = a.requestedAt || a.timestamp || { seconds: 0 };
+            const tB = b.requestedAt || b.timestamp || { seconds: 0 };
+            return (tB.seconds || 0) - (tA.seconds || 0);
+        });
 
-        s.forEach(d => {
-            const v = d.data();
+        // Loop over sorted docs instead of s
+        docs.forEach(v => {
+            // const v = d.data(); -> v is already data with id
             const ts = v.requestedAt || v.timestamp;
             const dDate = ts ? (ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000)) : new Date();
 
@@ -172,8 +173,8 @@ window.loadLeaveRequests = async () => {
             let acts = '';
             if (v.status === 'Pending') {
                 const lType = v.type || v.leaveType;
-                acts = `<button onclick="updLeave('${d.id}','Approved','${v.userId}','${v.name}','${v.startDate}','${v.endDate}','${lType}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
-                         <button onclick="updLeave('${d.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
+                acts = `<button onclick="updLeave('${v.id}','Approved','${v.userId}','${v.name}','${v.startDate}','${v.endDate}','${lType}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
+                         <button onclick="updLeave('${v.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
             } else {
                 acts = `<small class="text-muted">${v.status}</small>`;
             }
@@ -1057,5 +1058,8 @@ function initCalendar() {
     });
     calendarObj.render();
 }
+
+// Explicit export to window object to ensure availability
+window.initCalendar = initCalendar;
 
 window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
