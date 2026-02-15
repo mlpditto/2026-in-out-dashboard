@@ -453,10 +453,12 @@ async function calcHours(uid, startDate, endDate) {
     return calcHoursFromLogs(logs);
 }
 
-async function getHoursHtml(row) {
+async function getHoursHtml(row, todayHours = 0) {
     const uid = row.userId;
     if (!uid) return '';
-    if (workHoursCache[uid]) return workHoursCache[uid];
+    // We don't cache todayHours because it changes as data loads
+    const cacheKey = `${uid}_${todayHours.toFixed(2)}`;
+    if (workHoursCache[cacheKey]) return workHoursCache[cacheKey];
 
     const isExtern = getUserDept(uid, row.dept) === 'Pharmacist Extern';
     const end = new Date();
@@ -469,7 +471,10 @@ async function getHoursHtml(row) {
     yearStart.setHours(0, 0, 0, 0);
 
     const monthHours = await calcHours(uid, monthStart, end);
-    let html = `<div class="text-muted small">เดือนนี้: <span class="fw-bold">${monthHours.toFixed(2)}</span> ชม.</div>`;
+    const mTotal = monthHours + todayHours; // Add today to month total
+
+    let html = `<div class="text-muted small">วันนี้: <span class="fw-bold text-primary">${todayHours.toFixed(2)}</span> ชม.</div>`;
+    html += `<div class="text-muted small">เดือนนี้: <span class="fw-bold">${mTotal.toFixed(2)}</span> ชม.</div>`;
 
     if (isExtern) {
         const user = window.allUserData?.[uid];
@@ -477,15 +482,17 @@ async function getHoursHtml(row) {
         if (reg) {
             const regStart = reg.toDate ? reg.toDate() : new Date(reg);
             regStart.setHours(0, 0, 0, 0);
-            const totalHours = await calcHours(uid, regStart, end);
+            const histHours = await calcHours(uid, regStart, end);
+            const totalHours = histHours + todayHours;
             html = `<div class="text-muted small">สะสม: <span class="fw-bold">${totalHours.toFixed(2)}</span> ชม.</div>` + html;
         }
     } else {
         const yearHours = await calcHours(uid, yearStart, end);
-        html = html + `<div class="text-muted small">ปีนี้: <span class="fw-bold">${yearHours.toFixed(2)}</span> ชม.</div>`;
+        const yTotal = yearHours + todayHours;
+        html = html + `<div class="text-muted small">ปีนี้: <span class="fw-bold">${yTotal.toFixed(2)}</span> ชม.</div>`;
     }
 
-    workHoursCache[uid] = html;
+    workHoursCache[cacheKey] = html;
     return html;
 }
 
@@ -636,10 +643,18 @@ window.loadData = async () => {
     window.currentData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     window.currentData.sort((a, b) => a.timestamp.seconds - b.timestamp.seconds);
 
+    const userTodayHours = {};
+    const logsByUser = {};
     const currentStatusMap = {};
     window.currentData.forEach(v => {
+        if (!logsByUser[v.userId]) logsByUser[v.userId] = [];
+        const ts = v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp.seconds * 1000);
+        logsByUser[v.userId].push({ type: v.type, timestamp: ts });
         currentStatusMap[v.userId] = v.type;
     });
+    for (const uid in logsByUser) {
+        userTodayHours[uid] = calcHoursFromLogs(logsByUser[uid]);
+    }
 
     let h = "", c = 0;
     for (const v of window.currentData) {
@@ -647,7 +662,7 @@ window.loadData = async () => {
         const deptText = getUserDept(v.userId, v.dept);
         const bg = v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger';
         const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
-        const hoursHtml = await getHoursHtml(v);
+        const hoursHtml = await getHoursHtml(v, userTodayHours[v.userId]);
 
         // Highlight row if user is currently IN
         const isStillIn = (v.type === 'เข้างาน' && currentStatusMap[v.userId] === 'เข้างาน');
