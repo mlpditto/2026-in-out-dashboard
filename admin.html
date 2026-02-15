@@ -50,6 +50,7 @@
                     title="LIFF Preview">
                     <i class="bi bi-phone"></i><span class="d-none d-sm-inline">Preview LIFF</span>
                 </button>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.12</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -696,7 +697,7 @@
             </div>
             <!-- Label -->
             <div style="text-align:center;margin-top:12px;color:rgba(255,255,255,0.7);font-size:12px;">
-                <i class="bi bi-info-circle me-1"></i>LIFF Preview Mode — ข้อมูลตัวอย่าง
+                <i class="bi bi-info-circle me-1"></i>LIFF Preview — แสดงผลเหมือนผู้ใช้จริง
             </div>
         </div>
     </div>
@@ -713,7 +714,7 @@
         const origPreviewBtn = document.querySelector('[title="LIFF Preview"]');
         if (origPreviewBtn) {
             origPreviewBtn.addEventListener('click', function () {
-                document.getElementById('liffPreviewFrame').src = 'index.html?preview=true';
+                document.getElementById('liffPreviewFrame').src = 'index.html';
                 // Update preview time
                 const now = new Date();
                 document.getElementById('previewTime').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -721,12 +722,7 @@
         }
     </script>
 
-    <div
-        style="position: fixed; bottom: 10px; left: 10px; z-index: 10000; font-size: 11px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
-        v3.11 - Stable
-    </div>
-
-    <script type="module" src="admin.js?v=3.11"></script>
+    <script type="module" src="admin.js?v=3.12"></script>
 </body>
 
 </html>
