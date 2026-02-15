@@ -177,54 +177,160 @@ thead th {
 }
 
 /* Calendar Custom Styles */
-.calendar-event-user {
+.fc-theme-standard {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: none !important;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+    border-color: #f1f3f5 !important;
+}
+
+.fc-col-header-cell {
+    background: #f8f9fa;
+    padding: 12px 0 !important;
+}
+
+.fc-col-header-cell-cushion {
+    text-decoration: none !important;
+    font-weight: 700;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.fc-daygrid-day-number {
+    font-weight: 600;
+    color: #adb5bd;
+    padding: 8px 12px !important;
+    text-decoration: none !important;
+}
+
+.fc-day-today {
+    background: rgba(13, 110, 253, 0.03) !important;
+}
+
+.fc-event {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 1px 4px !important;
+    box-shadow: none !important;
+}
+
+.calendar-event-card {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 8px;
+    background: #ffffff;
+    border-radius: 8px;
+    border-left: 4px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s;
+    overflow: hidden;
+}
+
+.calendar-event-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.calendar-event-header {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 1px 2px;
-    overflow: hidden;
-    background: rgba(13, 110, 253, 0.08);
-    border-radius: 4px;
-    border: 1px solid rgba(13, 110, 253, 0.2);
-    margin-bottom: 1px;
+    gap: 6px;
+    margin-bottom: 2px;
 }
 
-.calendar-event-user img {
-    width: 18px;
-    height: 18px;
+.calendar-event-header img {
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     object-fit: cover;
-    flex-shrink: 0;
     border: 1px solid #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.calendar-event-user .event-hours {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #0d6efd;
-    white-space: nowrap;
-}
-
-.calendar-event-user.att-event {
-    background: rgba(25, 135, 84, 0.08);
-    border-color: rgba(25, 135, 84, 0.2);
-}
-
-.calendar-event-user.att-event .event-hours {
-    color: #198754;
-}
-
-.calendar-event-user.sched-event {
-    background: rgba(108, 117, 125, 0.08);
-    border-color: rgba(108, 117, 125, 0.2);
-}
-
-.calendar-event-user .event-name {
+.calendar-event-title {
     font-size: 0.7rem;
-    font-weight: 500;
+    font-weight: 700;
+    color: #212529;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.calendar-event-subtitle {
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+    letter-spacing: -0.2px;
+}
+
+/* Status variants */
+.status-soft-primary {
+    background: #f0f7ff;
+    border-left-color: #0d6efd;
+}
+
+.status-soft-primary .calendar-event-subtitle {
+    color: #0d6efd;
+}
+
+.status-soft-success {
+    background: #f0fff4;
+    border-left-color: #198754;
+}
+
+.status-soft-success .calendar-event-subtitle {
+    color: #198754;
+}
+
+.status-soft-warning {
+    background: #fffbeb;
+    border-left-color: #f59e0b;
+}
+
+.status-soft-warning .calendar-event-subtitle {
+    color: #d97706;
+}
+
+.status-soft-danger {
+    background: #fef2f2;
+    border-left-color: #dc3545;
+}
+
+.status-soft-danger .calendar-event-subtitle {
+    color: #dc3545;
+}
+
+.status-soft-secondary {
+    background: #f8f9fa;
+    border-left-color: #6c757d;
+}
+
+.status-soft-secondary .calendar-event-subtitle {
+    color: #6c757d;
+}
+
+/* More link */
+.fc-daygrid-more-link {
+    background: #f1f3f5 !important;
+    color: #6c757d !important;
+    padding: 2px 8px !important;
+    border-radius: 12px !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    display: block !important;
+    text-align: center !important;
+    margin-top: 4px !important;
+}
+
+.fc-daygrid-more-link:hover {
+    background: #e9ecef !important;
 }
 
 .fc-event-title-container {
