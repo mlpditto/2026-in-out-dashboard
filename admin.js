@@ -1435,29 +1435,33 @@ function initCalendar() {
     calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'), {
         initialView: 'dayGridMonth',
         locale: 'th',
-        height: 'auto',
+        dayMaxEvents: true,
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: '' // User screenshot has month button on right but simplified
+            right: ''
         },
         eventContent: function (arg) {
-            const type = arg.event.extendedProps.type;
-            const img = arg.event.extendedProps.image || 'https://via.placeholder.com/20';
-            const title = arg.event.title;
-            const bgColor = arg.event.backgroundColor || '#198754';
-            const textColor = arg.event.textColor || '#000';
+            const props = arg.event.extendedProps;
+            const type = props.type;
+            const img = props.image || 'https://via.placeholder.com/20';
+            const name = props.name || arg.event.title;
+            const detail = props.detail || '';
 
-            // Screenshot style: 
-            // [Img] [Text] inside a rounded box.
-            // Text is dark. Background is light pastel.
+            let statusClass = 'status-soft-secondary';
+            if (type === 'attendance') statusClass = 'status-soft-success';
+            else if (detail.includes('หยุด') || detail.includes('ลา')) statusClass = 'status-soft-danger';
+            else if (detail.includes('เช้า')) statusClass = 'status-soft-primary';
+            else if (detail.includes('เที่ยง') || detail.includes('บ่าย')) statusClass = 'status-soft-warning';
 
             return {
                 html: `
-                <div class="d-flex align-items-center px-1 py-0 shadow-sm" 
-                     style="background:${bgColor}20; border-left: 3px solid ${bgColor}; border-radius: 3px; font-size: 0.75rem; overflow:hidden; margin-bottom:1px;">
-                    <img src="${img}" style="width:16px; height:16px; border-radius:50%; margin-right:4px;" onerror="this.src='https://via.placeholder.com/16'">
-                    <span class="text-truncate fw-bold" style="color:#333;">${title}</span>
+                <div class="calendar-event-card ${statusClass}">
+                    <div class="calendar-event-header">
+                        <img src="${img}" onerror="this.src='https://via.placeholder.com/20'">
+                        <div class="calendar-event-title">${name}</div>
+                    </div>
+                    <div class="calendar-event-subtitle">${detail || arg.event.title}</div>
                 </div>`
             };
         },
@@ -1483,7 +1487,12 @@ function initCalendar() {
                             title: v.name,
                             start: v.date,
                             backgroundColor: c,
-                            extendedProps: { type: 'schedule', image: prof.pictureUrl }
+                            extendedProps: {
+                                type: 'schedule',
+                                name: v.name,
+                                detail: v.shiftDetail,
+                                image: prof.pictureUrl
+                            }
                         })
                     });
                 }
@@ -1513,11 +1522,17 @@ function initCalendar() {
                         if (ms > 0) {
                             let baseColor = getDeptCategoryColor(i.d);
                             let prof = window.allUserData?.[i.uid] || {};
+                            const hrsStr = `${(ms / 3600).toFixed(2)} ชม.`;
                             ev.push({
-                                title: `${(ms / 3600).toFixed(1)} ชม.`,
+                                title: hrsStr,
                                 start: k.split('_')[1],
                                 backgroundColor: baseColor,
-                                extendedProps: { type: 'attendance', image: prof.pictureUrl || i.pictureUrl }
+                                extendedProps: {
+                                    type: 'attendance',
+                                    name: i.n,
+                                    detail: hrsStr,
+                                    image: prof.pictureUrl || i.pictureUrl
+                                }
                             })
                         }
                     });
