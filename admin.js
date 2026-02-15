@@ -969,6 +969,7 @@ window.renderMainUserList = async () => {
     s.forEach(d => {
         const u = d.data();
         const uid = u.lineUserId || d.id;
+        u._docId = d.id; // Store actual Firestore document ID for edit/delete
         window.allUserData[uid] = u;
     });
 
@@ -1000,7 +1001,7 @@ window.renderMainUserList = async () => {
                 <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;">${dept}</span></td>
                 <td class="text-end pe-3">
                     <button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button>
-                    <button onclick="delUser('${u.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button>
+                    <button onclick="delUser('${u._docId || u.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button>
                 </td>
             </tr>`;
         }).join('');
@@ -1067,20 +1068,23 @@ window.loadAllUsers = async () => {
 window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadAllUsers(); };
 window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
 window.openEditUser = (id) => {
-    const u = window.allUserData[id]; if (!u) return;
-    document.getElementById('editUserId').value = id;
+    const u = window.allUserData[id]; if (!u) { console.warn('User not found:', id); return; }
+    // Store the Firestore docId for saving, not the lineUserId key
+    document.getElementById('editUserId').value = u._docId || id;
     document.getElementById('editUserName').value = u.name;
     document.getElementById('editEmpId').value = u.empId || '';
     document.getElementById('editUserDept').value = u.dept;
     document.getElementById('editUserStatus').value = u.status || 'Approved';
     document.getElementById('editStartDate').value = u.startDate || '';
     document.getElementById('editEndDate').value = u.endDate || '';
-    document.getElementById('editUserImg').src = u.pictureUrl || "https://via.placeholder.com/80";
+    const imgEl = document.getElementById('editUserImg');
+    if (imgEl) imgEl.src = u.pictureUrl || "https://via.placeholder.com/80";
     editModal.show();
 };
 window.saveEditUser = async () => {
     try {
-        await updateDoc(doc(db, "users", document.getElementById('editUserId').value), {
+        const docId = document.getElementById('editUserId').value;
+        await updateDoc(doc(db, "users", docId), {
             name: document.getElementById('editUserName').value,
             empId: document.getElementById('editEmpId').value,
             dept: document.getElementById('editUserDept').value,
