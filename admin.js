@@ -1,8 +1,19 @@
 import { getDeptCategoryColor } from './colors.js';
-import { firebaseConfig, ALLOWED_ADMINS } from './config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// --- 🔴 CONFIG (Public) ---
+const firebaseConfig = {
+    apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
+    authDomain: "in-out-dashboard.firebaseapp.com",
+    projectId: "in-out-dashboard",
+    storageBucket: "in-out-dashboard.firebasestorage.app",
+    messagingSenderId: "846266395224",
+    appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
+    measurementId: "G-WN14VJSG17"
+};
+const FALLBACK_ADMIN = "medlifeplus@gmail.com";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -17,8 +28,8 @@ const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: 
 // --- 🔓 AUTH ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // Double check: Config List OR Firestore 'admins' collection
-        let isAuthorized = ALLOWED_ADMINS.includes(user.email);
+        // Double check: Fallback Email OR Firestore 'admins' collection
+        let isAuthorized = (user.email === FALLBACK_ADMIN);
 
         if (!isAuthorized) {
             try {
