@@ -137,19 +137,73 @@ window.createSchedule = async (e) => {
     } catch (err) { Swal.fire('Error', err.message, 'error'); }
 };
 
+// --- Schedule Pagination State ---
+let schedAllData = [];
+let schedCurrentPage = 1;
+const SCHED_PAGE_SIZE = 20;
+
+window.changeSchedMonth = (delta) => {
+    const el = document.getElementById('schedMonthFilter');
+    if (!el || !el.value) return;
+    const [y, m] = el.value.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    el.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    loadSchedules();
+};
+
+window.schedChangePage = (delta) => {
+    const totalPages = Math.ceil(schedAllData.length / SCHED_PAGE_SIZE) || 1;
+    schedCurrentPage = Math.max(1, Math.min(totalPages, schedCurrentPage + delta));
+    renderSchedPage();
+};
+
+function renderSchedPage() {
+    const t = document.getElementById('schedTableBody');
+    if (!t) return;
+    const totalPages = Math.ceil(schedAllData.length / SCHED_PAGE_SIZE) || 1;
+    const start = (schedCurrentPage - 1) * SCHED_PAGE_SIZE;
+    const pageData = schedAllData.slice(start, start + SCHED_PAGE_SIZE);
+
+    let h = '';
+    pageData.forEach(v => {
+        h += `<tr><td class="ps-3">${v.date}</td><td>${v.name}</td><td>${v.shiftDetail}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
+    });
+    t.innerHTML = h || '<tr><td colspan="4" class="text-center text-muted py-3">ไม่พบข้อมูลในเดือนนี้</td></tr>';
+
+    // Update pagination info
+    const info = document.getElementById('schedPageInfo');
+    if (info) info.textContent = schedAllData.length > 0 ? `หน้า ${schedCurrentPage}/${totalPages} (${schedAllData.length} รายการ)` : '';
+    const prevBtn = document.getElementById('schedPrevBtn');
+    const nextBtn = document.getElementById('schedNextBtn');
+    if (prevBtn) prevBtn.disabled = schedCurrentPage <= 1;
+    if (nextBtn) nextBtn.disabled = schedCurrentPage >= totalPages;
+}
+
 window.loadSchedules = async () => {
     const t = document.getElementById('schedTableBody');
     if (!t) return;
-    t.innerHTML = '<tr><td colspan="4" class="text-center">กำลังโหลด...</td></tr>';
+
+    // Initialize month filter if empty
+    const mf = document.getElementById('schedMonthFilter');
+    if (mf && !mf.value) mf.value = new Date().toISOString().slice(0, 7);
+
+    t.innerHTML = '<tr><td colspan="4" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
+
     try {
         const q = query(collection(db, "schedules"), orderBy("date", "desc"));
         const s = await getDocs(q);
-        let h = '';
+
+        // Filter by selected month
+        const selectedMonth = mf ? mf.value : '';
+        schedAllData = [];
         s.forEach(d => {
             const v = d.data();
-            h += `<tr><td>${v.date}</td><td>${v.name}</td><td>${v.shiftDetail}</td><td><button onclick="delSched('${d.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
+            if (selectedMonth && v.date && !v.date.startsWith(selectedMonth)) return;
+            schedAllData.push({ id: d.id, ...v });
         });
-        t.innerHTML = h || '<tr><td colspan="4" class="text-center text-muted">ไม่พบข้อมูล</td></tr>';
+
+        schedCurrentPage = 1;
+        renderSchedPage();
     } catch (err) {
         console.error("Error loading schedules:", err);
         t.innerHTML = '<tr><td colspan="4" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
@@ -1285,4 +1339,4 @@ function initCalendar() {
 // Explicit export to window object to ensure availability
 window.initCalendar = initCalendar;
 
-window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
+window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime; window.changeSchedMonth = changeSchedMonth; window.schedChangePage = schedChangePage;
