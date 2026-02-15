@@ -278,6 +278,16 @@ thead th {
     transform: translateX(100%);
 }
 
+.segmented-control input#type-in:checked~.selection {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+}
+
+.segmented-control input#type-out:checked~.selection {
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+}
+
 .segmented-control input#type-in:checked+label {
     color: #198754;
 }

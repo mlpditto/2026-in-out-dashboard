@@ -527,7 +527,12 @@
                     <form onsubmit="submitManualEntry(event)">
                         <div class="mb-3">
                             <label class="form-label text-muted small">พนักงาน</label>
-                            <select id="manualUserSelect" class="form-select" required></select>
+                            <input type="text" id="manualSearchInput" class="form-control form-control-sm mb-2"
+                                placeholder="🔍 ค้นหาชื่อพนักงาน...">
+                            <input type="hidden" id="manualUserSelect" required>
+                            <div id="manualPickerList"
+                                style="max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding-right:4px;">
+                            </div>
                         </div>
                         <div class="row g-2 mb-3 align-items-end">
                             <div class="col-7">
@@ -556,12 +561,14 @@
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="text-muted small mb-2 d-block">ประเภท</label>
+                            <label class="text-muted small mb-2 d-block">ประเภทการบันทึก</label>
                             <div class="segmented-control">
                                 <input type="radio" name="manualType" id="type-in" value="เข้างาน" checked>
-                                <label for="type-in">เข้างาน</label>
+                                <label for="type-in" class="py-2"><i
+                                        class="bi bi-box-arrow-in-right me-1"></i>เข้างาน</label>
                                 <input type="radio" name="manualType" id="type-out" value="ออกงาน">
-                                <label for="type-out">ออกงาน</label>
+                                <label for="type-out" class="py-2"><i
+                                        class="bi bi-box-arrow-right me-1"></i>ออกงาน</label>
                                 <div class="selection"></div>
                             </div>
                         </div>
