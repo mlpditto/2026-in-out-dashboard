@@ -169,14 +169,17 @@ function renderSchedPage() {
         // Format shiftDetail: use colored badge for leave types
         let detailHtml = v.shiftDetail || '';
         const sd = detailHtml.toLowerCase();
+        const safeName = (v.name || '').replace(/'/g, "\\'");
+        const safeDate = (v.date || '').replace(/'/g, "\\'");
+        const safeDetail = (v.shiftDetail || '').replace(/'/g, "\\'");
         if (sd.includes('ลาป่วย')) {
-            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;">🤒 ลาป่วย</span>`;
+            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🤒 ลาป่วย',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 ประเภท:</b> ลาป่วย</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#dc3545'})">🤒 ลาป่วย</span>`;
         } else if (sd.includes('ลาพักร้อน') || sd.includes('ลาพักผ่อน')) {
-            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;">🌴 ลาพักร้อน</span>`;
+            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🌴 ลาพักร้อน',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 ประเภท:</b> ลาพักร้อน</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d9488'})">🌴 ลาพักร้อน</span>`;
         } else if (sd.includes('ลากิจ')) {
-            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;">📋 ลากิจ</span>`;
+            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'📋 ลากิจ',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 ประเภท:</b> ลากิจ</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d6efd'})">📋 ลากิจ</span>`;
         } else if (sd.includes('หยุด') || sd.includes('day off')) {
-            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;">🚫 ${v.shiftDetail}</span>`;
+            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🚫 หยุด',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 รายละเอียด:</b> ${safeDetail}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#6c757d'})">🚫 ${v.shiftDetail}</span>`;
         }
         h += `<tr><td class="ps-3">${v.date}</td><td>${v.name}</td><td>${detailHtml}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
     });
