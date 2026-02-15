@@ -166,7 +166,19 @@ function renderSchedPage() {
 
     let h = '';
     pageData.forEach(v => {
-        h += `<tr><td class="ps-3">${v.date}</td><td>${v.name}</td><td>${v.shiftDetail}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
+        // Format shiftDetail: use colored badge for leave types
+        let detailHtml = v.shiftDetail || '';
+        const sd = detailHtml.toLowerCase();
+        if (sd.includes('ลาป่วย')) {
+            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;">🤒 ลาป่วย</span>`;
+        } else if (sd.includes('ลาพักร้อน') || sd.includes('ลาพักผ่อน')) {
+            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;">🌴 ลาพักร้อน</span>`;
+        } else if (sd.includes('ลากิจ')) {
+            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;">📋 ลากิจ</span>`;
+        } else if (sd.includes('หยุด') || sd.includes('day off')) {
+            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;">🚫 ${v.shiftDetail}</span>`;
+        }
+        h += `<tr><td class="ps-3">${v.date}</td><td>${v.name}</td><td>${detailHtml}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
     });
     t.innerHTML = h || '<tr><td colspan="4" class="text-center text-muted py-3">ไม่พบข้อมูลในเดือนนี้</td></tr>';
 
