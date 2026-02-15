@@ -14,6 +14,3 @@ dist/
 # OS generated files
 .DS_Store
 Thumbs.db
-
-# Private Config
-config.js

@@ -12,9 +12,7 @@
       "**/.*",
       "**/node_modules/**",
       "firestore.rules",
-      "storage.rules",
-      "config.js",
-      "config.example.js"
+      "storage.rules"
     ],
     "headers": [
       {
