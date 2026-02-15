@@ -87,13 +87,13 @@
                         style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); cursor:pointer; color: #e65100;"
                         onclick="switchTab('manage')">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div><small style="opacity: 0.8;">รออนุมัติลา</small>
+                            <div><small style="opacity: 0.8;">รออนุมัติ</small>
                                 <h3 class="fw-bold my-1" id="statLeave">0</h3>
                             </div>
                             <div class="text-end">
-                                <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">อนุมัติเดือนนี้: <span
+                                <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">เดือนนี้: <span
                                         class="fw-bold" id="statLeaveMonth">0</span></small>
-                                <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">อนุมัติปีนี้: <span
+                                <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">ปีนี้: <span
                                         class="fw-bold" id="statLeaveYear">0</span></small>
                             </div>
                         </div>
@@ -469,9 +469,9 @@
                                 <input type="date" id="manualDate" class="form-control" required>
                             </div>
                             <div class="col-5">
-                                <label class="text-muted small">เวลา</label>
-                                <input type="time" id="manualTime" class="form-control" placeholder="00:00" step="60"
-                                    required>
+                                <label class="text-muted small">เวลา (24h)</label>
+                                <input type="text" id="manualTime" class="form-control" placeholder="08:30"
+                                    pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" maxlength="5" required>
                             </div>
                         </div>
                         <div class="mb-4">
@@ -573,49 +573,6 @@
         </div>
     </div>
 
-    <!-- Manual Entry Modal -->
-    <div class="modal fade" id="manualEntryModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-warning text-dark border-0">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>บันทึกเวลาเอง</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form onsubmit="submitManualEntry(event)">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">พนักงาน</label>
-                            <select id="manualUserSelect" class="form-select" required></select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">วันที่</label>
-                            <input type="date" id="manualDate" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">เวลา</label>
-                            <input type="time" id="manualTime" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">ประเภท</label>
-                            <div class="d-flex gap-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="manualType" id="typeIn"
-                                        value="เข้างาน" checked>
-                                    <label class="form-check-label" for="typeIn">🟢 เข้างาน</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="manualType" id="typeOut"
-                                        value="ออกงาน">
-                                    <label class="form-check-label" for="typeOut">🔴 ออกงาน</label>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-warning w-100 py-2 fw-bold">บันทึก</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- LIFF Preview Modal -->
     <div id="liffPreviewModal" class="hidden"
