@@ -17,185 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <style>
-        :root {
-            --color-in: #198754;
-            --color-out: #dc3545;
-            --color-leave: #6c757d;
-            --bg-body: #f4f6f9;
-            --color-primary: #0d6efd;
-            --color-shift-am: #0d6efd;
-            --color-shift-pm: #fd7e14;
-            --color-shift-night: #6f42c1;
-            --color-work-actual: #157347;
-        }
-
-        body {
-            background-color: var(--bg-body);
-            font-family: 'Sarabun', sans-serif;
-            font-size: 0.95rem;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .d-none {
-            display: none !important;
-        }
-
-        .tab-section {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .table-responsive {
-            max-height: 70vh;
-            overflow-y: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        thead th {
-            position: sticky;
-            top: 0;
-            background-color: #f8f9fa !important;
-            z-index: 10;
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(13, 110, 253, 0.05);
-            transition: 0.2s;
-        }
-
-        .col-user {
-            width: 250px;
-            min-width: 250px;
-        }
-
-        .user-cell {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .profile-thumb {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .mono-font {
-            font-family: 'Roboto Mono', monospace;
-            font-weight: 500;
-        }
-
-        .badge-pill {
-            border-radius: 50px;
-            padding: 0.4em 0.8em;
-        }
-
-        .status-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 6px;
-        }
-
-        .nav-tabs {
-            border-bottom: 2px solid #e9ecef;
-            margin-bottom: 20px;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-        }
-
-        .nav-tabs .nav-link {
-            border: none;
-            color: #6c757d;
-            font-weight: 600;
-            padding: 1rem 1.5rem;
-            transition: 0.2s;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .nav-tabs .nav-link:hover {
-            color: var(--color-primary);
-            background: rgba(13, 110, 253, 0.05);
-        }
-
-        .nav-tabs .nav-link.active {
-            color: var(--color-primary);
-            border-bottom: 3px solid var(--color-primary);
-            background: transparent;
-        }
-
-        .login-card {
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-            background: white;
-            padding: 3rem;
-            width: 100%;
-            max-width: 420px;
-        }
-
-        .btn-google {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .btn-google:hover {
-            background-color: #f8f9fa;
-        }
-
-        .btn-google img {
-            width: 20px;
-            margin-right: 10px;
-        }
-
-        .fc-event {
-            cursor: pointer;
-            border: none;
-            font-size: 0.85rem;
-            padding: 2px 4px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .fc-daygrid-event-dot {
-            display: none;
-        }
-
-        .card-hover {
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-        }
-
-        .card-hover:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
-        }
-    </style>
+    <link rel="stylesheet" href="admin.css">
 </head>
 
 <body>
@@ -208,7 +30,8 @@
                 <p class="text-muted">Admin Portal</p>
             </div>
             <div class="alert alert-info small text-start"><i class="bi bi-info-circle me-1"></i> เฉพาะบัญชี
-                <b>medlifeplus@gmail.com</b></div>
+                <b>medlifeplus@gmail.com</b>
+            </div>
             <button onclick="loginWithGoogle()"
                 class="btn btn-google btn-lg w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center"><img
                     src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
@@ -238,41 +61,61 @@
 
             <div class="row g-3 mb-4">
                 <div class="col-md-3 col-6">
-                    <div class="card p-3 border-start border-4 border-success shadow-sm h-100 card-hover"
-                        onclick="switchTab('attendance')"><small class="text-muted">เข้างานวันนี้</small>
-                        <h3 class="fw-bold my-1 text-success" id="statIn">0</h3>
-                        <div id="liveClock" class="mt-2 pt-2 border-top small text-secondary mono-font"><i
+                    <div class="card p-3 border-0 shadow-sm h-100 card-hover text-white"
+                        style="background: linear-gradient(135deg, #0f7d45 0%, #198754 100%); cursor:pointer"
+                        onclick="switchTab('attendance')">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div><small class="text-white-50">เข้างานวันนี้</small>
+                                <h3 class="fw-bold my-1 text-white" id="statIn">0 / 0</h3>
+                            </div>
+                            <div id="activeUserProfiles" class="d-flex align-items-center" style="margin-right: 8px;">
+                            </div>
+                        </div>
+                        <div id="liveClock"
+                            class="mt-2 pt-2 border-top border-white border-opacity-25 small text-white-50 mono-font"><i
                                 class="bi bi-clock"></i> Loading...</div>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="card p-3 border-start border-4 border-warning shadow-sm h-100 card-hover"
-                        onclick="switchTab('leave')">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div><small class="text-muted">รออนุมัติลา</small>
-                                <h3 class="fw-bold my-1 text-warning" id="statLeave">0</h3>
-                            </div><i class="bi bi-chevron-right text-muted opacity-25"></i>
+                    <div class="card p-3 border-0 shadow-sm h-100 card-hover text-white"
+                        style="background: linear-gradient(135deg, #e65100 0%, #fd7e14 100%); cursor:pointer"
+                        onclick="switchTab('manage')">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div><small class="text-white-50">รออนุมัติลา</small>
+                                <h3 class="fw-bold my-1 text-white" id="statLeave">0</h3>
+                            </div>
+                            <div class="text-end">
+                                <small class="d-block text-white-50" style="font-size:0.75rem;">อนุมัติเดือนนี้: <span
+                                        class="fw-bold text-white" id="statLeaveMonth">0</span></small>
+                                <small class="d-block text-white-50" style="font-size:0.75rem;">อนุมัติปีนี้: <span
+                                        class="fw-bold text-white" id="statLeaveYear">0</span></small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mt-2 pt-2 border-top border-white border-opacity-25"
+                            id="leaveApprovedProfiles" style="min-height: 25px;">
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="card p-3 border-start border-4 border-info shadow-sm h-100 card-hover"
+                    <div class="card p-3 border-0 shadow-sm h-100 card-hover text-white"
+                        style="background: linear-gradient(135deg, #0056b3 0%, #0d6efd 100%); cursor:pointer"
                         onclick="switchTab('users')">
                         <div class="d-flex justify-content-between align-items-start">
-                            <div><small class="text-muted">พนักงานทั้งหมด</small>
-                                <h3 class="fw-bold my-1 text-info" id="statTotalUsers">0</h3>
-                            </div><i class="bi bi-chevron-right text-muted opacity-25"></i>
+                            <div><small class="text-white-50">พนักงานทั้งหมด</small>
+                                <h3 class="fw-bold my-1 text-white" id="statTotalUsers">0</h3>
+                            </div><i class="bi bi-chevron-right text-white-50"></i>
                         </div>
-                        <div id="deptBreakdown" class="mt-2 small"></div>
+                        <div id="deptBreakdown" class="mt-2 small text-white-50"></div>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="card p-3 border-start border-4 border-danger shadow-sm h-100 card-hover"
-                        onclick="switchTab('users')">
+                    <div class="card p-3 border-0 shadow-sm h-100 card-hover text-white"
+                        style="background: linear-gradient(135deg, #c21b2e 0%, #dc3545 100%); cursor:pointer"
+                        onclick="openPendingModal()">
                         <div class="d-flex justify-content-between align-items-start">
-                            <div><small class="text-muted">สมาชิกใหม่</small>
-                                <h3 class="fw-bold my-1 text-danger" id="statNewUsers">0</h3>
-                            </div><i class="bi bi-chevron-right text-muted opacity-25"></i>
+                            <div><small class="text-white-50">สมาชิกใหม่</small>
+                                <h3 class="fw-bold my-1 text-white" id="statNewUsers">0</h3>
+                            </div><i class="bi bi-chevron-right text-white-50"></i>
                         </div>
                     </div>
                 </div>
@@ -281,10 +124,8 @@
             <ul class="nav nav-tabs" id="mainTab" role="tablist">
                 <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')"><i
                             class="bi bi-clock me-2"></i>เวลาเข้า-ออก</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('schedule')"><i
-                            class="bi bi-calendar-check me-2"></i>จัดตารางเวร</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('leave')"><i
-                            class="bi bi-send me-2"></i>คำขอลา</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('manage')"><i
+                            class="bi bi-calendar-check me-2"></i>จัดการเวร & การลา</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('report')"><i
                             class="bi bi-graph-up me-2"></i>รายงาน & ปฏิทิน</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('users')"><i
@@ -294,10 +135,20 @@
             <div id="tabAttendance" class="tab-section">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <div class="d-flex gap-2 mb-3"><input type="date" id="filterDate" class="form-control"
-                                style="width: auto;"><button onclick="loadData()"
-                                class="btn btn-primary">ค้นหา</button><button onclick="exportCSV()"
-                                class="btn btn-outline-success ms-auto">Export</button></div>
+                        <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+                            <div class="btn-group">
+                                <button class="btn btn-light border" onclick="changeDate(-1)"><i
+                                        class="bi bi-chevron-left"></i></button>
+                                <input type="date" id="filterDate" class="form-control"
+                                    style="width: auto; border-radius: 0;">
+                                <button class="btn btn-light border" onclick="changeDate(1)"><i
+                                        class="bi bi-chevron-right"></i></button>
+                            </div>
+                            <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
+                            <button onclick="openManualEntry()" class="btn btn-outline-primary"><i
+                                    class="bi bi-plus-circle me-1"></i>บันทึกเวลาเอง</button>
+                            <button onclick="exportCSV()" class="btn btn-outline-success ms-auto">Export</button>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
@@ -317,11 +168,37 @@
                 </div>
             </div>
 
-            <div id="tabSchedule" class="tab-section hidden">
+            <div id="tabManage" class="tab-section hidden">
+                <!-- Leave Requests Section (Prioritized) -->
+                <div class="card shadow-sm border-0 border-start border-4 border-warning mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold"><i
+                                class="bi bi-send-exclamation-fill me-2 text-warning"></i>คำขอลาที่รออนุมัติ</span>
+                        <button onclick="loadLeaveRequests()" class="btn btn-sm btn-light border"><i
+                                class="bi bi-arrow-clockwise"></i></button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">พนักงาน</th>
+                                    <th>ประเภท</th>
+                                    <th>วันที่</th>
+                                    <th>เหตุผล</th>
+                                    <th class="text-end pe-3">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaveTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Schedule Section -->
                 <div class="row g-4">
                     <div class="col-lg-4">
                         <div class="card shadow-sm border-0 h-100">
-                            <div class="card-header bg-white fw-bold py-3">สร้างเวรทำงาน</div>
+                            <div class="card-header bg-white fw-bold py-3"><i
+                                    class="bi bi-plus-circle-fill me-2 text-primary"></i>สร้างเวรทำงาน</div>
                             <div class="card-body">
                                 <form onsubmit="createSchedule(event)">
                                     <div class="mb-3"><label class="small text-muted">พนักงาน</label><select
@@ -349,8 +226,10 @@
                     <div class="col-lg-8">
                         <div class="card shadow-sm border-0 h-100">
                             <div class="card-header bg-white d-flex justify-content-between py-3"><span
-                                    class="fw-bold">รายการเวรล่าสุด</span><button onclick="loadSchedules()"
-                                    class="btn btn-sm btn-light border"><i class="bi bi-arrow-clockwise"></i></button>
+                                    class="fw-bold"><i
+                                        class="bi bi-list-task me-2 text-primary"></i>รายการเวรล่าสุด</span><button
+                                    onclick="loadSchedules()" class="btn btn-sm btn-light border"><i
+                                        class="bi bi-arrow-clockwise"></i></button>
                             </div>
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0">
@@ -366,26 +245,6 @@
                                 </table>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tabLeave" class="tab-section hidden">
-                <div class="card shadow-sm border-0 border-start border-4 border-warning">
-                    <div class="card-header bg-white py-3 fw-bold">รายการรออนุมัติ</div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-3">พนักงาน</th>
-                                    <th>ประเภท</th>
-                                    <th>วันที่</th>
-                                    <th>เหตุผล</th>
-                                    <th class="text-end pe-3">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaveTableBody"></tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -406,9 +265,16 @@
                     <div class="card-header bg-white fw-bold py-3">📊 อันดับชั่วโมงทำงานรายเดือน (Top Performers)</div>
                     <div class="card-body">
                         <div class="d-flex gap-2 mb-3 align-items-center">
-                            <label>เลือกเดือน:</label>
-                            <input type="month" id="chartMonth" class="form-control" style="width: 200px;">
-                            <button onclick="renderCharts()" class="btn btn-dark">แสดงกราฟ</button>
+                            <label class="small text-muted fw-bold">เลือกเดือน:</label>
+                            <div class="btn-group">
+                                <button class="btn btn-light border" onclick="changeMonth(-1)"><i
+                                        class="bi bi-chevron-left"></i></button>
+                                <input type="month" id="chartMonth" class="form-control"
+                                    style="width: auto; border-radius: 0;">
+                                <button class="btn btn-light border" onclick="changeMonth(1)"><i
+                                        class="bi bi-chevron-right"></i></button>
+                            </div>
+                            <button onclick="renderCharts()" class="btn btn-dark ms-2">แสดงกราฟ</button>
                         </div>
                         <div style="height: 400px;">
                             <canvas id="workHoursChart"></canvas>
@@ -418,42 +284,20 @@
             </div>
 
             <div id="tabUsers" class="tab-section hidden">
-                <div class="row g-4">
-                    <div class="col-lg-5">
-                        <div class="card shadow-sm border-0 border-start border-4 border-danger">
-                            <div class="card-header bg-white text-danger fw-bold py-3">รออนุมัติ (Pending)</div>
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <tbody id="pendingUsersTable"></tbody>
-                                </table>
-                            </div>
-                        </div>
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <ul class="nav nav-tabs card-header-tabs" id="mainUsersTabs" role="tablist"></ul>
                     </div>
-                    <div class="col-lg-7">
-                        <div class="card shadow-sm border-0 border-start border-4 border-primary">
-                            <div class="card-header bg-white text-primary fw-bold py-3 d-flex justify-content-between">
-                                <span>พนักงานทั้งหมด</span><button onclick="loadAllUsers()"
-                                    class="btn btn-sm btn-outline-primary"><i
-                                        class="bi bi-arrow-clockwise"></i></button>
-                                <button onclick="openUsersByDept()" class="btn btn-sm btn-light border">ดูตามแผนก</button>
-                            </div>
-                            <div class="table-responsive" style="max-height: 500px;">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="ps-3">ชื่อ</th>
-                                            <th>แผนก</th>
-                                            <th class="text-end pe-3">จัดการ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="allUsersTable"></tbody>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="mainUsersContent"></div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+    </div>
+    </div>
+    </div>
     </div>
 
     <!-- All Users by Department Modal -->
@@ -501,6 +345,13 @@
                         </datalist>
                         <label>แผนก</label>
                     </div>
+                    <div class="form-floating mb-3">
+                        <select id="editUserStatus" class="form-select">
+                            <option value="Approved">ใช้งานปกติ (Active)</option>
+                            <option value="Inactive">ปิดการใช้งาน (Inactive)</option>
+                        </select>
+                        <label>สถานะพนักงาน</label>
+                    </div>
                     <div class="row g-2">
                         <div class="col-6">
                             <div class="form-floating"><input type="date" id="editStartDate"
@@ -520,655 +371,85 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // --- 🔴 CONFIG ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
-            authDomain: "in-out-dashboard.firebaseapp.com",
-            projectId: "in-out-dashboard",
-            storageBucket: "in-out-dashboard.firebasestorage.app",
-            messagingSenderId: "846266395224",
-            appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
-            measurementId: "G-WN14VJSG17"
-        };
-        const ADMIN_EMAIL = "medlifeplus@gmail.com";
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let calendarObj, editModal, barChart;
-        let userProfileMap = {};
-        window.allUserData = {};
-        let usersByDeptModal;
-        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
-
-        // AUTH
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                if (user.email === ADMIN_EMAIL) {
-                    document.getElementById('loginPage').classList.add('hidden');
-                    document.getElementById('dashboardPage').classList.remove('hidden');
-                    document.getElementById('adminEmailDisplay').innerText = user.displayName || user.email;
-                    document.getElementById('adminProfilePic').src = user.photoURL || "https://via.placeholder.com/30";
-                    await cacheUserProfiles(); loadInitialData();
-                    editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-                    usersByDeptModal = new bootstrap.Modal(document.getElementById('usersByDeptModal'));
-                    document.getElementById('chartMonth').value = new Date().toISOString().slice(0, 7);
-                    setInterval(updateLiveClock, 1000); updateLiveClock();
-                } else { await signOut(auth); Swal.fire('Access Denied', 'อีเมลนี้ไม่มีสิทธิ์เข้าถึง', 'error'); }
-            } else {
-                document.getElementById('loginPage').classList.remove('hidden');
-                document.getElementById('dashboardPage').classList.add('hidden');
-            }
-        });
-
-        function updateLiveClock() {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const el = document.getElementById('liveClock');
-            if (el) el.innerHTML = `<i class="bi bi-calendar-event me-1"></i> ${dateStr} <br> <i class="bi bi-clock me-1"></i> ${timeStr}`;
-        }
-
-        window.loginWithGoogle = async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { Swal.fire('Login Error', e.message, 'error'); } };
-
-        window.switchTab = (tabName) => {
-            document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
-            const target = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
-            if (target) target.classList.remove('hidden');
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            const links = document.querySelectorAll('.nav-link');
-            links.forEach(l => { if (l.getAttribute('onclick').includes(tabName)) l.classList.add('active'); });
-
-            if (tabName === 'schedule') loadSchedules();
-            if (tabName === 'leave') loadLeaveRequests();
-            if (tabName === 'report') { setTimeout(initCalendar, 200); renderCharts(); }
-            if (tabName === 'users') { loadPendingUsers(); loadAllUsers(); }
-        };
-
-        window.delAttendance = async (id) => {
-            if ((await Swal.fire({ title: 'ยืนยันลบ?', text: "ข้อมูลจะหายไปถาวร", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'ลบเลย' })).isConfirmed) {
-                try { await deleteDoc(doc(db, "attendance", id)); Toast.fire({ icon: 'success', title: 'ลบเรียบร้อย' }); loadData(); } catch (e) { Swal.fire('Error', e.message, 'error'); }
-            }
-        };
-
-        const workHoursCache = {};
-        function calcHoursFromLogs(logs) {
-            const byDay = {};
-            logs.forEach(x => {
-                const k = x.timestamp.toISOString().split('T')[0];
-                if (!byDay[k]) byDay[k] = [];
-                byDay[k].push(x);
-            });
-
-            let total = 0;
-            Object.values(byDay).forEach(list => {
-                list.sort((a, b) => a.timestamp - b.timestamp);
-                let inTime = null;
-                let dayHours = 0;
-
-                list.forEach(r => {
-                    if (r.type === 'เข้างาน') inTime = r.timestamp;
-                    else if (r.type === 'ออกงาน' && inTime) {
-                        dayHours += (r.timestamp - inTime) / 3600000;
-                        inTime = null;
-                    }
-                });
-
-                if (inTime) {
-                    const end23 = new Date(inTime);
-                    end23.setHours(23, 0, 0, 0);
-                    dayHours += (end23 - inTime) / 3600000;
-                }
-
-                total += dayHours;
-            });
-
-            return total;
-        }
-
-        async function calcHours(uid, startDate, endDate) {
-            const qh = query(
-                collection(db, "attendance"),
-                where("userId", "==", uid),
-                where("timestamp", ">=", startDate),
-                where("timestamp", "<=", endDate),
-                orderBy("timestamp")
-            );
-            const sh = await getDocs(qh);
-            const logs = sh.docs.map(dd => {
-                const v = dd.data();
-                const ts = v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp.seconds * 1000);
-                return { type: v.type, timestamp: ts };
-            });
-            return calcHoursFromLogs(logs);
-        }
-
-        async function getHoursHtml(row) {
-            const uid = row.userId;
-            if (!uid) return '';
-            if (workHoursCache[uid]) return workHoursCache[uid];
-
-            const isExtern = getUserDept(uid, row.dept) === 'Pharmacist Extern';
-            const end = new Date();
-            end.setDate(end.getDate() - 1);
-            end.setHours(23, 59, 59, 999);
-
-            const monthStart = new Date(end.getFullYear(), end.getMonth(), 1);
-            monthStart.setHours(0, 0, 0, 0);
-            const yearStart = new Date(end.getFullYear(), 0, 1);
-            yearStart.setHours(0, 0, 0, 0);
-
-            const monthHours = await calcHours(uid, monthStart, end);
-            let html = `<div class="text-muted small">เดือนนี้: <span class="fw-bold">${monthHours.toFixed(2)}</span> ชม.</div>`;
-
-            if (isExtern) {
-                const user = window.allUserData?.[uid];
-                const reg = user?.registrationDate || user?.createdAt;
-                if (reg) {
-                    const regStart = reg.toDate ? reg.toDate() : new Date(reg);
-                    regStart.setHours(0, 0, 0, 0);
-                    const totalHours = await calcHours(uid, regStart, end);
-                    html = `<div class="text-muted small">สะสม: <span class="fw-bold">${totalHours.toFixed(2)}</span> ชม.</div>` + html;
-                }
-            } else {
-                const yearHours = await calcHours(uid, yearStart, end);
-                html = html + `<div class="text-muted small">ปีนี้: <span class="fw-bold">${yearHours.toFixed(2)}</span> ชม.</div>`;
-            }
-
-            workHoursCache[uid] = html;
-            return html;
-        }
-
-        function getUserDept(uid, fallbackDept) {
-            return window.allUserData?.[uid]?.dept || fallbackDept || '';
-        }
-
-        window.loadData = async () => {
-            const d = document.getElementById('filterDate').value;
-            const s = new Date(d); s.setHours(0, 0, 0, 0); const e = new Date(d); e.setHours(23, 59, 59, 999);
-            const t = document.getElementById('tableBody');
-            t.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>';
-            const q = query(collection(db, "attendance"), where("timestamp", ">=", s), where("timestamp", "<=", e));
-            const snap = await getDocs(q);
-            let h = "", c = 0;
-            window.currentData = [];
-
-            const docs = [];
-            snap.forEach(d0 => docs.push(d0));
-
-            for (const docSnap of docs) {
-                const v = docSnap.data();
-                window.currentData.push(v);
-                if (v.type === 'เข้างาน') c++;
-                const deptText = getUserDept(v.userId, v.dept);
-                const bg = v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger';
-                const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
-                const hoursHtml = await getHoursHtml(v);
-                h += `<tr>
-                    <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
-                    <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${v.name}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
-                    <td><span class="badge bg-light text-dark border">${deptText}</span></td>
-                    <td>
-                        <span class="badge ${bg} bg-opacity-10 text-${bg.split('-')[1]} badge-pill"><span class="status-dot ${bg}"></span>${v.type}</span>
-                        ${hoursHtml}
-                    </td>
-                    <td>${map}</td>
-                    <td class="text-end pe-3"><button onclick="delAttendance('${docSnap.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button></td>
-                </tr>`;
-            }
-
-            t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
-            document.getElementById('statIn').innerText = c;
-        };
-
-        async function cacheUserProfiles() {
-            const s = await getDocs(collection(db, "users"));
-            userProfileMap = {};
-            window.allUserData = {};
-
-            let approvedCount = 0;
-            const byDept = {};
-
-            s.forEach(d => {
-                const u = d.data();
-                const uid = u.lineUserId || d.id;
-                if (uid) {
-                    userProfileMap[uid] = u.pictureUrl;
-                    window.allUserData[uid] = u;
-
-                    if (u.status === 'Approved') {
-                        approvedCount++;
-                        const dept = u.dept || 'Unknown';
-                        if (!byDept[dept]) byDept[dept] = [];
-                        byDept[dept].push({ uid, pictureUrl: u.pictureUrl, name: u.name });
-                    }
-                }
-            });
-
-            document.getElementById('statTotalUsers').innerText = approvedCount;
-            renderDeptBreakdown(byDept);
-        }
-
-        function renderDeptBreakdown(byDept) {
-            const el = document.getElementById('deptBreakdown');
-            if (!el) return;
-
-            const entries = Object.entries(byDept || {});
-            if (!entries.length) {
-                el.innerHTML = '';
-                return;
-            }
-
-            entries.sort((a, b) => b[1].length - a[1].length);
-
-            el.innerHTML = entries.map(([dept, list]) => {
-                const color = getDeptColor(dept);
-                const thumbs = list.slice(0, 8).map(u => {
-                    const src = u.pictureUrl || 'https://via.placeholder.com/18';
-                    return `<img src="${src}" title="${u.name || ''}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;">`;
-                }).join('');
-                const more = list.length > 8 ? `<span class="text-muted" style="margin-left:6px;">+${list.length - 8}</span>` : '';
-                return `
-                    <div class="d-flex justify-content-between align-items-center" style="gap:8px;">
-                        <div class="text-truncate" style="max-width:140px;">
-                            <span class="fw-bold" style="color:${color};">${dept}</span>
-                            <span class="text-muted">(${list.length})</span>
-                        </div>
-                        <div class="d-flex align-items-center" style="padding-left:6px;">
-                            ${thumbs}${more}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function getProfileImg(uid) {
-            return `<img src="${userProfileMap[uid] || 'https://via.placeholder.com/45'}" class="profile-thumb">`;
-        }
-
-        function loadInitialData() {
-            document.getElementById('filterDate').valueAsDate = new Date();
-            loadData();
-            loadUsersList();
-            loadPendingUsers();
-        }
-
-        window.updLeave = async (id, st, uid, nm, s, e, tp) => { await setDoc(doc(db, "leave_requests", id), { status: st }, { merge: true }); if (st === 'Approved') { let c = new Date(s), end = new Date(e); while (c <= end) { let ds = c.toISOString().split('T')[0]; await setDoc(doc(db, "schedules", `${uid}_${ds}`), { userId: uid, name: nm, date: ds, shiftDetail: `🛑 ${tp}` }); c.setDate(c.getDate() + 1) } } Toast.fire({ icon: 'success', title: 'เรียบร้อย' }); loadLeaveRequests(); };
-
-        window.loadPendingUsers = async () => {
-            try {
-                const pendingTable = document.getElementById('pendingUsersTable');
-                pendingTable.innerHTML = `
-                    <tr><td colspan="3" class="text-center py-5">
-                        <div class="spinner-border text-danger"></div>
-                        <div class="mt-2 text-muted">กำลังโหลด...</div>
-                    </td></tr>`;
-                
-                const s = await getDocs(query(collection(db, "users"), where("status", "==", "Pending")));
-                let h = "";
-                s.forEach(d => { 
-                    const v = d.data();
-                    h += `
-                    <tr>
-                        <td class="ps-3">
-                            <div class="user-cell">
-                                <img src="${v.pictureUrl}" class="profile-thumb">
-                                <div>
-                                    <h6 class="mb-0">${v.name}</h6>
-                                    <small class="text-muted">${v.empId || 'ยังไม่มีรหัสพนักงาน'}</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="badge bg-light text-dark border">${v.dept || 'ยังไม่ระบุ'}</span></td>
-                        <td class="text-end pe-3">
-                            <div class="btn-group">
-                                <button onclick="appUser('${d.id}')" class="btn btn-sm btn-success">
-                                    <i class="bi bi-check-lg"></i> อนุมัติ
-                                </button>
-                                <button onclick="delUser('${d.id}')" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>`;
-                });
-                
-                pendingTable.innerHTML = h || `
-                    <tr>
-                        <td colspan="3" class="text-center py-5 text-muted">
-                            <i class="bi bi-emoji-smile fs-1 d-block mb-2"></i>
-                            ไม่มีผู้สมัครใหม่ที่รอการอนุมัติ
-                        </td>
-                    </tr>`;
-                
-                // Update stats and show notification if there are new users
-                const newUserCount = s.size;
-                document.getElementById('statNewUsers').innerText = newUserCount;
-                
-                // Show notification badge on the tab
-                const newMemberBadge = document.getElementById('newMemberBadge');
-                if (newMemberBadge) {
-                    if (newUserCount > 0) {
-                        newMemberBadge.classList.remove('d-none');
-                        newMemberBadge.textContent = newUserCount;
-                        
-                        // Show popup notification if this is the first load
-                        if (!window.hasShownNewMemberNotification) {
-                            window.hasShownNewMemberNotification = true;
-                            setTimeout(() => {
-                                Swal.fire({
-                                    title: 'มีสมาชิกใหม่รอการอนุมัติ',
-                                    text: `มีผู้ใช้ใหม่ ${newUserCount} คนรอการอนุมัติ`,
-                                    icon: 'info',
-                                    confirmButtonText: 'ไปที่หน้าอนุมัติ',
-                                    showCancelButton: true,
-                                    cancelButtonText: 'ปิด',
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        switchTab('newMembers');
-                                    }
-                                });
-                            }, 1000);
-                        }
-                    } else {
-                        newMemberBadge.classList.add('d-none');
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Error loading pending users:', error);
-                document.getElementById('pendingUsersTable').innerHTML = `
-                    <tr><td colspan="3" class="text-center py-5 text-danger">
-                        <i class="bi bi-exclamation-triangle"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล
-                    </td></tr>`;
-            }
-        };
-
-        // --- RENDER CHART (Horizontal Bar + Sorted) ---
-        window.renderCharts = async () => {
-            const m = document.getElementById('chartMonth').value; if (!m) return;
-            const start = new Date(m + "-01"); start.setHours(0, 0, 0, 0); const end = new Date(m + "-01"); end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23, 59, 59, 999);
-
-            // 1. Get All Users
-            const userSnap = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
-            let uH = {}; userSnap.forEach(doc => { uH[doc.data().name] = { logs: [] }; });
-
-            // 2. Get Attendance
-            const snap = await getDocs(query(collection(db, "attendance"), where("timestamp", ">=", start), where("timestamp", "<=", end)));
-            snap.forEach(d => { const v = d.data(); if (uH[v.name]) uH[v.name].logs.push({ t: v.type, time: v.timestamp.seconds }); });
-
-            // 3. Calc Hours
-            let chartData = [];
-            Object.keys(uH).forEach(n => {
-                const l = uH[n].logs.sort((a, b) => a.time - b.time);
-                let ms = 0, last = null;
-                l.forEach(x => {
-                    if (x.t === 'เข้างาน') last = x.time;
-                    else if (x.t === 'ออกงาน' && last) { ms += (x.time - last); last = null; }
-                });
-                chartData.push({ name: n, hours: parseFloat((ms / 3600).toFixed(2)) });
-            });
-
-            // 4. Sort (Highest hours first)
-            chartData.sort((a, b) => b.hours - a.hours);
-
-            const labels = chartData.map(d => d.name);
-            const data = chartData.map(d => d.hours);
-
-            if (barChart) barChart.destroy();
-            const ctx = document.getElementById('workHoursChart').getContext('2d');
-            barChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'ชั่วโมงทำงานรวม',
-                        data: data,
-                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                        borderColor: 'rgba(13, 110, 253, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                        barPercentage: 0.6
-                    }]
-                },
-                options: {
-                    indexAxis: 'y', // 🟢 Horizontal Bar
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { beginAtZero: true, grid: { display: true, color: '#f0f0f0' } },
-                        y: { grid: { display: false } }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: { label: (c) => ` ${c.raw} ชั่วโมง` }
-                        }
-                    }
-                }
-            });
-        };
-
-        window.loadAllUsers = async () => {
-            const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved")));
-            let h = ""; window.allUserData = {};
-            s.forEach(d => {
-                const u = d.data(); window.allUserData[d.id] = u;
-                h += `<tr><td class="ps-3"><div class="user-cell"><img src="${u.pictureUrl}" class="profile-thumb"><h6>${u.name}</h6></div></td><td><span class="badge bg-light text-dark border">${u.dept}</span></td><td class="text-end pe-3"><button onclick="openEditUser('${d.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${d.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td></tr>`
-            });
-            document.getElementById('allUsersTable').innerHTML = h;
-        };
-
-        window.openUsersByDept = async () => {
-            await loadAllUsers();
-            renderUsersByDeptTabs();
-            usersByDeptModal.show();
-        };
-
-        function renderUsersByDeptTabs() {
-            const tabsEl = document.getElementById('deptUsersTabs');
-            const contentEl = document.getElementById('deptUsersTabContent');
-            if (!tabsEl || !contentEl) return;
-
-            const users = Object.entries(window.allUserData || {}).map(([id, u]) => ({ id, ...u }));
-            const byDept = {};
-            users.forEach(u => {
-                const dept = u.dept || 'Unknown';
-                if (!byDept[dept]) byDept[dept] = [];
-                byDept[dept].push(u);
-            });
-
-            const deptEntries = Object.entries(byDept).sort((a, b) => b[1].length - a[1].length);
-            const allCount = users.length;
-
-            const makeUserRows = (list) => {
-                const sorted = (list || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-                return sorted.map(u => {
-                    const img = (u.pictureUrl || 'https://via.placeholder.com/45');
-                    const dept = u.dept || '';
-                    return `<tr>
-                        <td class="ps-3"><div class="user-cell"><img src="${img}" class="profile-thumb"><h6 class="mb-0">${u.name || ''}</h6></div></td>
-                        <td><span class="badge bg-light text-dark border">${dept}</span></td>
-                        <td class="text-end pe-3"><button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button><button onclick="delUser('${u.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button></td>
-                    </tr>`;
-                }).join('');
-            };
-
-            const overviewItems = deptEntries.map(([dept, list]) => {
-                const color = getDeptColor(dept);
-                const thumbs = list.slice(0, 10).map(u => {
-                    const src = u.pictureUrl || 'https://via.placeholder.com/18';
-                    return `<img src="${src}" title="${u.name || ''}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;">`;
-                }).join('');
-                const more = list.length > 10 ? `<span class="text-muted" style="margin-left:6px;">+${list.length - 10}</span>` : '';
-                return `<div class="d-flex justify-content-between align-items-center" style="gap:10px;padding:.35rem .25rem;border-bottom:1px solid rgba(0,0,0,.05);">
-                    <div class="text-truncate" style="max-width:220px;"><span class="fw-bold" style="color:${color};">${dept}</span> <span class="text-muted">(${list.length})</span></div>
-                    <div class="d-flex align-items-center" style="padding-left:6px;">${thumbs}${more}</div>
-                </div>`;
-            }).join('');
-
-            const overviewHtml = `<div class="row g-3">
-                <div class="col-lg-4">
-                    <div class="p-3 bg-light rounded border">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold">ภาพรวมตามแผนก</div>
-                            <div class="text-muted small">ทั้งหมด ${allCount}</div>
-                        </div>
-                        <div>${overviewItems || ''}</div>
-                    </div>
+    <!-- Manual Entry Modal -->
+    <div class="modal fade" id="manualEntryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold">📝 ลงเวลาแทนพนักงาน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="col-lg-8">
-                    <div class="table-responsive" style="max-height:520px;">
+                <div class="modal-body p-4">
+                    <form onsubmit="submitManualEntry(event)">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">พนักงาน</label>
+                            <select id="manualUserSelect" class="form-select" required></select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-7">
+                                <label class="text-muted small">วันที่</label>
+                                <input type="date" id="manualDate" class="form-control" required>
+                            </div>
+                            <div class="col-5">
+                                <label class="text-muted small">เวลา</label>
+                                <input type="time" id="manualTime" class="form-control" placeholder="00:00" lang="en-GB"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-muted small">ประเภท</label>
+                            <div class="d-flex gap-2">
+                                <input type="radio" class="btn-check" name="manualType" id="typeIn" value="เข้างาน"
+                                    checked>
+                                <label class="btn btn-outline-success flex-fill" for="typeIn">🟢 เข้างาน</label>
+                                <input type="radio" class="btn-check" name="manualType" id="typeOut" value="ออกงาน">
+                                <label class="btn btn-outline-danger flex-fill" for="typeOut">🔴 ออกงาน</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">บันทึกข้อมูล</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Pending Users Modal -->
+    <div class="modal fade" id="pendingUsersModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>อนุมัติสมาชิกใหม่</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
-                            <tbody>${makeUserRows(users) || ''}</tbody>
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">ข้อมูลสมาชิก</th>
+                                    <th>แผนก</th>
+                                    <th class="text-end pe-3">ดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingUsersModalBody"></tbody>
                         </table>
                     </div>
                 </div>
-            </div>`;
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            const tabIdAll = 'deptTabAll';
-            tabsEl.innerHTML = `<li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#${tabIdAll}" type="button">ทั้งหมด <span class="badge bg-primary ms-1">${allCount}</span></button></li>`
-                + deptEntries.map(([dept, list], idx) => {
-                    const safe = `deptTab_${idx}`;
-                    const color = getDeptColor(dept);
-                    return `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${safe}" type="button"><span class="fw-bold" style="color:${color};">${dept}</span> <span class="badge bg-secondary ms-1">${list.length}</span></button></li>`;
-                }).join('');
+    <div
+        style="position: fixed; bottom: 10px; left: 10px; z-index: 10000; font-size: 11px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
+        v2.1
+    </div>
 
-            contentEl.innerHTML = `<div class="tab-pane fade show active" id="${tabIdAll}">${overviewHtml}</div>`
-                + deptEntries.map(([dept, list], idx) => {
-                    const safe = `deptTab_${idx}`;
-                    return `<div class="tab-pane fade" id="${safe}">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-bold">${dept}</div>
-                            <div class="text-muted small">${list.length} คน</div>
-                        </div>
-                        <div class="table-responsive" style="max-height:520px;">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light"><tr><th class="ps-3">ชื่อ</th><th>แผนก</th><th class="text-end pe-3">จัดการ</th></tr></thead>
-                                <tbody>${makeUserRows(list) || ''}</tbody>
-                            </table>
-                        </div>
-                    </div>`;
-                }).join('');
-        }
-
-        window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadPendingUsers(); loadAllUsers(); };
-        window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
-        window.openEditUser = (id) => {
-            const u = window.allUserData[id]; if (!u) return;
-            document.getElementById('editUserId').value = id; document.getElementById('editUserName').value = u.name; document.getElementById('editEmpId').value = u.empId || ''; document.getElementById('editUserDept').value = u.dept; document.getElementById('editStartDate').value = u.startDate || ''; document.getElementById('editEndDate').value = u.endDate || ''; document.getElementById('editUserImg').src = u.pictureUrl || "https://via.placeholder.com/80"; editModal.show();
-        };
-        window.saveEditUser = async () => { try { await updateDoc(doc(db, "users", document.getElementById('editUserId').value), { name: document.getElementById('editUserName').value, empId: document.getElementById('editEmpId').value, dept: document.getElementById('editUserDept').value, startDate: document.getElementById('editStartDate').value, endDate: document.getElementById('editEndDate').value }); Toast.fire({ icon: 'success', title: 'แก้ไขสำเร็จ' }); editModal.hide(); loadAllUsers(); } catch (e) { Swal.fire('Error', e.message, 'error') } };
-
-        window.logout = () => signOut(auth);
-        window.loadUsersList = async () => { const s = await getDocs(query(collection(db, "users"), where("status", "==", "Approved"))); let h = '<option value="">เลือกพนักงาน...</option>'; s.forEach(d => h += `<option value="${d.data().lineUserId}">${d.data().name}</option>`); document.getElementById('userSelect').innerHTML = h };
-        window.exportCSV = () => {
-            if (!window.currentData?.length) return Toast.fire({ icon: 'warning', title: 'ไม่มีข้อมูล' });
-
-            const esc = (v) => {
-                v = (v ?? '').toString();
-                if (v.includes('"')) v = v.replace(/"/g, '""');
-                if (v.includes(',') || v.includes('\n') || v.includes('\r') || v.includes('"')) return `"${v}"`;
-                return v;
-            };
-
-            const header = "Time,Name,EmpId,Dept,Type,MapLink\n";
-            const rows = window.currentData.map(r => {
-                const time = new Date(r.timestamp.seconds * 1000).toLocaleTimeString('th-TH');
-                const dept = getUserDept(r.userId, r.dept);
-                const empId = window.allUserData?.[r.userId]?.empId || r.empId || '';
-                return [time, r.name || '', empId, dept, r.type || '', r.mapUrl || ''].map(esc).join(',');
-            }).join("\n");
-
-            const a = document.createElement("a");
-            a.href = "data:text/csv;charset=utf-8," + encodeURI(header + rows);
-            a.download = `attendance_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-        };
-
-        function getDeptColor(dept) {
-            dept = dept || "";
-            let c = '#6c757d'; // Default Gray
-            if (dept.match(/Pharmacy|เภสัช/i)) c = '#198754';
-            else if (dept.match(/General|ทั่วไป/i)) c = '#0dcaf0';
-            else if (dept.match(/IT|ไอที/i)) c = '#6f42c1';
-            else if (dept.match(/Admin|ธุรการ/i)) c = '#dc3545';
-            else if (dept.match(/Sales|การตลาด/i)) c = '#fd7e14';
-            return c;
-        }
-
-        function initCalendar() {
-            if (calendarObj) { calendarObj.render(); return }
-            calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'dayGridMonth', locale: 'th', height: 'auto',
-                events: async (info, s, f) => {
-                    try {
-                        let ev = [];
-                        // 1. Schedules
-                        const sn = await getDocs(collection(db, "schedules"));
-                        sn.forEach(d => {
-                            const v = d.data();
-                            let c = 'var(--color-shift-am)';
-                            if (v.shiftDetail.includes('บ่าย')) c = 'var(--color-shift-pm)';
-                            else if (v.shiftDetail.includes('ดึก')) c = 'var(--color-shift-night)';
-                            else if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) c = 'var(--color-leave)';
-                            ev.push({ title: `${v.name}`, start: v.date, color: c })
-                        });
-
-                        // 2. Attendance (Actual Hours)
-                        const att = await getDocs(collection(db, "attendance"));
-                        let map = {};
-                        att.forEach(d => {
-                            const k = `${d.data().userId}_${new Date(d.data().timestamp.seconds * 1000).toISOString().split('T')[0]}`;
-                            if (!map[k]) map[k] = { n: d.data().name, d: d.data().dept, l: [] };
-                            map[k].l.push({ t: d.data().type, ts: d.data().timestamp.seconds })
-                        });
-
-                        Object.keys(map).forEach(k => {
-                            const i = map[k];
-                            i.l.sort((a, b) => a.ts - b.ts);
-                            let ms = 0, last = null;
-                            i.l.forEach(x => {
-                                if (x.t === 'เข้างาน') last = x.ts;
-                                else if (x.t === 'ออกงาน' && last) { ms += (x.ts - last); last = null; }
-                            });
-
-                            if (ms > 0) {
-                                // Color Logic
-                                let baseColor = getDeptColor(i.d);
-                                let isSub = false;
-                                if (i.d && (i.d.length > 10 || i.d.includes('-'))) isSub = true;
-
-                                let finalColor = baseColor;
-                                let className = '';
-                                if (isSub) className = 'opacity-75';
-
-                                ev.push({
-                                    title: `${(ms / 3600).toFixed(1)} ชม. ${i.n}`,
-                                    start: k.split('_')[1],
-                                    backgroundColor: finalColor,
-                                    borderColor: finalColor,
-                                    classNames: [className],
-                                    display: 'block'
-                                })
-                            }
-                        });
-                        s(ev)
-                    } catch (e) { f(e) }
-                }
-            });
-            calendarObj.render();
-        }
-
-        window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime;
-    </script>
+    <script type="module" src="admin.js"></script>
 </body>
 
 </html>
