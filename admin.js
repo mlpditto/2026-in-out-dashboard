@@ -172,12 +172,16 @@ function renderSchedPage() {
         const safeName = (v.name || '').replace(/'/g, "\\'");
         const safeDate = (v.date || '').replace(/'/g, "\\'");
         const safeDetail = (v.shiftDetail || '').replace(/'/g, "\\'");
+
+        // Use reason from schedule data if available, otherwise use default
+        const safeReason = (v.reason || 'ระบุผ่านตารางเวร').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
         if (sd.includes('ลาป่วย')) {
-            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🤒 ลาป่วย',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 ประเภท:</b> ลาป่วย</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#dc3545'})">🤒 ลาป่วย</span>`;
+            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🤒 ลาป่วย',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#dc3545'})">🤒 ลาป่วย</span>`;
         } else if (sd.includes('ลาพักร้อน') || sd.includes('ลาพักผ่อน')) {
-            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🌴 ลาพักร้อน',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 ประเภท:</b> ลาพักร้อน</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d9488'})">🌴 ลาพักร้อน</span>`;
+            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🌴 ลาพักร้อน',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d9488'})">🌴 ลาพักร้อน</span>`;
         } else if (sd.includes('ลากิจ')) {
-            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'📋 ลากิจ',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 ประเภท:</b> ลากิจ</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d6efd'})">📋 ลากิจ</span>`;
+            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'📋 ลากิจ',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d6efd'})">📋 ลากิจ</span>`;
         } else if (sd.includes('หยุด') || sd.includes('day off')) {
             detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🚫 หยุด',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDate}</p><p><b>📝 รายละเอียด:</b> ${safeDetail}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#6c757d'})">🚫 ${v.shiftDetail}</span>`;
         }
@@ -1382,3 +1386,52 @@ function initCalendar() {
 window.initCalendar = initCalendar;
 
 window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.saveSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime; window.changeSchedMonth = changeSchedMonth; window.schedChangePage = schedChangePage; window.openManualEntry = openManualEntry; window.submitManualEntry = submitManualEntry;
+window.copyAttendanceSummary = () => {
+    if (!window.currentData || window.currentData.length === 0) {
+        return Toast.fire({ icon: 'warning', title: 'ไม่พบข้อมูลสำหรับคัดลอก' });
+    }
+
+    // Get current status map (who is still IN)
+    const statusMap = {};
+    const timeMap = {};
+    window.currentData.forEach(v => {
+        statusMap[v.userId] = v.type;
+        if (v.type === 'เข้างาน') timeMap[v.userId] = new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+    });
+
+    // Group by department
+    const grouped = {};
+    Object.keys(statusMap).forEach(uid => {
+        if (statusMap[uid] === 'เข้างาน') {
+            const user = window.allUserData[uid];
+            const dept = user ? (user.dept || 'ไม่ระบุแผนก') : 'ไม่ระบุแผนก';
+            const name = user ? user.name : (window.currentData.find(x => x.userId === uid)?.name || 'Unknown');
+
+            if (!grouped[dept]) grouped[dept] = [];
+            grouped[dept].push({ name, time: timeMap[uid] || '--:--' });
+        }
+    });
+
+    const dateStr = document.getElementById('filterDate').value;
+    const d = new Date(dateStr);
+    const formattedDate = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    let text = `📊 สรุปผู้เข้างานประจำวันที่ ${formattedDate}\n`;
+    let totalIn = 0;
+
+    Object.keys(grouped).sort().forEach(dept => {
+        text += `\n📍 แผนก: ${dept} (${grouped[dept].length} ท่าน)\n`;
+        grouped[dept].forEach((p, idx) => {
+            text += `${idx + 1}. ${p.name} (${p.time} น.)\n`;
+            totalIn++;
+        });
+    });
+
+    text += `\n━━━━━━━━━━━━━━━\n✅ รวมเข้างานทั้งหมด: ${totalIn} ท่าน`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        Toast.fire({ icon: 'success', title: 'คัดลอกลง Clipboard แล้ว' });
+    }).catch(err => {
+        Swal.fire('Error', 'ไม่สามารถคัดลอกได้: ' + err, 'error');
+    });
+};
