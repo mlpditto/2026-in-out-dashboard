@@ -513,10 +513,28 @@
                 document.getElementById('loadingPage').classList.add('hidden');
                 document.getElementById('mainPage').classList.remove('hidden');
 
-                // Mock data
-                document.getElementById('showName').textContent = 'สมชาย ตัวอย่าง';
-                document.getElementById('showEmpId').textContent = 'EMP-66001 | General';
-                document.getElementById('mainProfileImg').src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
+                // Try to get real user data from admin parent window
+                let realUser = null;
+                try {
+                    const parentData = window.parent?.allUserData;
+                    if (parentData) {
+                        const users = Object.values(parentData).filter(u => u.status === 'Approved');
+                        if (users.length > 0) {
+                            // Pick a random approved user for preview
+                            realUser = users[Math.floor(Math.random() * users.length)];
+                        }
+                    }
+                } catch (e) { }
+
+                if (realUser) {
+                    document.getElementById('showName').textContent = realUser.name || 'ไม่ทราบชื่อ';
+                    document.getElementById('showEmpId').textContent = `${realUser.empId || '—'} | ${realUser.dept || 'General'}`;
+                    document.getElementById('mainProfileImg').src = realUser.pictureUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
+                } else {
+                    document.getElementById('showName').textContent = 'สมชาย ตัวอย่าง';
+                    document.getElementById('showEmpId').textContent = 'EMP-66001 | General';
+                    document.getElementById('mainProfileImg').src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
+                }
 
                 // Clock
                 function updatePreviewClock() {
@@ -550,8 +568,8 @@
                         const d = new Date(today);
                         d.setDate(d.getDate() + i);
                         const dayStr = d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
-                        const shifts = ['☀️ เช้า (08:00-17:00)', '🌙 บ่าย (13:00-22:00)', '🚫 หยุด (Day Off)', '☀️ เช้า (08:00-17:00)', '☀️ เช้า (08:00-17:00)'];
-                        const colors = ['#e8f5e9', '#e3f2fd', '#fff3e0', '#e8f5e9', '#e8f5e9'];
+                        const shifts = ['☀️ เช้า (08:00-17:00)', '☀️ เช้า (09:00-18:00)', '🚫 หยุด (Day Off)', '🕛 เที่ยง (11:00-20:00)', '☀️ เช้า (08:00-17:00)'];
+                        const colors = ['#e8f5e9', '#e8f5e9', '#fff3e0', '#e3f2fd', '#e8f5e9'];
                         mockSchedule.push(`<div style="padding:10px 14px;background:${colors[i]};border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
                             <span style="font-weight:600;font-size:13px;">${dayStr}</span>
                             <span style="font-size:12px;opacity:0.8;">${shifts[i]}</span>
@@ -573,7 +591,7 @@
                 // Disable actual buttons in preview
                 const btnIn = document.getElementById('btnCheckIn');
                 const btnOut = document.getElementById('btnCheckOut');
-                if (btnIn) { btnIn.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใชงานไม่ได้ในโหมดตัวอย่าง'); }; }
+                if (btnIn) { btnIn.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
                 if (btnOut) { btnOut.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
 
                 return; // Skip LIFF init

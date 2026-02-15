@@ -702,7 +702,7 @@
             </div>
             <!-- Label -->
             <div style="text-align:center;margin-top:12px;color:rgba(255,255,255,0.7);font-size:12px;">
-                <i class="bi bi-info-circle me-1"></i>LIFF Preview — แสดงผลเหมือนผู้ใช้จริง
+                <i class="bi bi-info-circle me-1"></i>LIFF Preview — แสดงข้อมูลพนักงานจริง
             </div>
         </div>
     </div>
@@ -719,7 +719,7 @@
         const origPreviewBtn = document.querySelector('[title="LIFF Preview"]');
         if (origPreviewBtn) {
             origPreviewBtn.addEventListener('click', function () {
-                document.getElementById('liffPreviewFrame').src = 'index.html';
+                document.getElementById('liffPreviewFrame').src = 'index.html?preview=true';
                 // Update preview time
                 const now = new Date();
                 document.getElementById('previewTime').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
