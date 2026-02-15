@@ -405,13 +405,16 @@ const workHoursCache = {};
 function calcHoursFromLogs(logs) {
     const byDay = {};
     logs.forEach(x => {
-        const k = x.timestamp.toISOString().split('T')[0];
+        const k = x.timestamp.toLocaleDateString('sv'); // YYYY-MM-DD local
         if (!byDay[k]) byDay[k] = [];
         byDay[k].push(x);
     });
 
-    let total = 0;
-    Object.values(byDay).forEach(list => {
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('sv'); // YYYY-MM-DD
+
+    Object.keys(byDay).forEach(k => {
+        const list = byDay[k];
         list.sort((a, b) => a.timestamp - b.timestamp);
         let inTime = null;
         let dayHours = 0;
@@ -425,9 +428,17 @@ function calcHoursFromLogs(logs) {
         });
 
         if (inTime) {
-            const end23 = new Date(inTime);
-            end23.setHours(23, 0, 0, 0);
-            dayHours += (end23 - inTime) / 3600000;
+            let endTime;
+            if (k === todayStr) {
+                endTime = now; // Calculate until live 'now'
+            } else {
+                endTime = new Date(inTime);
+                endTime.setHours(23, 59, 59, 999); // End of that specific day
+            }
+
+            if (endTime > inTime) {
+                dayHours += (endTime - inTime) / 3600000;
+            }
         }
 
         total += dayHours;
