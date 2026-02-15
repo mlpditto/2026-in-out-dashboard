@@ -58,6 +58,7 @@
 
         <div class="container-fluid px-4 py-4">
 
+            <!-- Global Pastel Stats Cards -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3 col-6">
                     <div class="card p-3 border-0 shadow-sm h-100 card-hover"
@@ -116,16 +117,17 @@
                             </div><i class="bi bi-chevron-right" style="opacity: 0.5;"></i>
                         </div>
                         <div class="text-end border-top border-dark border-opacity-10 pt-2">
-                            <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">สมาชิกใหม่ในเดือนนี้: <span
+                            <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">เดือนนี้: <span
                                     class="fw-bold" id="statNewMonth">0</span> ท่าน</small>
-                            <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">สมาชิกใหม่ในปีนี้: <span
-                                    class="fw-bold" id="statNewYear">0</span> ท่าน</small>
+                            <small class="d-block" style="font-size:0.75rem; opacity: 0.8;">ปีนี้: <span class="fw-bold"
+                                    id="statNewYear">0</span> ท่าน</small>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <ul class="nav nav-tabs" id="mainTab" role="tablist">
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs mb-4" id="mainTab" role="tablist">
                 <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')"><i
                             class="bi bi-clock me-2"></i>เวลาเข้า-ออก</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('manage')"><i
@@ -136,16 +138,17 @@
                             class="bi bi-person-gear me-2"></i>พนักงาน</a></li>
             </ul>
 
+            <!-- Tab Content Sections -->
             <div id="tabAttendance" class="tab-section">
-                <div class="card shadow-sm border-0">
+                <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body">
                         <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
-                            <div class="btn-group">
-                                <button class="btn btn-light border" onclick="changeDate(-1)"><i
+                            <div class="input-group" style="width: 250px;">
+                                <button class="btn btn-outline-secondary" onclick="changeDate(-1)"><i
                                         class="bi bi-chevron-left"></i></button>
-                                <input type="date" id="filterDate" class="form-control"
-                                    style="width: auto; border-radius: 0;">
-                                <button class="btn btn-light border" onclick="changeDate(1)"><i
+                                <input type="date" id="filterDate" class="form-control text-center fw-bold"
+                                    onchange="loadData()">
+                                <button class="btn btn-outline-secondary" onclick="changeDate(1)"><i
                                         class="bi bi-chevron-right"></i></button>
                             </div>
                             <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
@@ -173,8 +176,6 @@
             </div>
 
             <div id="tabManage" class="tab-section hidden">
-                <!-- Leave Requests Section (Prioritized) -->
-                <!-- Leave Requests Section with Tabs -->
                 <div class="card shadow-sm border-0 border-start border-4 border-warning mb-4">
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                         <span class="fw-bold"><i class="bi bi-send-exclamation-fill me-2 text-warning"></i>คำขอลา</span>
@@ -196,7 +197,6 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="tab-content" id="leaveTabContent">
-                            <!-- Pending Tab -->
                             <div class="tab-pane fade show active" id="leavePending" role="tabpanel">
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0">
@@ -213,7 +213,6 @@
                                     </table>
                                 </div>
                             </div>
-                            <!-- Approved/History Tab -->
                             <div class="tab-pane fade" id="leaveApproved" role="tabpanel">
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0">
@@ -233,56 +232,55 @@
                     </div>
                 </div>
 
-                <!-- Schedule Section -->
                 <div class="row g-4">
-                    <div class="col-lg-4">
+                    <div class="col-md-4">
                         <div class="card shadow-sm border-0 h-100">
-                            <div class="card-header bg-white fw-bold py-3"><i
-                                    class="bi bi-plus-circle-fill me-2 text-primary"></i>สร้างเวรทำงาน</div>
+                            <div class="card-header bg-white py-3 fw-bold"><i
+                                    class="bi bi-plus-circle me-2"></i>สร้างเวรทำงาน</div>
                             <div class="card-body">
-                                <form onsubmit="createSchedule(event)">
-                                    <div class="mb-3"><label class="small text-muted">พนักงาน</label><select
-                                            id="userSelect" class="form-select" required></select></div>
-                                    <div class="mb-3"><label class="small text-muted">วันที่</label><input type="date"
-                                            id="schedDate" class="form-control" required></div>
-                                    <div class="mb-3"><label class="small text-muted">กะ</label><select id="schedType"
-                                            class="form-select" onchange="toggleCustomTime()">
-                                            <option value="เช้า (08:00 - 17:00)">☀️ เช้า (08:00 - 17:00)</option>
-                                            <option value="บ่าย (13:00 - 22:00)">🌤️ บ่าย (13:00 - 22:00)</option>
-                                            <option value="ดึก (22:00 - 07:00)">🌙 ดึก (22:00 - 07:00)</option>
-                                            <option value="หยุด (Day Off)">🛑 หยุด (Day Off)</option>
-                                            <option value="custom">✏️ กำหนดเอง (Custom)</option>
-                                        </select></div>
-                                    <div id="customTimeBox" class="mb-4 p-3 bg-light rounded border d-none"><label
-                                            class="small fw-bold mb-2">ระบุเวลาเอง:</label>
-                                        <div class="d-flex gap-2 align-items-center"><input type="time" id="customStart"
-                                                class="form-control"><span>ถึง</span><input type="time" id="customEnd"
-                                                class="form-control"></div>
-                                    </div><button type="submit" class="btn btn-primary w-100">บันทึก</button>
+                                <form onsubmit="saveSchedule(event)">
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">พนักงาน</label>
+                                        <select id="userSelect" class="form-select" required></select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">วันที่</label>
+                                        <input type="date" id="schedDate" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">กะ</label>
+                                        <select id="shiftDetail" class="form-select">
+                                            <option value="☀️ เช้า (08:00 - 17:00)">☀️ เช้า (08:00 - 17:00)</option>
+                                            <option value="🌙 บ่าย (13:00 - 22:00)">� บ่าย (13:00 - 22:00)</option>
+                                            <option value="🌑 ดึก (22:00 - 08:00)">� ดึก (22:00 - 08:00)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 py-2">บันทึก</button>
                                 </form>
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-8">
+                    <div class="col-md-8">
                         <div class="card shadow-sm border-0 h-100">
-                            <div class="card-header bg-white d-flex justify-content-between py-3"><span
-                                    class="fw-bold"><i
-                                        class="bi bi-list-task me-2 text-primary"></i>รายการเวรล่าสุด</span><button
-                                    onclick="loadSchedules()" class="btn btn-sm btn-light border"><i
+                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold"><i class="bi bi-list-task me-2"></i>รายการเวรล่าสุด</span>
+                                <button onclick="loadSchedules()" class="btn btn-sm btn-light border"><i
                                         class="bi bi-arrow-clockwise"></i></button>
                             </div>
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>วันที่</th>
-                                            <th>พนักงาน</th>
-                                            <th>กะ</th>
-                                            <th>ลบ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="schedTableBody"></tbody>
-                                </table>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="ps-3">วันที่</th>
+                                                <th>พนักงาน</th>
+                                                <th>กะ</th>
+                                                <th class="text-end pe-3">ลบ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="schedTableBody"></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -305,7 +303,8 @@
                     </div>
                 </div>
                 <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white fw-bold py-3">📊 อันดับชั่วโมงทำงานรายเดือน (Top Performers)</div>
+                    <div class="card-header bg-white fw-bold py-3">📊 อันดับชั่วโมงทำงานรายเดือน (Top Performers)
+                    </div>
                     <div class="card-body">
                         <div class="d-flex gap-2 mb-4 align-items-center">
                             <label class="small text-muted fw-bold">เลือกเดือน:</label>
@@ -334,14 +333,10 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
+        </div> <!-- End container-fluid -->
+    </div> <!-- End dashboardPage -->
 
-    <!-- All Users by Department Modal -->
+    <!-- Modals -->
     <div class="modal fade" id="usersByDeptModal" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
@@ -357,17 +352,14 @@
         </div>
     </div>
 
-    <!-- Edit User Modal -->
     <div class="modal fade" id="editUserModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header border-0 bg-light">
-                    <h5 class="modal-title fw-bold">✏️ แก้ไขข้อมูล</h5><button type="button" class="btn-close"
-                        data-bs-dismiss="modal"></button>
+                <div class="modal-header border-0 bg-white">
+                    <h5 class="modal-title fw-bold">👤 แก้ไขข้อมูลพนักงาน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="text-center mb-3"><img id="editUserImg" src="" class="profile-thumb shadow-sm"
-                            style="width:80px; height:80px;"></div>
+                <div class="modal-body p-4 pt-0">
                     <input type="hidden" id="editUserId">
                     <div class="form-floating mb-3"><input type="text" id="editEmpId" class="form-control"
                             placeholder="รหัส"><label>รหัสพนักงาน</label></div>
@@ -412,7 +404,6 @@
         </div>
     </div>
 
-    <!-- Manual Entry Modal -->
     <div class="modal fade" id="manualEntryModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -439,28 +430,22 @@
                         </div>
                         <div class="mb-4">
                             <label class="text-muted small">ประเภท</label>
-                            <div class="d-flex gap-2">
-                                <input type="radio" class="btn-check" name="manualType" id="typeIn" value="เข้างาน"
-                                    checked>
-                                <label class="btn btn-outline-success flex-fill" for="typeIn">🟢 เข้างาน</label>
-                                <input type="radio" class="btn-check" name="manualType" id="typeOut" value="ออกงาน">
-                                <label class="btn btn-outline-danger flex-fill" for="typeOut">🔴 ออกงาน</label>
-                            </div>
+                            <select id="manualType" class="form-select" required>
+                                <option value="เข้างาน">เข้างาน</option>
+                                <option value="ออกงาน">ออกงาน</option>
+                            </select>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 py-2">บันทึกข้อมูล</button>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">ยืนยันบันทึกข้อมูล</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    </div>
-
-    <!-- Pending Users Modal -->
     <div class="modal fade" id="pendingUsersModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header border-0 bg-danger text-white">
+                <div class="modal-header bg-danger text-white border-0">
                     <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>อนุมัติสมาชิกใหม่</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -487,10 +472,10 @@
 
     <div
         style="position: fixed; bottom: 10px; left: 10px; z-index: 10000; font-size: 11px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
-        v2.3
+        v3.0 - Stable
     </div>
 
-    <script type="module" src="admin.js?v=2.3"></script>
+    <script type="module" src="admin.js?v=3.0"></script>
 </body>
 
 </html>
