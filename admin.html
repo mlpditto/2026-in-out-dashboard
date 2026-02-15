@@ -475,6 +475,8 @@
                             placeholder="รหัส"><label>รหัสพนักงาน</label></div>
                     <div class="form-floating mb-3"><input type="text" id="editUserName" class="form-control"
                             placeholder="ชื่อ"><label>ชื่อ-นามสกุล</label></div>
+                    <div class="form-floating mb-3"><input type="tel" id="editUserPhone" class="form-control"
+                            placeholder="เบอร์โทร"><label>เบอร์โทร</label></div>
                     <div class="form-floating mb-3">
                         <input type="text" id="editUserDept" class="form-control" list="deptOptions"
                             placeholder="ระบุแผนก">
@@ -593,67 +595,6 @@
                 </div>
                 <div class="modal-footer border-0 bg-light">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit User Modal -->
-    <div class="modal fade" id="editUserModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white border-0">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>แก้ไขข้อมูลพนักงาน</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="editUserId">
-                    <div class="text-center mb-3">
-                        <img id="editUserImg" src="https://via.placeholder.com/80" class="rounded-circle" width="80"
-                            height="80" style="object-fit:cover;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">ชื่อ-นามสกุล</label>
-                        <input type="text" id="editUserName" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">รหัสพนักงาน</label>
-                        <input type="text" id="editEmpId" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">เบอร์โทร</label>
-                        <input type="tel" id="editUserPhone" class="form-control" placeholder="0xx-xxx-xxxx">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">แผนก</label>
-                        <select id="editUserDept" class="form-select">
-                            <option value="Pharmacy">Pharmacy</option>
-                            <option value="General">General</option>
-                            <option value="IT">IT</option>
-                            <option value="Pharmacist Extern #6">Pharmacist Extern #6</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">สถานะ</label>
-                        <select id="editUserStatus" class="form-select">
-                            <option value="Approved">Active</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
-                    </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label small text-muted">วันเริ่มต้น</label>
-                            <input type="date" id="editStartDate" class="form-control">
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label small text-muted">วันสิ้นสุด</label>
-                            <input type="date" id="editEndDate" class="form-control">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="button" class="btn btn-primary" onclick="saveEditUser()">บันทึก</button>
                 </div>
             </div>
         </div>
