@@ -214,8 +214,21 @@ window.loadLeaveRequests = async () => {
             }
 
             const displayType = v.type || v.leaveType || 'ไม่ระบุ';
-            const dColor = getDeptCategoryColor(getUserDept(v.userId, ''));
-            const deptBadge = `<span class="badge" style="background:${dColor} !important; color:white !important; border:none; font-weight:600; min-width:80px; text-align:center;">${displayType}</span>`;
+
+            // Leave-type specific color + emoji
+            let leaveEmoji = '📋';
+            let leaveColor = '#495057';
+            const lt = displayType.toLowerCase();
+            if (lt.includes('ป่วย')) { leaveEmoji = '🤒'; leaveColor = '#dc3545'; }
+            else if (lt.includes('พักผ่อน')) { leaveEmoji = '🌴'; leaveColor = '#0d9488'; }
+            else if (lt.includes('กิจ')) { leaveEmoji = '📋'; leaveColor = '#0d6efd'; }
+            else if (lt.includes('คลอด')) { leaveEmoji = '👶'; leaveColor = '#e91e8c'; }
+            else if (lt.includes('บวช')) { leaveEmoji = '🙏'; leaveColor = '#f59e0b'; }
+            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem;">${leaveEmoji} ${displayType}</span>`;
+
+            // Get user info for display (empId instead of raw userId)
+            const uData = window.allUserData?.[v.userId] || {};
+            const subInfo = uData.empId || v.reason || '';
 
             if (v.status === 'Pending') {
                 const lType = v.type || v.leaveType;
@@ -223,8 +236,8 @@ window.loadLeaveRequests = async () => {
                              <button onclick="updLeave('${v.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
 
                 hPending += `<tr class="table-warning">
-                     <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${v.userId}</small></td>
-                     <td>${deptBadge}</td>
+                     <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${subInfo}</small></td>
+                     <td>${leaveBadge}</td>
                      <td>${v.startDate} ถึง ${v.endDate}</td>
                      <td>${v.reason || '-'}</td>
                      <td class="text-end pe-3">${acts}</td>
@@ -235,8 +248,8 @@ window.loadLeaveRequests = async () => {
                 if (v.status === 'Rejected') statusBadge = `<span class="badge bg-danger">ไม่อนุมัติ</span>`;
 
                 hApproved += `<tr>
-                     <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${v.userId}</small></td>
-                     <td>${deptBadge}</td>
+                     <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${subInfo}</small></td>
+                     <td>${leaveBadge}</td>
                      <td>${v.startDate} ถึง ${v.endDate}</td>
                      <td>${statusBadge}</td>
                  </tr>`;
