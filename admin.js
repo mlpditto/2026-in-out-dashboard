@@ -468,6 +468,24 @@ window.changeMonth = (delta) => {
     renderCharts();
 };
 
+window.adjTime = (unit, delta) => {
+    const hhEl = document.getElementById('labelHH');
+    const mmEl = document.getElementById('labelMM');
+    if (!hhEl || !mmEl) return;
+
+    let h = parseInt(hhEl.textContent);
+    let m = parseInt(mmEl.textContent);
+
+    if (unit === 'H') {
+        h = (h + delta + 24) % 24;
+    } else {
+        m = (m + delta + 60) % 60;
+    }
+
+    hhEl.textContent = String(h).padStart(2, '0');
+    mmEl.textContent = String(m).padStart(2, '0');
+};
+
 window.openManualEntry = (uid, name, type) => {
     const modal = new bootstrap.Modal(document.getElementById('manualEntryModal'));
     const sel = document.getElementById('manualUserSelect');
@@ -484,16 +502,15 @@ window.openManualEntry = (uid, name, type) => {
 
     const now = new Date();
     document.getElementById('manualDate').valueAsDate = now;
-    // Force 24h HH:mm format
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
-    document.getElementById('manualTime').value = `${hh}:${mm}`;
 
-    if (type) {
-        document.getElementById('manualType').value = type;
-    } else {
-        document.getElementById('manualType').value = 'เข้างาน';
-    }
+    // Set stepper values
+    document.getElementById('labelHH').textContent = String(now.getHours()).padStart(2, '0');
+    document.getElementById('labelMM').textContent = String(now.getMinutes()).padStart(2, '0');
+
+    // Set radio buttons
+    const t = type || 'เข้างาน';
+    const rb = document.querySelector(`input[name="manualType"][value="${t}"]`);
+    if (rb) rb.checked = true;
 
     modal.show();
 };
@@ -502,8 +519,11 @@ window.submitManualEntry = async (e) => {
     e.preventDefault();
     const uid = document.getElementById('manualUserSelect').value;
     const dStr = document.getElementById('manualDate').value;
-    const tStr = document.getElementById('manualTime').value;
-    const type = document.getElementById('manualType').value;
+    const hh = document.getElementById('labelHH').textContent;
+    const mm = document.getElementById('labelMM').textContent;
+    const tStr = `${hh}:${mm}`;
+    const typeEl = document.querySelector('input[name="manualType"]:checked');
+    const type = typeEl ? typeEl.value : 'เข้างาน';
 
     if (!uid || !dStr || !tStr) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุให้ครบถ้วน', 'warning');
 
@@ -1388,7 +1408,7 @@ function initCalendar() {
 // Explicit export to window object to ensure availability
 window.initCalendar = initCalendar;
 
-window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.saveSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime; window.changeSchedMonth = changeSchedMonth; window.schedChangePage = schedChangePage; window.openManualEntry = openManualEntry; window.submitManualEntry = submitManualEntry;
+window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.saveSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime; window.changeSchedMonth = changeSchedMonth; window.schedChangePage = schedChangePage; window.openManualEntry = openManualEntry; window.submitManualEntry = submitManualEntry; window.adjTime = adjTime;
 window.copyAttendanceSummary = () => {
     if (!window.currentData || window.currentData.length === 0) {
         return Toast.fire({ icon: 'warning', title: 'ไม่พบข้อมูลสำหรับคัดลอก' });
