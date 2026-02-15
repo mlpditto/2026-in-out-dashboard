@@ -278,7 +278,8 @@ window.loadLeaveRequests = async () => {
             else if (lt.includes('กิจ')) { leaveEmoji = '📋'; leaveColor = '#0d6efd'; }
             else if (lt.includes('คลอด')) { leaveEmoji = '👶'; leaveColor = '#e91e8c'; }
             else if (lt.includes('บวช')) { leaveEmoji = '🙏'; leaveColor = '#f59e0b'; }
-            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem;">${leaveEmoji} ${displayType}</span>`;
+            const safeReason = (v.reason || 'ไม่ได้ระบุเหตุผล').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem; cursor:pointer;" onclick="Swal.fire({title:'${leaveEmoji} ${displayType}',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${v.name}</p><p><b>📅 วันที่:</b> ${v.startDate} ถึง ${v.endDate}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'${leaveColor}'})">${leaveEmoji} ${displayType}</span>`;
 
             // Get user info for display (empId instead of raw userId)
             const uData = window.allUserData?.[v.userId] || {};
@@ -995,9 +996,32 @@ window.renderMainUserList = async () => {
         return sorted.map(u => {
             const img = (u.pictureUrl || 'https://via.placeholder.com/45');
             const dept = u.dept || '';
-            const op = u.status === 'Inactive' ? 'opacity-50' : '';
-            return `<tr class="${op}">
-                <td class="ps-3"><div class="user-cell"><img src="${img}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><h6 class="mb-0">${u.name || ''}</h6></div></td>
+            let op = u.status === 'Inactive' ? 'opacity-50' : '';
+            let rowStyle = '';
+
+            // Day counter for users with endDate
+            let dayCounterHtml = '';
+            if (u.endDate) {
+                const end = new Date(u.endDate + 'T23:59:59');
+                const now = new Date();
+                const diffMs = end - now;
+                const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+                if (daysLeft <= 0) {
+                    dayCounterHtml = `<span class="badge bg-danger ms-2" style="font-size:0.7rem;">หมดเวลาแล้ว</span>`;
+                    rowStyle = 'background-color: #fff3e0 !important;';
+                } else if (daysLeft <= 7) {
+                    dayCounterHtml = `<span class="badge bg-warning text-dark ms-2" style="font-size:0.7rem;">เหลือ ${daysLeft} วัน</span>`;
+                    rowStyle = 'background-color: #fff8e1 !important;';
+                } else if (daysLeft <= 30) {
+                    dayCounterHtml = `<span class="badge bg-info text-dark ms-2" style="font-size:0.7rem;">เหลือ ${daysLeft} วัน</span>`;
+                } else {
+                    dayCounterHtml = `<span class="badge bg-success ms-2" style="font-size:0.7rem;">เหลือ ${daysLeft} วัน</span>`;
+                }
+            }
+
+            return `<tr class="${op}" style="${rowStyle}">
+                <td class="ps-3"><div class="user-cell"><img src="${img}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
                 <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;">${dept}</span></td>
                 <td class="text-end pe-3">
                     <button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button>
