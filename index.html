@@ -472,7 +472,12 @@
         });
     </script>
 
+    <div
+        style="position: fixed; bottom: 5px; left: 5px; z-index: 10000; font-size: 10px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
+        v2.1
+    </div>
     <script type="module">
+        import { getDeptCategoryColor } from './colors.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -807,13 +812,14 @@
             // ... (rest same) ...
             // โหลดตารางเวร (logic เดิม + UI ใหม่)
             const today = new Date().toISOString().split('T')[0];
-            const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today), orderBy("date"));
+            const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today));
             const snap = await getDocs(q);
             const div = document.getElementById('scheduleList');
             if (snap.empty) { div.innerHTML = "<p class='text-muted text-center small'>ไม่มีตารางเร็วๆ นี้</p>"; return; }
+
+            const docs = snap.docs.map(doc => doc.data()).sort((a, b) => a.date.localeCompare(b.date));
             div.innerHTML = "";
-            snap.forEach(d => {
-                const v = d.data();
+            docs.forEach(v => {
                 const dThai = new Date(v.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
                 let badgeClass = "bg-primary-subtle text-primary";
                 if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) badgeClass = "bg-danger-subtle text-danger";
@@ -864,47 +870,60 @@
         }
 
         async function loadMyLeaves() {
-            // ... logic เดิม ...
-            const q = query(collection(db, "leave_requests"), where("userId", "==", currentUser.lineUserId), orderBy("startDate", "desc"));
-            const snap = await getDocs(q);
-            const list = document.getElementById('myLeaveList'); list.innerHTML = "";
-            snap.forEach(d => {
-                const v = d.data();
-                let color = 'text-warning', icon = 'bi-hourglass-split';
-                if (v.status === 'Approved') { color = 'text-success'; icon = 'bi-check-circle-fill'; }
-                if (v.status === 'Rejected') { color = 'text-danger'; icon = 'bi-x-circle-fill'; }
-                list.innerHTML += `<li class="history-item py-2 px-0 border-0 shadow-none d-flex justify-content-between mb-1">
-                    <div><span class="badg small border me-2">${v.type}</span> <small class="text-muted">${v.startDate}</small></div>
+            try {
+                const q = query(collection(db, "leave_requests"), where("userId", "==", currentUser.lineUserId));
+                const snap = await getDocs(q);
+                const list = document.getElementById('myLeaveList');
+                if (!list) return;
+                list.innerHTML = "";
+
+                if (snap.empty) {
+                    list.innerHTML = "<p class='text-muted text-center small'>ไม่มีประวัติการลา</p>";
+                    return;
+                }
+
+                const docs = snap.docs.map(doc => doc.data()).sort((a, b) => {
+                    const startA = a.startDate || "";
+                    const startB = b.startDate || "";
+                    return startB.localeCompare(startA);
+                });
+
+                docs.forEach(v => {
+                    let color = 'text-warning', icon = 'bi-hourglass-split';
+                    if (v.status === 'Approved') { color = 'text-success'; icon = 'bi-check-circle-fill'; }
+                    if (v.status === 'Rejected') { color = 'text-danger'; icon = 'bi-x-circle-fill'; }
+                    const dColor = getDeptCategoryColor(currentUser.dept);
+                    list.innerHTML += `<li class="history-item py-2 px-0 border-0 shadow-none d-flex justify-content-between mb-1">
+                    <div><span class="badge small border me-2" style="background:${dColor}20; color:${dColor}; border-color:${dColor}">${v.type}</span> <small class="text-muted">${v.startDate}</small></div>
                     <div class="${color} fw-bold small"><i class="bi ${icon}"></i> ${v.status}</div>
                  </li>`
-            });
+                });
+            } catch (err) {
+                console.error("Error loading my leaves:", err);
+            }
         }
 
         // --- DEPARTMENT COLORS ---
-        function getDeptCategoryColor(dept) {
-            dept = dept || "";
-            if (dept.match(/Extern/i)) return 'bg-success';
-            if (dept.match(/Pharmacy|เภสัช/i)) return 'bg-info';
-            if (dept.match(/General|ทั่วไป/i)) return 'bg-secondary';
-            if (dept.match(/IT|ไอที/i)) return 'bg-dark text-white';
-            if (dept.match(/Admin|ธุรการ/i)) return 'bg-danger';
-            if (dept.match(/Sales|การตลาด/i)) return 'bg-warning';
-            return 'bg-light';
-        }
+
 
         function updateDeptUI() {
             if (!currentUser || !currentUser.dept) return;
-            const colorClass = getDeptCategoryColor(currentUser.dept);
+            const color = getDeptCategoryColor(currentUser.dept);
 
-            // Selective class application
-            const elements = ['showName', 'showEmpId', 'mainProfileImg'];
+            // Apply custom color to profile elements
+            const elements = ['showName', 'showEmpId'];
             elements.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    el.classList.remove('bg-success', 'bg-info', 'bg-secondary', 'bg-dark', 'bg-danger', 'bg-warning', 'text-white');
-                    el.classList.add(colorClass);
+                    el.style.backgroundColor = color;
+                    el.style.color = 'white';
                 }
             });
+
+            const profileImg = document.getElementById('mainProfileImg');
+            if (profileImg) {
+                profileImg.style.borderColor = color;
+            }
         }
 
 

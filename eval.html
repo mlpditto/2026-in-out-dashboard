@@ -1,0 +1,1651 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pharm Intern Evaluation (Multi-student • Light/Dark • Export Excel)</title>
+
+  <!-- SheetJS (XLSX) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    /* =====================
+       Theme tokens
+       ===================== */
+    :root{
+      --shadow: 0 10px 35px rgba(0,0,0,.18);
+      --r:14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+
+    /* Dark theme (default) */
+    html[data-theme="dark"]{
+      --bg:#0b0c10;
+      --text:#e8e9ee;
+      --muted:#a8adbd;
+      --line:#242a36;
+      --panel:#12141a;
+      --panel2:#171a22;
+      --brand:#7aa2ff;
+      --good:#3ddc97;
+      --warn:#ffd166;
+      --bad:#ff5c7a;
+      --chipbg: rgba(0,0,0,.12);
+      --cardgrad1: rgba(255,255,255,.02);
+      --cardgrad2: rgba(255,255,255,.01);
+      --hdgrad: rgba(255,255,255,.02);
+      --pagegrad1: rgba(122,162,255,.22);
+      --pagegrad2: rgba(61,220,151,.14);
+    }
+
+    /* Light theme */
+    html[data-theme="light"]{
+      --bg:#f6f7fb;
+      --text:#121524;
+      --muted:#5b6478;
+      --line:#d7dbe7;
+      --panel:#ffffff;
+      --panel2:#fbfbfe;
+      --brand:#2f5bff;
+      --good:#0f9d58;
+      --warn:#b7791f;
+      --bad:#d93025;
+      --chipbg: rgba(0,0,0,.04);
+      --cardgrad1: rgba(0,0,0,.02);
+      --cardgrad2: rgba(0,0,0,.01);
+      --hdgrad: rgba(0,0,0,.02);
+      --pagegrad1: rgba(47,91,255,.10);
+      --pagegrad2: rgba(15,157,88,.08);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--sans);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, var(--pagegrad1), transparent 60%),
+        radial-gradient(900px 500px at 95% 10%, var(--pagegrad2), transparent 60%),
+        var(--bg);
+      color:var(--text);
+    }
+    a{color:var(--brand)}
+    .app{
+      display:grid;
+      grid-template-columns: 390px 1fr;
+      min-height:100vh;
+      gap:14px;
+      padding:14px;
+    }
+    .card{
+      background: linear-gradient(180deg, var(--cardgrad1), var(--cardgrad2));
+      border:1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line);
+      background: var(--hdgrad);
+    }
+    .card .bd{ padding:14px; }
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .col{display:flex; flex-direction:column; gap:8px}
+    .muted{color:var(--muted)}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      background: color-mix(in srgb, var(--brand) 14%, transparent);
+      border:1px solid color-mix(in srgb, var(--brand) 26%, transparent);
+      color: var(--text);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .pill.good{
+      background: color-mix(in srgb, var(--good) 12%, transparent);
+      border-color: color-mix(in srgb, var(--good) 26%, transparent);
+    }
+    .pill.warn{
+      background: color-mix(in srgb, var(--warn) 14%, transparent);
+      border-color: color-mix(in srgb, var(--warn) 26%, transparent);
+    }
+    .pill.bad{
+      background: color-mix(in srgb, var(--bad) 12%, transparent);
+      border-color: color-mix(in srgb, var(--bad) 26%, transparent);
+    }
+    .badge{
+      display:inline-flex; align-items:center;
+      padding:4px 8px; border-radius: 999px;
+      border:1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 70%, transparent);
+      color:var(--muted);
+      font-size:12px; font-weight:700;
+    }
+    .btn{
+      appearance:none; border:1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 85%, transparent);
+      color: var(--text);
+      border-radius: 12px;
+      padding:10px 12px;
+      cursor:pointer;
+      transition:.15s transform, .15s background, .15s border;
+      font-weight:700;
+    }
+    .btn:hover{transform: translateY(-1px); background: color-mix(in srgb, var(--panel) 70%, transparent)}
+    .btn.primary{
+      border-color: color-mix(in srgb, var(--brand) 40%, var(--line));
+      background: color-mix(in srgb, var(--brand) 14%, transparent);
+    }
+    .btn.danger{
+      border-color: color-mix(in srgb, var(--bad) 40%, var(--line));
+      background: color-mix(in srgb, var(--bad) 12%, transparent);
+    }
+    .btn.ghost{background: transparent}
+    .btn.small{padding:8px 10px; border-radius:10px; font-weight:800; font-size:12px}
+    .input, textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      background: color-mix(in srgb, var(--panel2) 92%, transparent);
+      color: var(--text);
+      outline:none;
+    }
+    textarea{min-height:90px; resize:vertical}
+    .divider{height:1px; background: var(--line); margin:12px 0}
+
+    .sidebar .list{
+      display:flex; flex-direction:column; gap:8px;
+      max-height: 34vh;
+      overflow:auto;
+      padding-right:6px;
+    }
+    .studentList{
+      display:flex; flex-direction:column; gap:8px;
+      max-height: 34vh;
+      overflow:auto;
+      padding-right:6px;
+    }
+    .item{
+      border:1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 84%, transparent);
+      border-radius: 12px;
+      padding:10px 10px;
+      cursor:pointer;
+      transition:.12s background, .12s border;
+    }
+    .item:hover{background: color-mix(in srgb, var(--panel) 70%, transparent)}
+    .item.active{
+      border-color: color-mix(in srgb, var(--brand) 42%, var(--line));
+      background: color-mix(in srgb, var(--brand) 10%, transparent);
+    }
+    .item .t{font-weight:900; font-size:13px; line-height:1.25}
+    .item .s{font-size:12px; color:var(--muted); margin-top:6px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+
+    .kpi{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .kpi .box{
+      padding:10px 12px;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 84%, transparent);
+    }
+    .kpi .box .n{font-size:20px; font-weight:950}
+    .kpi .box .l{font-size:12px; color:var(--muted)}
+
+    .main .toolbar{
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .seg{
+      display:inline-flex;
+      border:1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 84%, transparent);
+      border-radius: 999px;
+      overflow:hidden;
+    }
+    .seg button{
+      border:0; background:transparent; color:var(--muted);
+      padding:8px 12px; cursor:pointer; font-weight:900; font-size:12px;
+    }
+    .seg button.active{
+      background: color-mix(in srgb, var(--brand) 14%, transparent);
+      color:var(--text)
+    }
+
+    table{
+      width:100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--panel) 84%, transparent);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      vertical-align: top;
+      font-size:13px;
+    }
+    th{
+      text-align:left; color:var(--muted); font-size:12px;
+      background: color-mix(in srgb, var(--panel2) 86%, transparent);
+      position: sticky; top:0; z-index:1;
+    }
+    tr:last-child td{border-bottom:0}
+    .topic{font-weight:900; line-height:1.35;}
+    .sectionRow{background: color-mix(in srgb, var(--brand) 10%, transparent); font-weight:950;}
+    .scoreGrid{display:flex; gap:6px; flex-wrap:wrap;}
+    .chip{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: var(--chipbg);
+      color: var(--muted);
+      cursor:pointer;
+      user-select:none;
+      font-weight:950;
+      font-size:12px;
+      min-width:38px;
+    }
+    .chip.on{
+      border-color: color-mix(in srgb, var(--brand) 50%, var(--line));
+      background: color-mix(in srgb, var(--brand) 14%, transparent);
+      color: var(--text)
+    }
+    .chip.na.on{
+      border-color: color-mix(in srgb, var(--warn) 55%, var(--line));
+      background: color-mix(in srgb, var(--warn) 14%, transparent);
+    }
+    .mini{font-size:12px; color:var(--muted)}
+    .mono{font-family:var(--mono)}
+
+    .right{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:14px;
+      align-items:start;
+    }
+    .sticky{position:sticky; top:14px;}
+
+    .modal{
+      position:fixed; inset:0;
+      display:none;
+      background: rgba(0,0,0,.55);
+      padding:18px;
+      z-index:50;
+      align-items:center;
+      justify-content:center;
+    }
+    html[data-theme="light"] .modal{ background: rgba(0,0,0,.35); }
+    .modal.on{display:flex}
+    .modal .box{
+      width:min(980px, 100%);
+      max-height: 85vh;
+      overflow:auto;
+      border-radius: var(--r);
+      border:1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .footerActions{
+      display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
+      border-top:1px solid var(--line);
+      padding-top:12px;
+      margin-top:12px;
+    }
+    .searchRow{display:flex; gap:10px; align-items:center; width:100%;}
+    .searchRow input{flex:1}
+
+    @media (max-width: 1100px){
+      .app{grid-template-columns: 1fr}
+      .right{grid-template-columns: 1fr}
+      .sticky{position:static}
+      .sidebar .list, .studentList{max-height:none}
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="card sidebar">
+    <div class="hd">
+      <div class="row" style="justify-content:space-between; width:100%">
+        <div class="col" style="gap:4px">
+          <div style="font-weight:950;font-size:16px;">Pharm Intern Evaluation</div>
+          <div class="muted" style="font-size:12px;">Multi-file import • Light/Dark • Export Excel</div>
+        </div>
+        <div class="row">
+          <button id="btnTheme" class="btn small" title="สลับโหมดสี">🌙 Dark</button>
+          <span class="pill">Local only</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bd">
+      <div class="col" style="gap:12px">
+        <!-- Multi file import -->
+        <div class="col" style="gap:8px">
+          <label class="muted" style="font-size:12px;font-weight:900;">1) Import หลายไฟล์ (.xlsx) พร้อมกัน</label>
+          <input id="fileInput" class="input" type="file" accept=".xlsx,.xlsm,.xlsb,.xls" multiple />
+          <div class="row">
+            <button id="btnClearAll" class="btn small danger">ล้างทั้งหมด</button>
+            <button id="btnLoadFromLS" class="btn small">โหลดจากเครื่อง (ล่าสุด)</button>
+          </div>
+          <div id="importMeta" class="mini"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Students -->
+        <div class="row" style="justify-content:space-between; align-items:baseline">
+          <div class="col" style="gap:4px">
+            <div style="font-weight:950;">นักศึกษา</div>
+            <div class="mini">คลิกเพื่อเลือก • กด 👁 เพื่อซ่อน (ไม่ลบข้อมูล)</div>
+          </div>
+          <span class="badge" id="studentCount">0</span>
+        </div>
+
+        <div class="searchRow">
+          <input id="studentSearch" class="input" placeholder="ค้นหาชื่อ/รหัส/แหล่งฝึก..." />
+          <button id="btnToggleHidden" class="btn small">แสดงที่ซ่อน</button>
+        </div>
+
+        <div id="studentList" class="studentList"></div>
+
+        <div class="divider"></div>
+
+        <!-- Forms -->
+        <div class="row" style="justify-content:space-between; align-items:baseline">
+          <div class="col" style="gap:4px">
+            <div style="font-weight:950;">ฟอร์ม</div>
+            <div class="mini">อ้างอิงจากไฟล์ของนักศึกษาที่เลือก</div>
+          </div>
+          <span class="badge" id="trackBadge">—</span>
+        </div>
+        <div id="formList" class="list"></div>
+
+        <div class="divider"></div>
+
+        <!-- Export / Import -->
+        <div class="col" style="gap:8px">
+          <div style="font-weight:950;">Export / Import</div>
+          <div class="row">
+            <button id="btnExportAllJSON" class="btn small">Export JSON (All)</button>
+            <button id="btnExportAllXLSX" class="btn small primary">Export Excel (All)</button>
+            <button id="btnImportJSON" class="btn small">Import JSON</button>
+          </div>
+          <div class="row">
+            <button id="btnExportAllCSV" class="btn small">Export CSV (All)</button>
+            <button id="btnExportStudentXLSX" class="btn small">Excel (Student)</button>
+          </div>
+          <input id="importJSONInput" class="input" type="file" accept=".json" style="display:none"/>
+          <div class="mini">Excel จะสร้าง 2 ชีต: <span class="mono">Summary</span> และ <span class="mono">Scores</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="card main">
+    <div class="hd">
+      <div class="toolbar">
+        <div class="col" style="gap:4px">
+          <div id="mainTitle" style="font-weight:950;font-size:16px;">ยังไม่เลือกนักศึกษา</div>
+          <div id="mainSubtitle" class="muted" style="font-size:12px;">Import ไฟล์ .xlsx หลายไฟล์ แล้วเลือกนักศึกษาทางซ้าย</div>
+        </div>
+
+        <div class="row">
+          <div id="weekSegWrap" style="display:none">
+            <div class="seg" role="tablist" aria-label="week selector">
+              <button id="btnWeek3" type="button">Week 3</button>
+              <button id="btnWeek6" type="button" class="active">Week 6 (ใช้คิดคะแนน)</button>
+            </div>
+          </div>
+          <button id="btnOpenFeedback" class="btn small" style="display:none">Feedback</button>
+          <button id="btnOpenRubric" class="btn small ghost" style="display:none">Rubric</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bd">
+      <div class="right">
+        <!-- FORM TABLE -->
+        <div class="card" style="box-shadow:none">
+          <div class="hd">
+            <div class="row" style="justify-content:space-between">
+              <div class="row">
+                <span class="pill" id="pillMax">เต็ม —</span>
+                <span class="pill good" id="pillScore">ได้ —</span>
+                <span class="pill warn" id="pillBase">ฐานคิดคะแนน —</span>
+              </div>
+              <div class="row">
+                <button id="btnSave" class="btn small">Save</button>
+                <button id="btnClearForm" class="btn small danger">Clear form</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bd" style="padding:0">
+            <div style="max-height: 68vh; overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:52%;">หัวข้อ</th>
+                    <th style="width:30%;">คะแนน</th>
+                    <th style="width:18%;">หมายเหตุ</th>
+                  </tr>
+                </thead>
+                <tbody id="formTbody">
+                  <tr><td colspan="3" class="muted">ยังไม่มีข้อมูล</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUMMARY PANEL -->
+        <div class="card sticky" style="box-shadow:none">
+          <div class="hd">
+            <div style="font-weight:950;">Summary</div>
+            <div class="mini" id="studentMeta">—</div>
+          </div>
+          <div class="bd">
+            <div class="col" style="gap:10px">
+              <div class="kpi" style="grid-template-columns: 1fr;">
+                <div class="box">
+                  <div class="n" id="sumTotal">—</div>
+                  <div class="l">คะแนนรวม 70%</div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+              <div id="breakdown" class="col" style="gap:8px"></div>
+
+              <div class="divider"></div>
+
+              <label class="muted" style="font-size:12px;font-weight:950;">ข้อเสนอแนะรวม (optional)</label>
+              <textarea id="overallComment" placeholder="สรุปจุดแข็ง/สิ่งที่ควรพัฒนา..."></textarea>
+
+              <div class="footerActions">
+                <button id="btnExportStudentJSON" class="btn primary">Export JSON (Student)</button>
+              </div>
+
+              <div class="mini">
+                Logic: ตัด N/A ออกจากฐานคะแนน → คะแนนฟอร์ม = (ผลรวมคะแนน * คะแนนเต็มฟอร์ม) / (จำนวนข้อที่ประเมินจริง * 5) • รวม 70% = ผลรวมทุกฟอร์ม
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /bd -->
+  </div>
+</div>
+
+<!-- RUBRIC MODAL -->
+<div class="modal" id="rubricModal" role="dialog" aria-modal="true" aria-label="Rubric details">
+  <div class="box">
+    <div class="hd" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <div class="col" style="gap:4px">
+        <div style="font-weight:950" id="rubricTitle">Rubric</div>
+        <div class="mini" id="rubricSub">—</div>
+      </div>
+      <button class="btn small" id="btnCloseRubric">ปิด</button>
+    </div>
+    <div class="bd" id="rubricBody"></div>
+  </div>
+</div>
+
+<!-- FEEDBACK MODAL -->
+<div class="modal" id="feedbackModal" role="dialog" aria-modal="true" aria-label="Feedback Week 3/6">
+  <div class="box">
+    <div class="hd" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <div class="col" style="gap:4px">
+        <div style="font-weight:950">Feedback</div>
+        <div class="mini">บันทึก “จุดแข็ง / จุดที่ควรปรับปรุง” แยก Week 3 และ Week 6</div>
+      </div>
+      <button class="btn small" id="btnCloseFeedback">ปิด</button>
+    </div>
+    <div class="bd">
+      <div class="row" style="gap:14px; align-items:stretch">
+        <div class="card" style="box-shadow:none; flex:1;">
+          <div class="hd"><div style="font-weight:950">Week 3</div></div>
+          <div class="bd">
+            <label class="muted" style="font-size:12px;font-weight:950;">จุดแข็ง</label>
+            <textarea id="fb3Strength" placeholder="..."></textarea>
+            <div style="height:10px"></div>
+            <label class="muted" style="font-size:12px;font-weight:950;">จุดที่ควรปรับปรุง</label>
+            <textarea id="fb3Improve" placeholder="..."></textarea>
+          </div>
+        </div>
+        <div class="card" style="box-shadow:none; flex:1;">
+          <div class="hd"><div style="font-weight:950">Week 6</div></div>
+          <div class="bd">
+            <label class="muted" style="font-size:12px;font-weight:950;">จุดแข็ง</label>
+            <textarea id="fb6Strength" placeholder="..."></textarea>
+            <div style="height:10px"></div>
+            <label class="muted" style="font-size:12px;font-weight:950;">จุดที่ควรปรับปรุง</label>
+            <textarea id="fb6Improve" placeholder="..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="footerActions">
+        <button class="btn primary" id="btnSaveFeedback">Save feedback</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/** =========================================
+ *  Multi-student single-file evaluator
+ *  - Light/Dark mode (persisted)
+ *  - Export Excel (.xlsx) for all students + per-student
+ *  ========================================= */
+
+const LS_KEY = "pharm_eval_multi_v2";
+const THEME_KEY = "pharm_eval_theme";
+
+/** Root state */
+const root = {
+  version: "v2",
+  createdAt: new Date().toISOString(),
+  students: {
+    // studentId: { id, fileName, loadedAt, hidden, track, meta, forms, answers, feedback, overallComment, ui:{activeFormKey, activeWeek} }
+  },
+  ui: {
+    activeStudentId: null,
+    showHiddenStudents: false,
+    studentSearch: "",
+  }
+};
+
+function saveLS(){ localStorage.setItem(LS_KEY, JSON.stringify(root)); }
+function loadLS(){
+  const raw = localStorage.getItem(LS_KEY);
+  if(!raw) return false;
+  try{ Object.assign(root, JSON.parse(raw)); return true; }
+  catch(e){ console.warn(e); return false; }
+}
+
+/** Theme */
+function setTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem(THEME_KEY, theme);
+  const btn = document.getElementById("btnTheme");
+  btn.textContent = theme === "dark" ? "🌙 Dark" : "☀️ Light";
+}
+function initTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === "light" || saved === "dark"){
+    setTheme(saved);
+    return;
+  }
+  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  setTheme(prefersDark ? "dark" : "light");
+}
+
+/** Helpers */
+function normText(v){
+  if(v === null || v === undefined) return "";
+  if(typeof v === "number") return String(v);
+  return String(v).replace(/\s+/g," ").trim();
+}
+function escapeHTML(s){
+  return String(s ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[ch]));
+}
+function escapeAttr(s){ return escapeHTML(s).replace(/"/g,"&quot;"); }
+function safeFileStem(name){
+  return String(name).replace(/\.[^.]+$/,"").replace(/[^\w\-]+/g,"_").slice(0,60) || "export";
+}
+function fmtNum(x, d=2){
+  if(x === null || x === undefined) return "—";
+  const n = Number(x);
+  if(!Number.isFinite(n)) return "—";
+  return n.toFixed(d);
+}
+function csvEscape(v){
+  const s = (v===null || v===undefined) ? "" : String(v);
+  if(/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+  return s;
+}
+function downloadBlob(filename, mime, data){
+  const blob = data instanceof Blob ? data : new Blob([data], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** Workbook parsing */
+function parsePctFromLabel(label){
+  const m = label.match(/\((\s*\d+)\s*%\)/);
+  return m ? Number(m[1]) : null;
+}
+function extractSheetNameFromSummaryLabel(label){
+  const m = label.match(/^(แบบ\s+[^_]+)_/);
+  return m ? m[1].trim() : null;
+}
+function getCell(ws, r1, c1){
+  const cell = ws[XLSX.utils.encode_cell({r:r1-1,c:c1-1})];
+  return cell ? cell.v : null;
+}
+function sheetToRange(ws){
+  const ref = ws["!ref"];
+  if(!ref) return {r1:1,c1:1,r2:1,c2:1};
+  const rg = XLSX.utils.decode_range(ref);
+  return {r1: rg.s.r+1, c1: rg.s.c+1, r2: rg.e.r+1, c2: rg.e.c+1};
+}
+function detectHeaderRow(ws){
+  const range = sheetToRange(ws);
+  const maxR = Math.min(range.r2, 20);
+  const maxC = Math.min(range.c2, 16);
+  for(let r=1; r<=maxR; r++){
+    for(let c=1; c<=maxC; c++){
+      const v = getCell(ws,r,c);
+      if(typeof v === "string" && v.includes("หัวข้อการประเมิน")){
+        return r;
+      }
+    }
+  }
+  return null;
+}
+function detectScoreColumns(headerRowValues){
+  let allowNA = false;
+  let colWeek3 = null, colWeek6 = null, colSingle = null;
+
+  headerRowValues.forEach((v, idx0)=>{
+    const t = normText(v);
+    if(!t) return;
+    if(t.includes("N/A")) allowNA = true;
+    if(t.includes("สัปดาห์ที่ 3")) colWeek3 = idx0+1;
+    if(t.includes("สัปดาห์ที่ 6")) colWeek6 = idx0+1;
+    if(t === "คะแนนที่ได้" || t.includes("คะแนนที่ได้")){
+      if(!t.includes("สัปดาห์ที่ 3") && !t.includes("สัปดาห์ที่ 6")) colSingle = idx0+1;
+    }
+  });
+
+  const hasWeeks = (colWeek3 !== null && colWeek6 !== null);
+  if(hasWeeks) colSingle = null;
+  return {allowNA, hasWeeks, colWeek3, colWeek6, colSingle};
+}
+function findMaxScore(ws){
+  const range = sheetToRange(ws);
+  const maxR = Math.min(range.r2, 250);
+  for(let r=1; r<=maxR; r++){
+    const a = normText(getCell(ws,r,1));
+    if(!a) continue;
+    if(a.includes("คะแนนรวม")){
+      const m = a.match(/เต็ม\s*(\d+)\s*คะแนน/);
+      if(m) return Number(m[1]);
+    }
+  }
+  return null;
+}
+function isCriterionRow(text){ return /^\s*\d+\s*[\.\)]/.test(text); }
+function isSectionRow(text){
+  return /^กิจกรรมที่\s*\d+/.test(text) || /^หัวข้อ/.test(text) || /^หมวด/.test(text);
+}
+function stopAtRow(text){
+  if(!text) return false;
+  return (
+    text.includes("คะแนนรวม") ||
+    text.includes("รวมคะแนน") ||
+    text.includes("ลงชื่อ") ||
+    text.includes("การสะท้อน") ||
+    text.toLowerCase().includes("feedback")
+  );
+}
+
+function parseStudentFromWorkbook(wb, fileName){
+  const names = wb.SheetNames;
+  const isCare = names.some(n => n.includes("แบบ ป-"));
+  const isMgmt = names.some(n => n.includes("แบบ บริหาร-"));
+  const track = isCare ? "บริบาลร้านยา" : (isMgmt ? "บริหารจัดการร้านยา" : "ไม่ทราบ");
+
+  const student = {
+    id: null,
+    fileName,
+    loadedAt: new Date().toISOString(),
+    hidden: false,
+    track,
+    meta: {
+      studentName: null,
+      institute: null,
+      studentId: null,
+      site: null,
+      clerkship: null,
+      startDate: null,
+      endDate: null,
+      cvLink: null,
+      preceptor: null,
+    },
+    forms: [],
+    answers: {},
+    feedback: {},
+    overallComment: "",
+    ui: { activeFormKey: null, activeWeek: 6 }
+  };
+
+  const sumWs = wb.Sheets["Summary"];
+  if(sumWs){
+    const metaMap = {
+      "ชื่อนิสิต":"studentName",
+      "สถาบัน":"institute",
+      "รหัสประจำตัว":"studentId",
+      "แหล่งฝึก":"site",
+      "Clerkship":"clerkship",
+      "วันเริ่มฝึก":"startDate",
+      "วันสิ้นสุดการฝึก":"endDate",
+      "CV Link":"cvLink",
+      "ชื่อ Preceptor":"preceptor",
+    };
+    for(let r=1; r<=30; r++){
+      const key = normText(getCell(sumWs,r,1));
+      const val = getCell(sumWs,r,2);
+      if(metaMap[key]) student.meta[metaMap[key]] = (val ?? null);
+    }
+
+    const range = sheetToRange(sumWs);
+    for(let r=1; r<=range.r2; r++){
+      const label = normText(getCell(sumWs,r,1));
+      if(!label || !label.startsWith("แบบ ")) continue;
+
+      const sheetName = extractSheetNameFromSummaryLabel(label);
+      const weightPct = parsePctFromLabel(label);
+      if(!sheetName) continue;
+
+      const ws = wb.Sheets[sheetName];
+      if(!ws) continue;
+
+      const headerRow = detectHeaderRow(ws);
+      const headerVals = [];
+      if(headerRow){
+        for(let c=1; c<=14; c++) headerVals.push(getCell(ws, headerRow, c));
+      }
+      const cols = detectScoreColumns(headerVals);
+      const maxScore = findMaxScore(ws) ?? weightPct ?? null;
+
+      const items = [];
+      const range2 = sheetToRange(ws);
+      const startR = headerRow ? headerRow+1 : 1;
+      for(let rr=startR; rr<=Math.min(range2.r2, 400); rr++){
+        const topic = normText(getCell(ws,rr,1));
+        if(!topic) continue;
+        if(stopAtRow(topic)) break;
+
+        if(isSectionRow(topic) && !isCriterionRow(topic)){
+          items.push({ id:`${sheetName}::sec::${rr}`, type:"section", text:topic });
+          continue;
+        }
+        if(isCriterionRow(topic)){
+          const rubric = {
+            5: normText(getCell(ws,rr,2)),
+            4: normText(getCell(ws,rr,3)),
+            3: normText(getCell(ws,rr,4)),
+            2: normText(getCell(ws,rr,5)),
+            1: normText(getCell(ws,rr,6)),
+          };
+          items.push({ id:`${sheetName}::item::${rr}`, type:"criterion", text:topic, rubric });
+        }
+      }
+
+      const formKey = sheetName;
+      student.answers[formKey] = student.answers[formKey] || {week3:{}, week6:{}, single:{}, comments:{}};
+      student.feedback[formKey] = student.feedback[formKey] || {w3:{strength:"",improve:""}, w6:{strength:"",improve:""}};
+
+      student.forms.push({
+        key: formKey,
+        label,
+        sheetName,
+        weightPct,
+        maxScore,
+        headerRow,
+        items,
+        ...cols
+      });
+    }
+  }
+
+  const base = (student.meta.studentId && normText(student.meta.studentId)) || null;
+  const name = normText(student.meta.studentName) || "UNKNOWN";
+  const site = normText(student.meta.site) || "";
+  student.id = base ? String(base) : `${name}__${site}__${safeFileStem(fileName)}`;
+  if(student.forms.length) student.ui.activeFormKey = student.forms[0].key;
+
+  return student;
+}
+
+/** Active pointers */
+function getActiveStudent(){
+  const sid = root.ui.activeStudentId;
+  if(!sid) return null;
+  return root.students[sid] || null;
+}
+function getActiveForm(student){
+  if(!student) return null;
+  return student.forms.find(f=>f.key===student.ui.activeFormKey) || null;
+}
+
+/** Scoring */
+function calcFormScore(student, form){
+  const ans = student.answers[form.key];
+  if(!ans) return {score:null, rated:0};
+
+  const bucket = form.hasWeeks ? ans.week6 : ans.single; // final uses Week 6
+  let sum = 0, rated = 0;
+  for(const it of form.items){
+    if(it.type !== "criterion") continue;
+    const v = bucket[it.id];
+    if(v === null || v === undefined) continue;
+    if(v === "NA") continue;
+    const n = Number(v);
+    if(!Number.isFinite(n)) continue;
+    rated += 1;
+    sum += n;
+  }
+  if(rated === 0) return {score:null, rated:0};
+  const max = form.maxScore ?? form.weightPct ?? 0;
+  return {score: (sum * max) / (rated * 5), rated};
+}
+function calcTotal70(student){
+  let total=0, done=0;
+  for(const f of student.forms){
+    const r = calcFormScore(student, f);
+    if(r.score !== null){
+      total += r.score;
+      done += 1;
+    }
+  }
+  return {total, done, count: student.forms.length};
+}
+
+/** Hide/unhide students */
+function toggleStudentHidden(studentId){
+  const st = root.students[studentId];
+  if(!st) return;
+  st.hidden = !st.hidden;
+
+  if(st.hidden && root.ui.activeStudentId === studentId){
+    const next = Object.values(root.students).find(x=>!x.hidden) || null;
+    root.ui.activeStudentId = next ? next.id : null;
+  }
+  saveLS();
+  renderAll();
+}
+
+/** Rendering */
+function renderStudents(){
+  const list = document.getElementById("studentList");
+  list.innerHTML = "";
+
+  const all = Object.values(root.students);
+  const showHidden = root.ui.showHiddenStudents;
+  const q = normText(root.ui.studentSearch).toLowerCase();
+
+  let filtered = all.filter(st => showHidden ? true : !st.hidden);
+
+  if(q){
+    filtered = filtered.filter(st=>{
+      const hay = [
+        st.id, st.meta.studentName, st.meta.studentId, st.meta.site,
+        st.meta.institute, st.track, st.fileName
+      ].map(x=>normText(x).toLowerCase()).join(" | ");
+      return hay.includes(q);
+    });
+  }
+
+  const visibleCount = all.filter(st=>!st.hidden).length;
+  const hiddenCount = all.filter(st=>st.hidden).length;
+  document.getElementById("studentCount").textContent = `${visibleCount} / ${all.length}`;
+  document.getElementById("btnToggleHidden").textContent = root.ui.showHiddenStudents ? `ซ่อนที่ซ่อน (${hiddenCount})` : `แสดงที่ซ่อน (${hiddenCount})`;
+
+  if(filtered.length === 0){
+    list.innerHTML = `<div class="muted" style="font-size:13px;">ไม่พบนักศึกษา (ลองกด “แสดงที่ซ่อน” หรือเคลียร์คำค้นหา)</div>`;
+    return;
+  }
+
+  for(const st of filtered){
+    const {total, done, count} = (st.forms?.length) ? calcTotal70(st) : {total:null, done:0, count:0};
+
+    const item = document.createElement("div");
+    item.className = "item" + (root.ui.activeStudentId === st.id ? " active" : "");
+    item.innerHTML = `
+      <div class="row" style="justify-content:space-between; align-items:flex-start;">
+        <div class="col" style="gap:4px; min-width:0;">
+          <div class="t" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            ${escapeHTML(st.meta.studentName || "ไม่ทราบชื่อ")}
+            <span class="badge">${escapeHTML(st.meta.studentId || st.id)}</span>
+          </div>
+          <div class="s">
+            <span class="pill">${escapeHTML(st.track)}</span>
+            <span class="pill">ฟอร์ม ${done}/${count}</span>
+            <span class="pill good">${total===null ? "รวม —" : `รวม ${fmtNum(total,2)}`}</span>
+            ${st.hidden ? `<span class="pill warn">ซ่อนอยู่</span>` : ``}
+          </div>
+          <div class="mini" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            แหล่งฝึก: ${escapeHTML(st.meta.site || "—")} • ไฟล์: ${escapeHTML(st.fileName || "—")}
+          </div>
+        </div>
+
+        <div class="row" style="gap:6px">
+          <button class="btn small" data-act="select" data-id="${escapeAttr(st.id)}">เปิด</button>
+          <button class="btn small" data-act="hide" data-id="${escapeAttr(st.id)}" title="ซ่อน/แสดง">
+            ${st.hidden ? "👁‍🗨" : "👁"}
+          </button>
+        </div>
+      </div>
+    `;
+    list.appendChild(item);
+  }
+
+  list.querySelectorAll("button[data-act='select']").forEach(b=>{
+    b.onclick = ()=>{
+      root.ui.activeStudentId = b.getAttribute("data-id");
+      saveLS();
+      renderAll();
+    };
+  });
+  list.querySelectorAll("button[data-act='hide']").forEach(b=>{
+    b.onclick = ()=> toggleStudentHidden(b.getAttribute("data-id"));
+  });
+}
+
+function renderForms(){
+  const st = getActiveStudent();
+  const formList = document.getElementById("formList");
+  formList.innerHTML = "";
+
+  if(!st){
+    document.getElementById("trackBadge").textContent = "—";
+    return;
+  }
+  document.getElementById("trackBadge").textContent = st.track || "—";
+
+  for(const f of st.forms){
+    const r = calcFormScore(st, f);
+    const item = document.createElement("div");
+    item.className = "item" + (st.ui.activeFormKey === f.key ? " active" : "");
+    item.innerHTML = `
+      <div class="t">${escapeHTML(f.label)}</div>
+      <div class="s">
+        ${r.score === null ? `<span class="pill warn">ยังไม่ครบ</span>` : `<span class="pill good">ได้ ${fmtNum(r.score,2)}</span>`}
+        <span class="pill">เต็ม ${escapeHTML(f.maxScore ?? "—")}</span>
+        ${f.hasWeeks ? `<span class="pill">Week 3/6</span>` : ``}
+        ${f.allowNA ? `<span class="pill">N/A</span>` : ``}
+      </div>
+    `;
+    item.onclick = ()=>{
+      st.ui.activeFormKey = f.key;
+      saveLS();
+      renderAll();
+    };
+    formList.appendChild(item);
+  }
+}
+
+function setWeekButtonStates(){
+  const st = getActiveStudent();
+  const form = getActiveForm(st);
+  const wWrap = document.getElementById("weekSegWrap");
+  if(!st || !form || !form.hasWeeks){
+    wWrap.style.display = "none";
+    return;
+  }
+  wWrap.style.display = "";
+  document.getElementById("btnWeek3").classList.toggle("active", st.ui.activeWeek===3);
+  document.getElementById("btnWeek6").classList.toggle("active", st.ui.activeWeek===6);
+}
+
+function getScoreValue(st, form, itemId){
+  const ans = st.answers[form.key];
+  if(!ans) return null;
+  if(form.hasWeeks){
+    const bucket = st.ui.activeWeek===3 ? ans.week3 : ans.week6;
+    return bucket[itemId] ?? null;
+  }
+  return ans.single[itemId] ?? null;
+}
+function setScoreValue(st, form, itemId, val){
+  const ans = st.answers[form.key];
+  if(form.hasWeeks){
+    const bucket = st.ui.activeWeek===3 ? ans.week3 : ans.week6;
+    bucket[itemId] = val;
+  }else{
+    ans.single[itemId] = val;
+  }
+}
+function getComment(st, form, itemId){
+  const ans = st.answers[form.key];
+  return ans?.comments?.[itemId] ?? "";
+}
+function setComment(st, form, itemId, text){
+  const ans = st.answers[form.key];
+  ans.comments[itemId] = text;
+}
+
+function renderMain(){
+  const st = getActiveStudent();
+  const form = getActiveForm(st);
+
+  const mainTitle = document.getElementById("mainTitle");
+  const mainSubtitle = document.getElementById("mainSubtitle");
+  const tbody = document.getElementById("formTbody");
+
+  const btnFb = document.getElementById("btnOpenFeedback");
+  const btnRb = document.getElementById("btnOpenRubric");
+
+  if(!st){
+    mainTitle.textContent = "ยังไม่เลือกนักศึกษา";
+    mainSubtitle.textContent = "Import ไฟล์ .xlsx หลายไฟล์ แล้วเลือกนักศึกษาทางซ้าย";
+    tbody.innerHTML = `<tr><td colspan="3" class="muted">ยังไม่มีข้อมูล</td></tr>`;
+    btnFb.style.display = "none";
+    btnRb.style.display = "none";
+    document.getElementById("studentMeta").textContent = "—";
+    document.getElementById("sumTotal").textContent = "—";
+    document.getElementById("breakdown").innerHTML = "";
+    document.getElementById("overallComment").value = "";
+    document.getElementById("pillMax").textContent = "เต็ม —";
+    document.getElementById("pillScore").textContent = "ได้ —";
+    document.getElementById("pillBase").textContent = "ฐานคิดคะแนน —";
+    return;
+  }
+
+  const metaParts = [];
+  if(st.meta.studentName) metaParts.push(`นิสิต: ${st.meta.studentName}`);
+  if(st.meta.studentId) metaParts.push(`รหัส: ${st.meta.studentId}`);
+  if(st.meta.site) metaParts.push(`แหล่งฝึก: ${st.meta.site}`);
+  document.getElementById("studentMeta").textContent = metaParts.length ? metaParts.join(" • ") : "—";
+
+  const {total, done, count} = calcTotal70(st);
+  document.getElementById("sumTotal").textContent = total === null ? "—" : fmtNum(total,2);
+
+  // breakdown
+  const breakdown = document.getElementById("breakdown");
+  breakdown.innerHTML = "";
+  for(const f of st.forms){
+    const r = calcFormScore(st, f);
+    const box = document.createElement("div");
+    box.className = "row";
+    box.style.justifyContent = "space-between";
+    box.style.gap = "10px";
+    box.innerHTML = `
+      <div class="col" style="gap:2px; min-width: 0;">
+        <div style="font-weight:950; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${escapeHTML(f.label)}</div>
+        <div class="mini">เต็ม ${escapeHTML(f.maxScore ?? "—")} • ${f.hasWeeks ? "Week 3/6" : "ครั้งเดียว"}</div>
+      </div>
+      <div class="col" style="align-items:flex-end; gap:2px">
+        <div style="font-weight:950">${r.score === null ? "—" : fmtNum(r.score,2)}</div>
+        <div class="mini">${r.rated ? `ฐาน ${r.rated} ข้อ` : "ยังไม่คิดคะแนน"}</div>
+      </div>
+    `;
+    breakdown.appendChild(box);
+  }
+
+  // overall comment sync
+  const oc = document.getElementById("overallComment");
+  if(oc.value !== st.overallComment) oc.value = st.overallComment;
+
+  if(!form){
+    mainTitle.textContent = `${st.meta.studentName || st.id}`;
+    mainSubtitle.textContent = `ไม่มีฟอร์มในไฟล์นี้ (ตรวจสอบว่า sheet Summary และแบบฟอร์มมีอยู่)`;
+    tbody.innerHTML = `<tr><td colspan="3" class="muted">ยังไม่มีข้อมูล</td></tr>`;
+    btnFb.style.display = "none";
+    btnRb.style.display = "none";
+    document.getElementById("pillMax").textContent = "เต็ม —";
+    document.getElementById("pillScore").textContent = "ได้ —";
+    document.getElementById("pillBase").textContent = "ฐานคิดคะแนน —";
+    return;
+  }
+
+  mainTitle.textContent = `${st.meta.studentName || st.id} • ${form.label}`;
+  mainSubtitle.textContent = `Track: ${st.track} • ฟอร์มทำแล้ว ${done}/${count} • ใช้ Week 6 คิดคะแนนรวม`;
+
+  btnFb.style.display = "";
+  btnRb.style.display = "";
+
+  setWeekButtonStates();
+
+  // pills for current form final score
+  const rFinal = calcFormScore(st, form);
+  const max = form.maxScore ?? "—";
+  document.getElementById("pillMax").textContent = `เต็ม ${max}`;
+  document.getElementById("pillScore").textContent = rFinal.score === null ? "ได้ —" : `ได้ ${fmtNum(rFinal.score,2)}`;
+  document.getElementById("pillBase").textContent = rFinal.rated ? `ฐานคิดคะแนน ${rFinal.rated} ข้อ` : "ฐานคิดคะแนน —";
+
+  // table
+  tbody.innerHTML = "";
+  for(const it of form.items){
+    if(it.type === "section"){
+      const tr = document.createElement("tr");
+      tr.className = "sectionRow";
+      tr.innerHTML = `<td colspan="3">${escapeHTML(it.text)}</td>`;
+      tbody.appendChild(tr);
+      continue;
+    }
+
+    const score = getScoreValue(st, form, it.id);
+    const allowNA = !!form.allowNA;
+    const choices = [5,4,3,2,1].map(n=>({key:String(n), label:String(n), active:String(score)===String(n)}));
+    if(allowNA) choices.push({key:"NA", label:"N/A", active:score==="NA", na:true});
+
+    const comment = getComment(st, form, it.id);
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><div class="topic">${escapeHTML(it.text)}</div></td>
+      <td>
+        <div class="scoreGrid" data-item="${escapeAttr(it.id)}">
+          ${choices.map(ch=>{
+            const cls = ["chip", ch.active ? "on" : "", ch.na ? "na" : ""].join(" ").trim();
+            return `<span class="${cls}" data-val="${escapeAttr(ch.key)}">${escapeHTML(ch.label)}</span>`;
+          }).join("")}
+        </div>
+        <div class="mini" style="margin-top:6px;">
+          ${form.hasWeeks ? `กำลังกรอก: <span class="mono">Week ${st.ui.activeWeek}</span>` : `ครั้งเดียว`}
+          • <a href="#" class="mini" data-open-rubric="${escapeAttr(it.id)}">ดู rubric</a>
+        </div>
+      </td>
+      <td>
+        <input class="input" style="padding:8px 10px; border-radius:10px; font-size:12px"
+          placeholder="หมายเหตุ (optional)" value="${escapeAttr(comment)}" data-comment="${escapeAttr(it.id)}"/>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // bind chips
+  tbody.querySelectorAll(".scoreGrid").forEach(grid=>{
+    grid.querySelectorAll(".chip").forEach(chip=>{
+      chip.addEventListener("click", ()=>{
+        const itemId = grid.getAttribute("data-item");
+        const val = chip.getAttribute("data-val");
+        setScoreValue(st, form, itemId, val);
+        saveLS();
+        renderAll();
+      });
+    });
+  });
+  // bind comments
+  tbody.querySelectorAll("input[data-comment]").forEach(inp=>{
+    inp.addEventListener("input", ()=>{
+      const itemId = inp.getAttribute("data-comment");
+      setComment(st, form, itemId, inp.value);
+      saveLS();
+    });
+  });
+  // bind rubric link
+  tbody.querySelectorAll("a[data-open-rubric]").forEach(a=>{
+    a.addEventListener("click", (e)=>{
+      e.preventDefault();
+      openRubricForItem(a.getAttribute("data-open-rubric"));
+    });
+  });
+}
+
+/** Rubric modal */
+function openRubricForItem(itemId){
+  const st = getActiveStudent();
+  const form = getActiveForm(st);
+  if(!st || !form) return;
+  const it = form.items.find(x=>x.id===itemId);
+  if(!it) return;
+
+  document.getElementById("rubricTitle").textContent = "Rubric";
+  document.getElementById("rubricSub").textContent = `${st.meta.studentName || st.id} • ${form.sheetName} • ${it.text}`;
+
+  const body = document.getElementById("rubricBody");
+  body.innerHTML = `
+    <div class="col" style="gap:10px">
+      ${[5,4,3,2,1].map(n=>{
+        const t = it.rubric?.[n] || "—";
+        return `
+          <div class="card" style="box-shadow:none">
+            <div class="hd">
+              <div class="row" style="justify-content:space-between">
+                <div style="font-weight:950">ระดับ ${n}</div>
+                <span class="pill">${n} คะแนน</span>
+              </div>
+            </div>
+            <div class="bd"><div class="muted" style="white-space:pre-wrap">${escapeHTML(t)}</div></div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+  document.getElementById("rubricModal").classList.add("on");
+}
+function closeRubric(){ document.getElementById("rubricModal").classList.remove("on"); }
+
+/** Feedback modal */
+function openFeedback(){
+  const st = getActiveStudent();
+  const form = getActiveForm(st);
+  if(!st || !form) return;
+  const fb = st.feedback[form.key] || {w3:{strength:"",improve:""}, w6:{strength:"",improve:""}};
+  document.getElementById("fb3Strength").value = fb.w3.strength || "";
+  document.getElementById("fb3Improve").value = fb.w3.improve || "";
+  document.getElementById("fb6Strength").value = fb.w6.strength || "";
+  document.getElementById("fb6Improve").value = fb.w6.improve || "";
+  document.getElementById("feedbackModal").classList.add("on");
+}
+function closeFeedback(){ document.getElementById("feedbackModal").classList.remove("on"); }
+function saveFeedback(){
+  const st = getActiveStudent();
+  const form = getActiveForm(st);
+  if(!st || !form) return;
+  const fb = st.feedback[form.key] || {w3:{strength:"",improve:""}, w6:{strength:"",improve:""}};
+  fb.w3.strength = document.getElementById("fb3Strength").value || "";
+  fb.w3.improve = document.getElementById("fb3Improve").value || "";
+  fb.w6.strength = document.getElementById("fb6Strength").value || "";
+  fb.w6.improve = document.getElementById("fb6Improve").value || "";
+  st.feedback[form.key] = fb;
+  saveLS();
+  closeFeedback();
+}
+
+/** JSON / CSV exports */
+function exportAllJSON(){
+  downloadBlob(
+    `pharm-eval_ALL_${new Date().toISOString().slice(0,10)}.json`,
+    "application/json;charset=utf-8",
+    JSON.stringify(root, null, 2)
+  );
+}
+function exportAllCSV(){
+  const rows = [];
+  rows.push([
+    "studentKey","studentName","studentId","site","track","fileName",
+    "formKey","formLabel","itemId","itemText","week3","week6","single","comment"
+  ]);
+
+  for(const st of Object.values(root.students)){
+    for(const f of st.forms || []){
+      const ans = st.answers?.[f.key] || {week3:{},week6:{},single:{},comments:{}};
+      for(const it of f.items || []){
+        if(it.type !== "criterion") continue;
+        rows.push([
+          st.id,
+          st.meta.studentName || "",
+          st.meta.studentId || "",
+          st.meta.site || "",
+          st.track || "",
+          st.fileName || "",
+          f.key,
+          f.label,
+          it.id,
+          it.text,
+          ans.week3[it.id] ?? "",
+          ans.week6[it.id] ?? "",
+          ans.single[it.id] ?? "",
+          (ans.comments[it.id] ?? "").replace(/\n/g," ")
+        ]);
+      }
+    }
+  }
+
+  const csv = rows.map(r=>r.map(csvEscape).join(",")).join("\n");
+  downloadBlob(`pharm-eval_ALL_${new Date().toISOString().slice(0,10)}.csv`, "text/csv;charset=utf-8", csv);
+}
+function exportStudentJSON(){
+  const st = getActiveStudent();
+  if(!st){ alert("ยังไม่เลือกนักศึกษา"); return; }
+  const payload = { version: root.version, exportedAt: new Date().toISOString(), student: st };
+  downloadBlob(
+    `pharm-eval_${safeFileStem(st.meta.studentName || st.id)}_${safeFileStem(st.fileName || "file")}.json`,
+    "application/json;charset=utf-8",
+    JSON.stringify(payload, null, 2)
+  );
+}
+
+/** =========================
+ *  Excel export
+ *  - create workbook with 2 sheets:
+ *    1) Summary: 1 row per student with total + some meta
+ *    2) Scores: long-form rows per criterion per student
+ * ========================= */
+function buildWorkbookForStudents(students){
+  // Summary rows
+  const summaryRows = [];
+  summaryRows.push([
+    "studentKey","studentName","studentId","institute","site","track","fileName",
+    "total70","formsDone","formsCount","preceptor","startDate","endDate","clerkship",
+    "overallComment","hidden","loadedAt"
+  ]);
+
+  // Score rows
+  const scoreRows = [];
+  scoreRows.push([
+    "studentKey","studentName","studentId","site","track","fileName",
+    "formKey","formLabel","formMaxScore","formScore_finalWeek6","ratedItems_finalWeek6",
+    "itemId","itemText","week3","week6","single","comment"
+  ]);
+
+  for(const st of students){
+    const t = (st.forms?.length) ? calcTotal70(st) : {total:null, done:0, count:0};
+    summaryRows.push([
+      st.id,
+      st.meta.studentName || "",
+      st.meta.studentId || "",
+      st.meta.institute || "",
+      st.meta.site || "",
+      st.track || "",
+      st.fileName || "",
+      t.total === null ? "" : Number(t.total.toFixed(4)),
+      t.done,
+      t.count,
+      st.meta.preceptor || "",
+      st.meta.startDate || "",
+      st.meta.endDate || "",
+      st.meta.clerkship || "",
+      st.overallComment || "",
+      st.hidden ? 1 : 0,
+      st.loadedAt || ""
+    ]);
+
+    for(const f of st.forms || []){
+      const rForm = calcFormScore(st, f); // final uses week6/single
+      const ans = st.answers?.[f.key] || {week3:{},week6:{},single:{},comments:{}};
+      for(const it of f.items || []){
+        if(it.type !== "criterion") continue;
+
+        scoreRows.push([
+          st.id,
+          st.meta.studentName || "",
+          st.meta.studentId || "",
+          st.meta.site || "",
+          st.track || "",
+          st.fileName || "",
+          f.key,
+          f.label,
+          f.maxScore ?? "",
+          rForm.score === null ? "" : Number(rForm.score.toFixed(4)),
+          rForm.rated || 0,
+          it.id,
+          it.text,
+          ans.week3[it.id] ?? "",
+          ans.week6[it.id] ?? "",
+          ans.single[it.id] ?? "",
+          (ans.comments[it.id] ?? "")
+        ]);
+      }
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+  const wsScores = XLSX.utils.aoa_to_sheet(scoreRows);
+
+  // Basic column widths (nice to read)
+  wsSummary["!cols"] = summaryRows[0].map((h,i)=>({wch: Math.min(40, Math.max(12, String(h).length+2))}));
+  wsScores["!cols"] = scoreRows[0].map((h)=>({wch: Math.min(48, Math.max(12, String(h).length+2))}));
+
+  XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+  XLSX.utils.book_append_sheet(wb, wsScores, "Scores");
+
+  return wb;
+}
+
+function exportAllXLSX(){
+  const students = Object.values(root.students);
+  if(students.length === 0){ alert("ยังไม่มีนักศึกษา"); return; }
+
+  const wb = buildWorkbookForStudents(students);
+  const fname = `pharm-eval_ALL_${new Date().toISOString().slice(0,10)}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+function exportStudentXLSX(){
+  const st = getActiveStudent();
+  if(!st){ alert("ยังไม่เลือกนักศึกษา"); return; }
+  const wb = buildWorkbookForStudents([st]);
+  const fname = `pharm-eval_${safeFileStem(st.meta.studentName || st.id)}_${new Date().toISOString().slice(0,10)}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+/** Clear */
+function clearAll(){
+  if(!confirm("ล้างข้อมูลทั้งหมดในเครื่อง (localStorage) ?")) return;
+  localStorage.removeItem(LS_KEY);
+  location.reload();
+}
+
+/** Render */
+function renderAll(){
+  renderStudents();
+  renderForms();
+  renderMain();
+
+  const st = getActiveStudent();
+  const form = getActiveForm(st);
+  setWeekButtonStates();
+
+  const meta = document.getElementById("importMeta");
+  const all = Object.values(root.students);
+  const hiddenCount = all.filter(x=>x.hidden).length;
+  meta.textContent = all.length
+    ? `นำเข้าแล้ว: ${all.length} ไฟล์ • ซ่อนอยู่: ${hiddenCount} • Active: ${root.ui.activeStudentId || "—"}`
+    : "ยังไม่มีไฟล์";
+}
+
+/** Events */
+document.getElementById("btnTheme").addEventListener("click", ()=>{
+  const cur = document.documentElement.getAttribute("data-theme") || "dark";
+  setTheme(cur === "dark" ? "light" : "dark");
+});
+
+document.getElementById("fileInput").addEventListener("change", async (e)=>{
+  const files = Array.from(e.target.files || []);
+  if(files.length === 0) return;
+
+  for(const file of files){
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:"array", cellDates:true});
+    const student = parseStudentFromWorkbook(wb, file.name);
+
+    // merge: keep existing answers if same id
+    const existing = root.students[student.id];
+    if(existing){
+      student.answers = existing.answers || student.answers;
+      student.feedback = existing.feedback || student.feedback;
+      student.overallComment = existing.overallComment || student.overallComment;
+      student.hidden = existing.hidden ?? false;
+      student.ui = existing.ui || student.ui;
+    }
+
+    root.students[student.id] = student;
+    if(!root.ui.activeStudentId && !student.hidden) root.ui.activeStudentId = student.id;
+  }
+
+  saveLS();
+  renderAll();
+  e.target.value = "";
+});
+
+document.getElementById("btnClearAll").addEventListener("click", clearAll);
+
+document.getElementById("btnLoadFromLS").addEventListener("click", ()=>{
+  const ok = loadLS();
+  if(!ok){ alert("ยังไม่มีข้อมูลใน localStorage — ให้ Import ไฟล์ .xlsx ก่อน"); return; }
+
+  if(!root.ui.activeStudentId){
+    const next = Object.values(root.students).find(x=>!x.hidden) || null;
+    root.ui.activeStudentId = next ? next.id : null;
+  }
+  document.getElementById("studentSearch").value = root.ui.studentSearch || "";
+  saveLS();
+  renderAll();
+});
+
+document.getElementById("studentSearch").addEventListener("input", (e)=>{
+  root.ui.studentSearch = e.target.value || "";
+  saveLS();
+  renderStudents();
+});
+document.getElementById("btnToggleHidden").addEventListener("click", ()=>{
+  root.ui.showHiddenStudents = !root.ui.showHiddenStudents;
+  saveLS();
+  renderStudents();
+});
+
+document.getElementById("btnWeek3").addEventListener("click", ()=>{
+  const st = getActiveStudent(); if(!st) return;
+  st.ui.activeWeek = 3;
+  saveLS();
+  renderMain();
+  setWeekButtonStates();
+});
+document.getElementById("btnWeek6").addEventListener("click", ()=>{
+  const st = getActiveStudent(); if(!st) return;
+  st.ui.activeWeek = 6;
+  saveLS();
+  renderMain();
+  setWeekButtonStates();
+});
+
+document.getElementById("btnSave").addEventListener("click", ()=>{
+  saveLS();
+  alert("บันทึกแล้ว (localStorage)");
+});
+
+document.getElementById("btnClearForm").addEventListener("click", ()=>{
+  const st = getActiveStudent();
+  const form = getActiveForm(st);
+  if(!st || !form) return;
+  if(!confirm(`ล้างคะแนน/หมายเหตุของฟอร์มนี้: ${form.sheetName} ?`)) return;
+
+  const ans = st.answers[form.key];
+  if(ans){
+    ans.week3 = {};
+    ans.week6 = {};
+    ans.single = {};
+    ans.comments = {};
+  }
+  saveLS();
+  renderAll();
+});
+
+document.getElementById("overallComment").addEventListener("input", (e)=>{
+  const st = getActiveStudent(); if(!st) return;
+  st.overallComment = e.target.value || "";
+  saveLS();
+});
+
+document.getElementById("btnOpenFeedback").addEventListener("click", openFeedback);
+document.getElementById("btnCloseFeedback").addEventListener("click", closeFeedback);
+document.getElementById("btnSaveFeedback").addEventListener("click", saveFeedback);
+
+document.getElementById("btnOpenRubric").addEventListener("click", ()=>{
+  const st = getActiveStudent();
+  const form = getActiveForm(st);
+  if(!st || !form){ alert("ยังไม่เลือกนักศึกษา/ฟอร์ม"); return; }
+
+  document.getElementById("rubricTitle").textContent = "Rubric (รายการหัวข้อในฟอร์ม)";
+  document.getElementById("rubricSub").textContent = `${st.meta.studentName || st.id} • ${form.sheetName}`;
+
+  const body = document.getElementById("rubricBody");
+  body.innerHTML = `
+    <div class="col" style="gap:10px">
+      ${form.items.filter(x=>x.type==="criterion").map(it=>`
+        <div class="card" style="box-shadow:none">
+          <div class="hd">
+            <div class="row" style="justify-content:space-between">
+              <div style="font-weight:950; font-size:13px">${escapeHTML(it.text)}</div>
+              <button class="btn small" data-open="${escapeAttr(it.id)}">เปิด</button>
+            </div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+  body.querySelectorAll("button[data-open]").forEach(b=>{
+    b.addEventListener("click", ()=> openRubricForItem(b.getAttribute("data-open")));
+  });
+
+  document.getElementById("rubricModal").classList.add("on");
+});
+document.getElementById("btnCloseRubric").addEventListener("click", closeRubric);
+
+document.getElementById("rubricModal").addEventListener("click", (e)=>{
+  if(e.target.id==="rubricModal") closeRubric();
+});
+document.getElementById("feedbackModal").addEventListener("click", (e)=>{
+  if(e.target.id==="feedbackModal") closeFeedback();
+});
+
+document.getElementById("btnExportAllJSON").addEventListener("click", ()=>{
+  downloadBlob(
+    `pharm-eval_ALL_${new Date().toISOString().slice(0,10)}.json`,
+    "application/json;charset=utf-8",
+    JSON.stringify(root, null, 2)
+  );
+});
+document.getElementById("btnExportAllCSV").addEventListener("click", exportAllCSV);
+document.getElementById("btnExportAllXLSX").addEventListener("click", exportAllXLSX);
+document.getElementById("btnExportStudentXLSX").addEventListener("click", exportStudentXLSX);
+
+document.getElementById("btnExportStudentJSON").addEventListener("click", exportStudentJSON);
+
+document.getElementById("btnImportJSON").addEventListener("click", ()=>{
+  document.getElementById("importJSONInput").click();
+});
+document.getElementById("importJSONInput").addEventListener("change", (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const obj = JSON.parse(reader.result);
+      if(!obj) throw new Error("Invalid JSON");
+
+      if(obj.students && obj.ui){
+        Object.assign(root, obj);
+      }else if(obj.student){
+        const st = obj.student;
+        if(!st.id) throw new Error("Student missing id");
+        root.students[st.id] = st;
+        if(!root.ui.activeStudentId && !st.hidden) root.ui.activeStudentId = st.id;
+      }else{
+        throw new Error("JSON format not recognized");
+      }
+
+      saveLS();
+      renderAll();
+      alert("Import สำเร็จ");
+    }catch(err){
+      alert("Import ไม่สำเร็จ: " + err.message);
+    }
+  };
+  reader.readAsText(f, "utf-8");
+  e.target.value = "";
+});
+
+/** Boot */
+(function init(){
+  initTheme();
+  const ok = loadLS();
+  if(ok){
+    if(!root.ui.activeStudentId){
+      const next = Object.values(root.students).find(x=>!x.hidden) || null;
+      root.ui.activeStudentId = next ? next.id : null;
+    }
+    document.getElementById("studentSearch").value = root.ui.studentSearch || "";
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
