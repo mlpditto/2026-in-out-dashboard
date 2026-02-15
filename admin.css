@@ -278,8 +278,12 @@ thead th {
     transform: translateX(100%);
 }
 
-.segmented-control input:checked+label {
-    color: var(--color-primary);
+.segmented-control input#type-in:checked+label {
+    color: #198754;
+}
+
+.segmented-control input#type-out:checked+label {
+    color: #dc3545;
 }
 
 /* Custom Time Stepper */
