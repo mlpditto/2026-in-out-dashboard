@@ -145,7 +145,11 @@ window.loadLeaveRequests = async () => {
     try {
         const q = query(collection(db, "leave_requests")); // Removed orderBy to avoid index issues
         const s = await getDocs(q);
-        const docs = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Correctly map docs to data objects
+        const docs = s.docs.map(d => {
+            const data = d.data();
+            return { id: d.id, ...data };
+        });
         // Sort locally
         docs.sort((a, b) => {
             const tA = a.requestedAt || a.timestamp || { seconds: 0 };
@@ -153,11 +157,23 @@ window.loadLeaveRequests = async () => {
             return (tB.seconds || 0) - (tA.seconds || 0);
         });
 
-        // Loop over sorted docs instead of s
+        let h = "";
+        let pendingCount = 0;
+        let yCount = 0;
+        let mCount = 0;
+        const usersApprovedYear = new Set();
+        const thisYear = new Date().getFullYear();
+        const thisMonth = new Date().getMonth();
+
+        // Loop over sorted docs
         docs.forEach(v => {
-            // const v = d.data(); -> v is already data with id
             const ts = v.requestedAt || v.timestamp;
-            const dDate = ts ? (ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000)) : new Date();
+            let dDate = new Date();
+            if (ts && ts.seconds) {
+                dDate = new Date(ts.seconds * 1000);
+            } else if (ts instanceof Date) {
+                dDate = ts;
+            }
 
             if (v.status === 'Pending') pendingCount++;
             if (v.status === 'Approved') {
