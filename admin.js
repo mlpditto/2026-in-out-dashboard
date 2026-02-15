@@ -410,6 +410,7 @@ function calcHoursFromLogs(logs) {
         byDay[k].push(x);
     });
 
+    let total = 0;
     Object.keys(byDay).forEach(k => {
         const list = byDay[k];
         list.sort((a, b) => a.timestamp - b.timestamp);
