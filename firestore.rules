@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'medlifeplus@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Helper to check if record belongs to user
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Admins have full access to everything
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if request.auth != null; 
+      allow create: if request.auth != null; // Registration
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Attendance records
+    match /attendance/{id} {
+      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Leave requests
+    match /leave_requests/{id} {
+      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin(); 
+    }
+
+    // Schedules
+    match /schedules/{id} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    // Admins list (Read-only for admins themselves via exists, or listable if needed)
+    match /admins/{id} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+  }
+}

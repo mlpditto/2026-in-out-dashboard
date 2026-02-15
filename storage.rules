@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      // Allow read for authenticated users
+      allow read: if request.auth != null;
+      
+      // Allow write only for admins
+      allow write: if request.auth != null && (
+        request.auth.token.email == 'medlifeplus@gmail.com' ||
+        // Check if UID is in admins collection (via custom logic or simpler if needed)
+        firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
+      );
+    }
+  }
+}

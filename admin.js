@@ -1,19 +1,8 @@
 import { getDeptCategoryColor } from './colors.js';
+import { firebaseConfig, ALLOWED_ADMINS } from './config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// --- 🔴 CONFIG ---
-const firebaseConfig = {
-    apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
-    authDomain: "in-out-dashboard.firebaseapp.com",
-    projectId: "in-out-dashboard",
-    storageBucket: "in-out-dashboard.firebasestorage.app",
-    messagingSenderId: "846266395224",
-    appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
-    measurementId: "G-WN14VJSG17"
-};
-const ADMIN_EMAIL = "medlifeplus@gmail.com";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -28,7 +17,17 @@ const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: 
 // --- 🔓 AUTH ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        if (user.email === ADMIN_EMAIL) {
+        // Double check: Config List OR Firestore 'admins' collection
+        let isAuthorized = ALLOWED_ADMINS.includes(user.email);
+
+        if (!isAuthorized) {
+            try {
+                const adminDoc = await getDoc(doc(db, "admins", user.uid));
+                if (adminDoc.exists()) isAuthorized = true;
+            } catch (e) { console.error("Admin check failed:", e); }
+        }
+
+        if (isAuthorized) {
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
             document.getElementById('adminEmailDisplay').innerText = user.displayName || user.email;
@@ -50,7 +49,7 @@ onAuthStateChanged(auth, async (user) => {
             window.autoRefreshInterval = setInterval(loadData, 60000); // Auto refresh every 1 min
         } else {
             await signOut(auth);
-            Swal.fire('Access Denied', 'อีเมลนี้ไม่มีสิทธิ์เข้าถึง', 'error');
+            Swal.fire('Access Denied', 'คุณไม่มีสิทธิ์เข้าถึงส่วนนี้', 'error');
         }
     } else {
         document.getElementById('loginPage').classList.remove('hidden');
