@@ -169,26 +169,62 @@
 
             <div id="tabManage" class="tab-section hidden">
                 <!-- Leave Requests Section (Prioritized) -->
+                <!-- Leave Requests Section with Tabs -->
                 <div class="card shadow-sm border-0 border-start border-4 border-warning mb-4">
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <span class="fw-bold"><i
-                                class="bi bi-send-exclamation-fill me-2 text-warning"></i>คำขอลาที่รออนุมัติ</span>
+                        <span class="fw-bold"><i class="bi bi-send-exclamation-fill me-2 text-warning"></i>คำขอลา</span>
                         <button onclick="loadLeaveRequests()" class="btn btn-sm btn-light border"><i
                                 class="bi bi-arrow-clockwise"></i></button>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-3">พนักงาน</th>
-                                    <th>ประเภท</th>
-                                    <th>วันที่</th>
-                                    <th>เหตุผล</th>
-                                    <th class="text-end pe-3">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaveTableBody"></tbody>
-                        </table>
+                    <div class="card-header bg-white border-bottom-0 pb-0">
+                        <ul class="nav nav-tabs card-header-tabs" id="leaveTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active text-warning fw-bold" id="pending-tab"
+                                    data-bs-toggle="tab" data-bs-target="#leavePending" type="button"
+                                    role="tab">รออนุมัติ</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link text-muted" id="approved-tab" data-bs-toggle="tab"
+                                    data-bs-target="#leaveApproved" type="button" role="tab">ประวัติการลา</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="tab-content" id="leaveTabContent">
+                            <!-- Pending Tab -->
+                            <div class="tab-pane fade show active" id="leavePending" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="ps-3">พนักงาน</th>
+                                                <th>ประเภท</th>
+                                                <th>วันที่</th>
+                                                <th>เหตุผล</th>
+                                                <th class="text-end pe-3">จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="leavePendingTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- Approved/History Tab -->
+                            <div class="tab-pane fade" id="leaveApproved" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="ps-3">พนักงาน</th>
+                                                <th>ประเภท</th>
+                                                <th>วันที่</th>
+                                                <th>สถานะ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="leaveApprovedTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

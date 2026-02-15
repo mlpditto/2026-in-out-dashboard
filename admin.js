@@ -138,18 +138,20 @@ window.delSched = async (id) => {
 };
 
 window.loadLeaveRequests = async () => {
-    const t = document.getElementById('leaveTableBody');
-    if (!t) return;
-    t.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
+    const tPending = document.getElementById('leavePendingTableBody');
+    const tApproved = document.getElementById('leaveApprovedTableBody');
+
+    if (tPending) tPending.innerHTML = '<tr><td colspan="5" class="text-center py-3">กำลังโหลด...</td></tr>';
+    if (tApproved) tApproved.innerHTML = '<tr><td colspan="4" class="text-center py-3">กำลังโหลด...</td></tr>';
 
     try {
-        const q = query(collection(db, "leave_requests")); // Removed orderBy to avoid index issues
+        const q = query(collection(db, "leave_requests"));
         const s = await getDocs(q);
-        // Correctly map docs to data objects
         const docs = s.docs.map(d => {
             const data = d.data();
             return { id: d.id, ...data };
         });
+
         // Sort locally
         docs.sort((a, b) => {
             const tA = a.requestedAt || a.timestamp || { seconds: 0 };
@@ -157,7 +159,8 @@ window.loadLeaveRequests = async () => {
             return (tB.seconds || 0) - (tA.seconds || 0);
         });
 
-        let h = "";
+        let hPending = "";
+        let hApproved = "";
         let pendingCount = 0;
         let yCount = 0;
         let mCount = 0;
@@ -184,29 +187,38 @@ window.loadLeaveRequests = async () => {
                 }
             }
 
-            const rowClass = v.status === 'Pending' ? 'table-warning' : '';
-
-            let acts = '';
-            if (v.status === 'Pending') {
-                const lType = v.type || v.leaveType;
-                acts = `<button onclick="updLeave('${v.id}','Approved','${v.userId}','${v.name}','${v.startDate}','${v.endDate}','${lType}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
-                         <button onclick="updLeave('${v.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
-            } else {
-                acts = `<small class="text-muted">${v.status}</small>`;
-            }
-
             const displayType = v.type || v.leaveType || 'ไม่ระบุ';
             const dColor = getDeptCategoryColor(getUserDept(v.userId, ''));
+            const deptBadge = `<span class="badge" style="background:${dColor} !important; color:white !important; border:none; font-weight:600; min-width:80px; text-align:center;">${displayType}</span>`;
 
-            h += `<tr class="${rowClass}">
-                 <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${v.userId}</small></td>
-                 <td><span class="badge" style="background:${dColor} !important; color:white !important; border:none; font-weight:600; min-width:80px; text-align:center;">${displayType}</span></td>
-                 <td>${v.startDate} ถึง ${v.endDate}</td>
-                 <td>${v.reason || '-'}</td>
-                 <td class="text-end pe-3">${acts}</td>
-             </tr>`;
+            if (v.status === 'Pending') {
+                const lType = v.type || v.leaveType;
+                const acts = `<button onclick="updLeave('${v.id}','Approved','${v.userId}','${v.name}','${v.startDate}','${v.endDate}','${lType}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
+                             <button onclick="updLeave('${v.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
+
+                hPending += `<tr class="table-warning">
+                     <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${v.userId}</small></td>
+                     <td>${deptBadge}</td>
+                     <td>${v.startDate} ถึง ${v.endDate}</td>
+                     <td>${v.reason || '-'}</td>
+                     <td class="text-end pe-3">${acts}</td>
+                 </tr>`;
+            } else {
+                let statusBadge = `<span class="badge bg-secondary">${v.status}</span>`;
+                if (v.status === 'Approved') statusBadge = `<span class="badge bg-success">อนุมัติแล้ว</span>`;
+                if (v.status === 'Rejected') statusBadge = `<span class="badge bg-danger">ไม่อนุมัติ</span>`;
+
+                hApproved += `<tr>
+                     <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${v.userId}</small></td>
+                     <td>${deptBadge}</td>
+                     <td>${v.startDate} ถึง ${v.endDate}</td>
+                     <td>${statusBadge}</td>
+                 </tr>`;
+            }
         });
-        t.innerHTML = h || '<tr><td colspan="5" class="text-center text-muted">ไม่มีคำขอลา</td></tr>';
+
+        if (tPending) tPending.innerHTML = hPending || '<tr><td colspan="5" class="text-center text-muted py-3">ไม่มีคำขอที่รออนุมัติ</td></tr>';
+        if (tApproved) tApproved.innerHTML = hApproved || '<tr><td colspan="4" class="text-center text-muted py-3">ไม่มีประวัติการลา</td></tr>';
 
         const sl = document.getElementById('statLeave'); if (sl) sl.innerText = pendingCount;
         const sm = document.getElementById('statLeaveMonth'); if (sm) sm.innerText = mCount;
@@ -218,11 +230,13 @@ window.loadLeaveRequests = async () => {
             usersApprovedYear.forEach(uid => {
                 if (window.allUserData && window.allUserData[uid]) uList.push(window.allUserData[uid]);
             });
-            lp.innerHTML = uList.slice(0, 5).map(u => `<img src="${u.pictureUrl || 'https://via.placeholder.com/20'}" title="${u.name}" style="width:20px;height:20px;border-radius:50%;margin-right:-5px;border:1px solid #fff;">`).join('') + (uList.length > 5 ? `<span class="small ms-2 text-white-50">+${uList.length - 5}</span>` : '');
+            lp.innerHTML = uList.slice(0, 5).map(u => `<img src="${u.pictureUrl || 'https://via.placeholder.com/20'}" title="${u.name}" style="width:20px;height:20px;border-radius:50%;margin-right:-5px;border:1px solid #fff;">`).join('') + (uList.length > 5 ? `<span class="small ms-2 text-muted">+${uList.length - 5}</span>` : '');
         }
+
     } catch (err) {
         console.error("Error loading leave requests:", err);
-        t.innerHTML = '<tr><td colspan="5" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+        if (tPending) tPending.innerHTML = '<tr><td colspan="5" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+        if (tApproved) tApproved.innerHTML = '<tr><td colspan="4" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
     }
 };
 
