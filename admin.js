@@ -1208,8 +1208,12 @@ window.loadUsersList = async () => {
     users.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
 
     function renderPickerList(filter) {
-        const q = (filter || '').toLowerCase();
-        const filtered = q ? users.filter(u => u.name.toLowerCase().includes(q) || u.dept.toLowerCase().includes(q)) : users;
+        const q = (filter || '').trim().toLowerCase();
+        if (!q) {
+            listEl.innerHTML = '<div class="text-muted small p-2 text-center">พิมพ์ชื่อเพื่อค้นหาพนักงาน</div>';
+            return;
+        }
+        const filtered = users.filter(u => u.name.toLowerCase().includes(q) || u.dept.toLowerCase().includes(q));
         let h = '';
         for (const u of filtered) {
             const pic = u.pic || 'https://via.placeholder.com/28';
