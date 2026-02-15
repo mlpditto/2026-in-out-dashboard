@@ -81,9 +81,13 @@ window.switchTab = (tabName) => {
     document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
     const target = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
     if (target) target.classList.remove('hidden');
-    document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-    const links = document.querySelectorAll('.nav-link');
-    links.forEach(l => { if (l.getAttribute('onclick').includes(tabName)) l.classList.add('active'); });
+
+    // Only target the MAIN navigation tabs, not inner card tabs
+    document.querySelectorAll('#mainTab .nav-link').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('#mainTab .nav-link').forEach(l => {
+        const oc = l.getAttribute('onclick');
+        if (oc && oc.includes(tabName)) l.classList.add('active');
+    });
 
     if (tabName === 'manage') { loadSchedules(); loadLeaveRequests(); }
     if (tabName === 'report') { setTimeout(initCalendar, 200); renderCharts(); }
@@ -504,9 +508,8 @@ window.loadData = async () => {
         }
     });
 
-    // Use total approved users from window.allUserData
-    const totalApproved = Object.values(window.allUserData || {}).filter(u => u.status === 'Approved').length;
-    document.getElementById('statIn').innerText = `${currentlyInCount} / ${totalApproved}`;
+    // Show currently-in vs unique users who came today
+    document.getElementById('statIn').innerText = `${currentlyInCount} / ${uniqueUsersToday.size}`;
 
     // Render Active Profiles
     const profileContainer = document.getElementById('activeUserProfiles');
