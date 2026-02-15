@@ -196,36 +196,23 @@ function renderSchedPage() {
 
     let h = '';
     pageData.forEach(v => {
-        // Format shiftDetail: use colored badge for leave types
         let detailHtml = v.shiftDetail || '';
         const sd = detailHtml.toLowerCase();
 
-        // Prepare data for Popup (match Leave History style)
-        const safeName = (v.name || '').replace(/'/g, "\\'");
-        const safeDateDisplay = (v.date || '').replace(/'/g, "\\'");
-        // Handle date range if endDate exists
-        const dateRange = v.endDate ? `${v.date} ถึง ${v.endDate}` : v.date;
-        const safeDateRange = dateRange.replace(/'/g, "\\'");
-        const safeReason = (v.reason || v.shiftDetail || 'ระบุผ่านตารางเวร').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-        const safeDetail = (v.shiftDetail || '').replace(/'/g, "\\'");
-        const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-
-        let linkHtml = '';
-        if (safeLink) {
-            linkHtml = `<p><b>🔗 ลิงก์แนบ:</b> <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info py-0">เปิดดูเอกสาร</a></p>`;
-        }
-
         if (sd.includes('ลาป่วย')) {
-            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🤒 ลาป่วย',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>',confirmButtonText:'ปิด',confirmButtonColor:'#dc3545'})">🤒 ลาป่วย</span>`;
+            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🤒 ลาป่วย', '#dc3545', '${v.id}')">🤒 ลาป่วย</span>`;
         } else if (sd.includes('ลาพักร้อน') || sd.includes('ลาพักผ่อน')) {
-            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🌴 ลาพักร้อน',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d9488'})">🌴 ลาพักร้อน</span>`;
+            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🌴 ลาพักร้อน', '#0d9488', '${v.id}')">🌴 ลาพักร้อน</span>`;
         } else if (sd.includes('ลากิจ')) {
-            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'📋 ลากิจ',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>',confirmButtonText:'ปิด',confirmButtonColor:'#0d6efd'})">📋 ลากิจ</span>`;
+            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('📋 ลากิจ', '#0d6efd', '${v.id}')">📋 ลากิจ</span>`;
+        } else if (sd.includes('ลาคลอด')) {
+            detailHtml = `<span class="badge" style="background:#e91e8c;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('👶 ลาคลอด', '#e91e8c', '${v.id}')">👶 ลาคลอด</span>`;
+        } else if (sd.includes('ลาบวช')) {
+            detailHtml = `<span class="badge" style="background:#f59e0b;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🙏 ลาบวช', '#f59e0b', '${v.id}')">🙏 ลาบวช</span>`;
         } else if (sd.includes('หยุด') || sd.includes('day off')) {
-            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'🚫 หยุด',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateDisplay}</p><p><b>📝 รายละเอียด:</b> ${safeDetail}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#6c757d'})">🚫 ${v.shiftDetail}</span>`;
+            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🚫 หยุด', '#6c757d', '${v.id}')">🚫 ${v.shiftDetail}</span>`;
         } else {
-            // Normal shift - use a neutral clickable badge
-            detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="Swal.fire({title:'⏰ เวรทำงาน',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateDisplay}</p><p><b>📝 รายละเอียด:</b> ${v.shiftDetail}</p></div>',confirmButtonText:'ปิด',confirmButtonColor:'#6c757d'})">${v.shiftDetail}</span>`;
+            detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('⏰ เวรทำงาน', '#6c757d', '${v.id}')">${v.shiftDetail}</span>`;
         }
         h += `<tr><td class="ps-3">${v.date}</td><td>${v.name}</td><td>${detailHtml}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
     });
@@ -792,12 +779,12 @@ window.updLeave = async (id, st, uid, nm, s, e, tp, rs, ln) => {
     await setDoc(doc(db, "leave_requests", id), { status: st }, { merge: true });
     if (st === 'Approved') {
         let c = new Date(s), end = new Date(e);
-        const emoji = tp.includes('ป่วย') ? '🤒' : (tp.includes('พักผ่อน') ? '🌴' : (tp.includes('กิจ') ? '📋' : '🛑'));
+        const emoji = tp.includes('ป่วย') ? '🤒' : (tp.includes('พักผ่อน') ? '🌴' : (tp.includes('กิจ') ? '📋' : (tp.includes('คลอด') ? '👶' : (tp.includes('บวช') ? '🙏' : '🛑'))));
         while (c <= end) {
-            let ds = c.toISOString().split('T')[0];
+            let ds = c.toLocaleDateString('sv');
             await setDoc(doc(db, "schedules", `${uid}_${ds}`), {
                 userId: uid, name: nm, date: ds, shiftDetail: `${emoji} ${tp}`,
-                reason: rs || '', attachLink: ln || '', endDate: e
+                reason: rs || '', attachLink: ln || '', startDate: s, endDate: e
             });
             c.setDate(c.getDate() + 1);
         }
@@ -1438,6 +1425,28 @@ function initCalendar() {
             center: 'title',
             right: ''
         },
+        eventClick: function (info) {
+            const p = info.event.extendedProps;
+            if (p.type === 'attendance') return; // Click on attendance - do nothing for now
+
+            const safeName = (p.name || '').replace(/'/g, "\\'");
+            const dateRange = (p.startDate && p.endDate) ? `${p.startDate} ถึง ${p.endDate}` : (p.endDate ? `${info.event.startStr} ถึง ${p.endDate}` : info.event.startStr);
+            const safeDateRange = dateRange.replace(/'/g, "\\'");
+            const safeReason = (p.reason || p.detail || 'ระบุผ่านตารางเวร').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeLink = (p.link || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+            let linkHtml = '';
+            if (safeLink) {
+                linkHtml = `<p><b>🔗 ลิงก์แนบ:</b> <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info py-0">เปิดดูเอกสาร</a></p>`;
+            }
+
+            Swal.fire({
+                title: p.detail || 'รายละเอียด',
+                html: `<div class='text-start'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 รายละเอียด:</b> ${safeReason}</p>${linkHtml}</div>`,
+                confirmButtonText: 'ปิด',
+                confirmButtonColor: '#6c757d'
+            });
+        },
         eventContent: function (arg) {
             const props = arg.event.extendedProps;
             const type = props.type;
@@ -1469,16 +1478,16 @@ function initCalendar() {
                 // 1. Schedules View
                 if (customCalendarMode === 'schedule') {
                     const q = query(collection(db, "schedules"));
-                    // Should filter by date range for efficiency but for now fetch all is acceptable for small set
                     const sn = await getDocs(q);
                     sn.forEach(d => {
                         const v = d.data();
                         const uid = v.userId;
                         const prof = window.allUserData?.[uid] || {};
                         let c = 'var(--color-shift-am)';
-                        if (v.shiftDetail.includes('บ่าย')) c = 'var(--color-shift-pm)';
-                        else if (v.shiftDetail.includes('ดึก')) c = 'var(--color-shift-night)';
-                        else if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) c = 'var(--color-leave)';
+                        const detail = v.shiftDetail || '';
+                        if (detail.includes('บ่าย')) c = 'var(--color-shift-pm)';
+                        else if (detail.includes('ดึก')) c = 'var(--color-shift-night)';
+                        else if (detail.includes('หยุด') || detail.includes('ลา')) c = 'var(--color-leave)';
 
                         ev.push({
                             title: v.name,
@@ -1488,6 +1497,10 @@ function initCalendar() {
                                 type: 'schedule',
                                 name: v.name,
                                 detail: v.shiftDetail,
+                                reason: v.reason,
+                                startDate: v.startDate,
+                                endDate: v.endDate,
+                                link: v.attachLink,
                                 image: prof.pictureUrl
                             }
                         })
@@ -1544,6 +1557,30 @@ function initCalendar() {
 
 // Explicit export to window object to ensure availability
 window.initCalendar = initCalendar;
+
+window.renderDetailModal = (title, color, schedId) => {
+    // Find the record in local data
+    const v = schedAllData.find(x => x.id === schedId);
+    if (!v) return;
+
+    const safeName = (v.name || '').replace(/'/g, "\\'");
+    const dateRange = (v.startDate && v.endDate) ? `${v.startDate} ถึง ${v.endDate}` : (v.endDate ? `${v.date} ถึง ${v.endDate}` : v.date);
+    const safeDateRange = dateRange.replace(/'/g, "\\'");
+    const safeReason = (v.reason || v.shiftDetail || 'ระบุผ่านตารางเวร').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+    const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+    let linkHtml = '';
+    if (safeLink) {
+        linkHtml = `<p><b>🔗 ลิงก์แนบ:</b> <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info py-0">เปิดดูเอกสาร</a></p>`;
+    }
+
+    Swal.fire({
+        title: title,
+        html: `<div class='text-start'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล/รายละเอียด:</b> ${safeReason}</p>${linkHtml}</div>`,
+        confirmButtonText: 'ปิด',
+        confirmButtonColor: color || '#6c757d'
+    });
+};
 
 window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.saveSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime; window.changeSchedMonth = changeSchedMonth; window.schedChangePage = schedChangePage; window.openManualEntry = openManualEntry; window.submitManualEntry = submitManualEntry; window.adjTime = adjTime;
 window.copyAttendanceSummary = () => {
