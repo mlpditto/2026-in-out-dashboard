@@ -135,6 +135,12 @@ window.selectUserPick = (el) => {
     document.getElementById('userSelect').value = el.getAttribute('data-uid');
 };
 
+window.selectManualUserPick = (el) => {
+    document.querySelectorAll('#manualPickerList .user-pick-item').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('manualUserSelect').value = el.getAttribute('data-uid');
+};
+
 window.createSchedule = async (e) => {
     e.preventDefault();
     const uId = document.getElementById('userSelect').value;
@@ -527,17 +533,43 @@ window.adjTime = (unit, delta) => {
 
 window.openManualEntry = (uid, name, type) => {
     const modal = new bootstrap.Modal(document.getElementById('manualEntryModal'));
-    const sel = document.getElementById('manualUserSelect');
+    const hiddenUser = document.getElementById('manualUserSelect');
+    const listEl = document.getElementById('manualPickerList');
+    const searchInput = document.getElementById('manualSearchInput');
 
-    // Populate users if empty
-    if (sel.options.length === 0) {
-        sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>' +
-            Object.values(window.allUserData || {}).sort((a, b) => a.name.localeCompare(b.name)).map(u =>
-                `<option value="${u.lineUserId || u.id}">${u.name}</option>`
-            ).join('');
+    hiddenUser.value = uid || "";
+    searchInput.value = "";
+
+    function renderManualPicker(filter) {
+        const q = (filter || '').trim().toLowerCase();
+        let users = Object.values(window.allUserData || {}).filter(u => u.status === 'Approved');
+        users.sort((a, b) => a.name.localeCompare(b.name, 'th'));
+
+        if (!q && !hiddenUser.value) {
+            listEl.innerHTML = '<div class="text-muted small p-2 text-center">พิมพ์ชื่อเพื่อค้นหาพนักงาน</div>';
+            return;
+        }
+
+        const filtered = users.filter(u => u.name.toLowerCase().includes(q) || (u.dept || '').toLowerCase().includes(q));
+        let h = '';
+        for (const u of filtered) {
+            const uId = u.lineUserId || u.id;
+            const pic = u.pictureUrl || 'https://via.placeholder.com/28';
+            h += `
+            <div class="user-pick-item ${hiddenUser.value === uId ? 'active' : ''}" 
+                 data-uid="${uId}" onclick="selectManualUserPick(this)">
+                <img src="${pic}" onerror="this.src='https://via.placeholder.com/28'">
+                <div style="overflow:hidden">
+                    <div class="user-pick-name">${u.name}</div>
+                    ${u.dept ? `<div class="user-pick-dept">${u.dept}</div>` : ''}
+                </div>
+            </div>`;
+        }
+        listEl.innerHTML = h || '<div class="text-muted small p-2">ไม่พบพนักงาน</div>';
     }
 
-    if (uid) sel.value = uid; else sel.value = "";
+    searchInput.oninput = () => renderManualPicker(searchInput.value);
+    renderManualPicker(''); // Initial render
 
     const now = new Date();
     document.getElementById('manualDate').valueAsDate = now;
