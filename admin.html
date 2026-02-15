@@ -143,6 +143,8 @@
                             class="bi bi-graph-up me-2"></i>รายงาน & ปฏิทิน</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('users')"><i
                             class="bi bi-person-gear me-2"></i>พนักงาน</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('eval')"><i
+                            class="bi bi-journal-check me-2"></i>แบบประเมิน</a></li>
             </ul>
 
             <!-- Tab Content Sections -->
@@ -382,6 +384,41 @@
                     </div>
                     <div class="card-body">
                         <div class="tab-content" id="mainUsersContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabEval" class="tab-section hidden">
+                <style>
+                    .eval-frame-container {
+                        height: calc(100vh - 250px);
+                        min-height: 600px;
+                        border-radius: 12px;
+                        overflow: hidden;
+                        border: 1px solid #dee2e6;
+                        background: #fff;
+                    }
+
+                    .eval-frame {
+                        width: 100%;
+                        height: 100%;
+                        border: none;
+                    }
+                </style>
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-journal-check me-2"></i>สถิติ &
+                            แบบประเมินนิสิตฝึกงาน</h5>
+                        <div class="d-flex gap-2">
+                            <a href="eval.html" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> เปิดเต็มจอ
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="eval-frame-container">
+                            <iframe src="eval.html" class="eval-frame"></iframe>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -667,10 +704,10 @@
 
     <div
         style="position: fixed; bottom: 10px; left: 10px; z-index: 10000; font-size: 11px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
-        v3.7 - Stable
+        v3.8 - Stable
     </div>
 
-    <script type="module" src="admin.js?v=3.7"></script>
+    <script type="module" src="admin.js?v=3.8"></script>
 </body>
 
 </html>
