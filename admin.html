@@ -293,18 +293,21 @@
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                         <h5 class="fw-bold mb-0">ปฏิทินงาน & ชั่วโมงทำงาน</h5>
-                        <div class="d-flex align-items-center gap-2"><span class="badge bg-primary">ตารางเวร</span><span
-                                class="badge" style="background-color: var(--color-work-actual);">⏱️
-                                ชั่วโมงทำงานจริง</span></div>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="btnModeShift"
+                                onclick="toggleCalendarMode('schedule')">ตารางเวร</button>
+                            <button type="button" class="btn btn-success btn-sm" id="btnModeActual"
+                                onclick="toggleCalendarMode('attendance')">⏱️ ชั่วโมงทำงานจริง</button>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div id='calendar'></div>
                     </div>
                 </div>
-                <div class="card shadow-sm border-0">
+                <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-white fw-bold py-3">📊 อันดับชั่วโมงทำงานรายเดือน (Top Performers)</div>
                     <div class="card-body">
-                        <div class="d-flex gap-2 mb-3 align-items-center">
+                        <div class="d-flex gap-2 mb-4 align-items-center">
                             <label class="small text-muted fw-bold">เลือกเดือน:</label>
                             <div class="btn-group">
                                 <button class="btn btn-light border" onclick="changeMonth(-1)"><i
@@ -314,11 +317,9 @@
                                 <button class="btn btn-light border" onclick="changeMonth(1)"><i
                                         class="bi bi-chevron-right"></i></button>
                             </div>
-                            <button onclick="renderCharts()" class="btn btn-dark ms-2">แสดงกราฟ</button>
+                            <button onclick="renderCharts()" class="btn btn-dark ms-2 text-nowrap">แสดงกราฟ</button>
                         </div>
-                        <div style="height: 400px;">
-                            <canvas id="workHoursChart"></canvas>
-                        </div>
+                        <div id="topPerformersList"></div>
                     </div>
                 </div>
             </div>

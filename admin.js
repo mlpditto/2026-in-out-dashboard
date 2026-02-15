@@ -1022,6 +1022,120 @@ window.exportCSV = () => {
 
 
 
+// Calendar & Report Logic
+let customCalendarMode = 'attendance'; // 'schedule' or 'attendance'
+
+window.toggleCalendarMode = (mode) => {
+    customCalendarMode = mode;
+
+    // Update buttons
+    const btnShift = document.getElementById('btnModeShift');
+    const btnActual = document.getElementById('btnModeActual');
+
+    if (mode === 'schedule') {
+        btnShift.className = 'btn btn-primary btn-sm';
+        btnActual.className = 'btn btn-outline-success btn-sm';
+    } else {
+        btnShift.className = 'btn btn-outline-primary btn-sm';
+        btnActual.className = 'btn btn-success btn-sm';
+    }
+
+    if (calendarObj) calendarObj.refetchEvents();
+};
+
+window.renderCharts = async () => {
+    const mStr = document.getElementById('chartMonth').value; // YYYY-MM
+    const [y, m] = mStr.split('-').map(Number);
+
+    // Fetch attendance for the whole month
+    const start = new Date(y, m - 1, 1);
+    const end = new Date(y, m, 0, 23, 59, 59);
+
+    const q = query(collection(db, "attendance"),
+        where("timestamp", ">=", start),
+        where("timestamp", "<=", end));
+
+    const snap = await getDocs(q);
+    const userHours = {};
+
+    // Group by User and Date to calc hours
+    const logsByUserDate = {}; // { uid_date: [logs] }
+
+    snap.forEach(d => {
+        const v = d.data();
+        const k = `${v.userId}_${v.timestamp.seconds}`; // unique log
+        const dayKey = `${v.userId}_${new Date(v.timestamp.seconds * 1000).getDate()}`;
+
+        if (!logsByUserDate[dayKey]) logsByUserDate[dayKey] = { uid: v.userId, logs: [] };
+        logsByUserDate[dayKey].logs.push({ t: v.type, ts: v.timestamp.seconds });
+    });
+
+    // Calc total hours per user
+    Object.values(logsByUserDate).forEach(item => {
+        item.logs.sort((a, b) => a.ts - b.ts);
+        let ms = 0, last = null;
+        item.logs.forEach(x => {
+            if (x.t === 'เข้างาน') last = x.ts;
+            else if (x.t === 'ออกงาน' && last) { ms += (x.ts - last); last = null; }
+        });
+        if (!userHours[item.uid]) userHours[item.uid] = 0;
+        userHours[item.uid] += ms;
+    });
+
+    // Sort users by hours descending
+    const sorted = Object.entries(userHours)
+        .map(([uid, secs]) => ({ uid, hrs: secs / 3600 }))
+        .sort((a, b) => b.hrs - a.hrs);
+
+    // Render HTML List
+    const container = document.getElementById('topPerformersList');
+    if (!container) return;
+
+    if (sorted.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted py-5">ไม่มีข้อมูลชั่วโมงทำงานในเดือนนี้</div>';
+        return;
+    }
+
+    const maxHrs = sorted[0].hrs || 1; // avoid div by zero
+
+    let html = '';
+    sorted.forEach((x, index) => {
+        const u = window.allUserData?.[x.uid] || { name: 'Unknown', pictureUrl: '' };
+        const percent = (x.hrs / maxHrs) * 85; // Max width 85% to leave room for text/img
+        const barColor = index < 3 ? 'var(--color-primary)' : '#6c757d'; // Top 3 text color highlight? No, bar is blue.
+
+        // Screenshot style:
+        // Name on left (above bar or inline?) -> Screenshot shows name on LEFT column.
+        // Bar grows from left to right.
+        // At end of bar: Value text + Profile Pic.
+
+        // Actually screenshot shows:
+        // Name (Text)              | Bar (Green/Blue) ....................... [Value] [Img]
+        // ---------------------------------------------------------------------------------
+
+        // Let's use Flexbox.
+        const deptColor = getDeptCategoryColor(u.department || u.dept);
+
+        html += `
+        <div class="mb-3 d-flex align-items-center" style="font-size: 0.9rem;">
+            <div style="width: 200px; min-width: 150px;" class="text-truncate pe-2 text-end small text-muted">
+                ${u.name} <span class="d-none d-md-inline">(${u.empId || ''})</span>
+            </div>
+            <div class="flex-grow-1 position-relative" style="height: 28px; background: #f1f3f5; border-radius: 14px; overflow: visible;">
+                 <div style="width: ${Math.max(percent, 2)}%; height: 100%; background: ${deptColor}; border-radius: 14px; display:flex; align-items:center; justify-content:flex-end;">
+                 </div>
+                 <div style="position: absolute; left: ${Math.max(percent, 2)}%; top: 50%; transform: translateY(-50%); display:flex; align-items:center; margin-left: 8px; white-space:nowrap;">
+                    <span class="fw-bold me-2 small">${x.hrs.toFixed(2)}</span>
+                    <img src="${u.pictureUrl || 'https://via.placeholder.com/25'}" class="rounded-circle shadow-sm" style="width:25px; height:25px; border:1px solid white;" onerror="this.src='https://via.placeholder.com/25'">
+                 </div>
+            </div>
+        </div>
+        `;
+    });
+    container.innerHTML = html;
+};
+
+
 function initCalendar() {
     if (calendarObj) { calendarObj.render(); return }
     calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'), {
@@ -1031,100 +1145,92 @@ function initCalendar() {
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,layerGrid'
+            right: '' // User screenshot has month button on right but simplified
         },
         eventContent: function (arg) {
             const type = arg.event.extendedProps.type;
             const img = arg.event.extendedProps.image || 'https://via.placeholder.com/20';
             const title = arg.event.title;
+            const bgColor = arg.event.backgroundColor || '#198754';
+            const textColor = arg.event.textColor || '#000';
 
-            if (type === 'attendance') {
-                const bgColor = arg.event.backgroundColor || '#198754';
-                return {
-                    html: `
-                    <div class="calendar-event-user att-event" style="background:${bgColor}20; border-color:${bgColor};">
-                        <img src="${img}" onerror="this.src='https://via.placeholder.com/20'">
-                        <span class="event-hours" style="color:${bgColor}">${title}</span>
-                    </div>`
-                };
-            } else if (type === 'schedule') {
-                const bgColor = arg.event.backgroundColor || '#6c757d';
-                return {
-                    html: `
-                    <div class="calendar-event-user sched-event" style="background:${bgColor}20; border-color:${bgColor}">
-                        <img src="${img}" onerror="this.src='https://via.placeholder.com/20'">
-                        <span class="event-name" style="color:${bgColor}">${title}</span>
-                    </div>`
-                };
-            }
-            return { text: title };
+            // Screenshot style: 
+            // [Img] [Text] inside a rounded box.
+            // Text is dark. Background is light pastel.
+
+            return {
+                html: `
+                <div class="d-flex align-items-center px-1 py-0 shadow-sm" 
+                     style="background:${bgColor}20; border-left: 3px solid ${bgColor}; border-radius: 3px; font-size: 0.75rem; overflow:hidden; margin-bottom:1px;">
+                    <img src="${img}" style="width:16px; height:16px; border-radius:50%; margin-right:4px;" onerror="this.src='https://via.placeholder.com/16'">
+                    <span class="text-truncate fw-bold" style="color:#333;">${title}</span>
+                </div>`
+            };
         },
         events: async (info, s, f) => {
             try {
                 let ev = [];
-                // 1. Schedules
-                const sn = await getDocs(collection(db, "schedules"));
-                sn.forEach(d => {
-                    const v = d.data();
-                    const uid = v.userId;
-                    const prof = window.allUserData?.[uid] || {};
-                    let c = 'var(--color-shift-am)';
-                    if (v.shiftDetail.includes('บ่าย')) c = 'var(--color-shift-pm)';
-                    else if (v.shiftDetail.includes('ดึก')) c = 'var(--color-shift-night)';
-                    else if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) c = 'var(--color-leave)';
 
-                    ev.push({
-                        title: v.name,
-                        start: v.date,
-                        backgroundColor: c,
-                        extendedProps: {
-                            type: 'schedule',
-                            image: prof.pictureUrl
-                        }
-                    })
-                });
-
-                // 2. Attendance (Actual Hours)
-                const att = await getDocs(collection(db, "attendance"));
-                let map = {};
-                att.forEach(d => {
-                    const data = d.data();
-                    const k = `${data.userId}_${new Date(data.timestamp.seconds * 1000).toISOString().split('T')[0]}`;
-                    if (!map[k]) map[k] = { n: data.name, d: data.dept, uid: data.userId, l: [] };
-                    map[k].l.push({ t: data.type, ts: data.timestamp.seconds })
-                });
-
-                Object.keys(map).forEach(k => {
-                    const i = map[k];
-                    i.l.sort((a, b) => a.ts - b.ts);
-                    let ms = 0, last = null;
-                    i.l.forEach(x => {
-                        if (x.t === 'เข้างาน') last = x.ts;
-                        else if (x.t === 'ออกงาน' && last) { ms += (x.ts - last); last = null; }
-                    });
-
-                    if (ms > 0) {
-                        let baseColor = getDeptCategoryColor(i.d);
-                        let prof = window.allUserData?.[i.uid] || {};
+                // 1. Schedules View
+                if (customCalendarMode === 'schedule') {
+                    const q = query(collection(db, "schedules"));
+                    // Should filter by date range for efficiency but for now fetch all is acceptable for small set
+                    const sn = await getDocs(q);
+                    sn.forEach(d => {
+                        const v = d.data();
+                        const uid = v.userId;
+                        const prof = window.allUserData?.[uid] || {};
+                        let c = 'var(--color-shift-am)';
+                        if (v.shiftDetail.includes('บ่าย')) c = 'var(--color-shift-pm)';
+                        else if (v.shiftDetail.includes('ดึก')) c = 'var(--color-shift-night)';
+                        else if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) c = 'var(--color-leave)';
 
                         ev.push({
-                            title: `${(ms / 3600).toFixed(1)} ชม.`,
-                            start: k.split('_')[1],
-                            backgroundColor: 'transparent',
-                            borderColor: 'transparent',
-                            textColor: '#333',
-                            extendedProps: {
-                                type: 'attendance',
-                                image: prof.pictureUrl || i.pictureUrl,
-                                dept: i.d,
-                                name: i.n
-                            },
-                            display: 'block'
+                            title: v.name,
+                            start: v.date,
+                            backgroundColor: c,
+                            extendedProps: { type: 'schedule', image: prof.pictureUrl }
                         })
-                    }
-                });
+                    });
+                }
+
+                // 2. Attendance View
+                if (customCalendarMode === 'attendance') {
+                    // Fetch attendance for current view range
+                    // Currently fetching ALL, optimization: fetch by range info.start / info.end
+                    const att = await getDocs(collection(db, "attendance"));
+                    let map = {};
+                    att.forEach(d => {
+                        const data = d.data();
+                        const k = `${data.userId}_${new Date(data.timestamp.seconds * 1000).toISOString().split('T')[0]}`;
+                        if (!map[k]) map[k] = { n: data.name, d: data.dept, uid: data.userId, l: [] };
+                        map[k].l.push({ t: data.type, ts: data.timestamp.seconds })
+                    });
+
+                    Object.keys(map).forEach(k => {
+                        const i = map[k];
+                        i.l.sort((a, b) => a.ts - b.ts);
+                        let ms = 0, last = null;
+                        i.l.forEach(x => {
+                            if (x.t === 'เข้างาน') last = x.ts;
+                            else if (x.t === 'ออกงาน' && last) { ms += (x.ts - last); last = null; }
+                        });
+
+                        if (ms > 0) {
+                            let baseColor = getDeptCategoryColor(i.d);
+                            let prof = window.allUserData?.[i.uid] || {};
+                            ev.push({
+                                title: `${(ms / 3600).toFixed(1)} ชม.`,
+                                start: k.split('_')[1],
+                                backgroundColor: baseColor,
+                                extendedProps: { type: 'attendance', image: prof.pictureUrl || i.pictureUrl }
+                            })
+                        }
+                    });
+                }
+
                 s(ev)
-            } catch (e) { f(e) }
+            } catch (e) { console.error(e); f(e) }
         }
     });
     calendarObj.render();
