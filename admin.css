@@ -230,3 +230,102 @@ thead th {
 .fc-event-title-container {
     overflow: visible !important;
 }
+
+/* Liquid Glass Segmented Control */
+.segmented-control {
+    position: relative;
+    display: flex;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.segmented-control input {
+    display: none;
+}
+
+.segmented-control label {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 8px 0;
+    margin: 0;
+    cursor: pointer;
+    font-weight: 600;
+    color: #6c757d;
+    transition: color 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.segmented-control .selection {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    height: calc(100% - 8px);
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 9px;
+    transition: transform 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    z-index: 0;
+}
+
+.segmented-control input#type-out:checked~.selection {
+    transform: translateX(100%);
+}
+
+.segmented-control input:checked+label {
+    color: var(--color-primary);
+}
+
+/* Custom Time Stepper */
+.time-stepper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 4px 8px;
+    width: fit-content;
+}
+
+.stepper-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stepper-btn {
+    border: none;
+    background: transparent;
+    color: #adb5bd;
+    padding: 0;
+    line-height: 1;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 1.2rem;
+}
+
+.stepper-btn:hover {
+    color: var(--color-primary);
+}
+
+.stepper-val {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #333;
+    padding: 0 4px;
+}
+
+.stepper-sep {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: #ddd;
+    margin-top: -2px;
+}
