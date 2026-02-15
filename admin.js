@@ -25,7 +25,7 @@ window.allUserData = {};
 let usersByDeptModal;
 const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
 
-// AUTH
+// --- 🔓 AUTH ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         if (user.email === ADMIN_EMAIL) {
@@ -33,11 +33,25 @@ onAuthStateChanged(auth, async (user) => {
             document.getElementById('dashboardPage').classList.remove('hidden');
             document.getElementById('adminEmailDisplay').innerText = user.displayName || user.email;
             document.getElementById('adminProfilePic').src = user.photoURL || "https://via.placeholder.com/30";
-            await cacheUserProfiles(); loadInitialData();
+
+            // Critical Sequence: Fetch users first, then load data
+            await cacheUserProfiles();
+            loadInitialData();
+
             editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
             document.getElementById('chartMonth').value = new Date().toISOString().slice(0, 7);
-            setInterval(updateLiveClock, 1000); updateLiveClock();
-        } else { await signOut(auth); Swal.fire('Access Denied', 'อีเมลนี้ไม่มีสิทธิ์เข้าถึง', 'error'); }
+
+            // Intervals
+            if (window.liveClockInterval) clearInterval(window.liveClockInterval);
+            window.liveClockInterval = setInterval(updateLiveClock, 1000);
+            updateLiveClock();
+
+            if (window.autoRefreshInterval) clearInterval(window.autoRefreshInterval);
+            window.autoRefreshInterval = setInterval(loadData, 60000); // Auto refresh every 1 min
+        } else {
+            await signOut(auth);
+            Swal.fire('Access Denied', 'อีเมลนี้ไม่มีสิทธิ์เข้าถึง', 'error');
+        }
     } else {
         document.getElementById('loginPage').classList.remove('hidden');
         document.getElementById('dashboardPage').classList.add('hidden');
@@ -879,8 +893,14 @@ window.renderCharts = async () => {
 
 window.renderMainUserList = async () => {
     const s = await getDocs(query(collection(db, "users"), where("status", "in", ["Approved", "Inactive"])));
+
+    // Maintain consistent indexing: prefer lineUserId, fallback to doc.id
     window.allUserData = {};
-    s.forEach(d => { window.allUserData[d.id] = d.data(); });
+    s.forEach(d => {
+        const u = d.data();
+        const uid = u.lineUserId || d.id;
+        window.allUserData[uid] = u;
+    });
 
     const tabsEl = document.getElementById('mainUsersTabs');
     const contentEl = document.getElementById('mainUsersContent');
