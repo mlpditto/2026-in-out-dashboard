@@ -370,11 +370,7 @@
                 </div>
 
                 <label class="fw-bold mb-1 d-block">เหตุผล</label>
-                <textarea id="leaveReason" class="form-control mb-2" rows="2" placeholder="ระบุเหตุผล..."></textarea>
-
-                <label class="fw-bold mb-1 d-block small text-muted">แนบลิงก์ประกอบ (เช่น รูปใบรับรองแพทย์จาก
-                    Drive/iCloud)</label>
-                <input type="url" id="leaveLink" class="form-control mb-3" placeholder="https://...">
+                <textarea id="leaveReason" class="form-control" rows="3" placeholder="ระบุเหตุผล..."></textarea>
 
                 <button onclick="submitLeaveRequest()" class="btn btn-primary mt-2">ส่งใบลา</button>
 
@@ -476,17 +472,14 @@
         });
     </script>
 
-    <div
-        style="position: fixed; bottom: 5px; left: 5px; z-index: 10000; font-size: 10px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
-        v2.1
-    </div>
     <script type="module">
-        import { getDeptCategoryColor } from './colors.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- 🔴 CONFIG (Public) ---
+
+
+        // --- CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
             authDomain: "in-out-dashboard.firebaseapp.com",
@@ -504,97 +497,6 @@
 
         // MAIN
         async function main() {
-            // --- Preview Mode for Admin ---
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('preview') === 'true') {
-                window.log('📱 Preview Mode');
-                document.getElementById('loadingPage').classList.add('hidden');
-                document.getElementById('mainPage').classList.remove('hidden');
-
-                // Try to get real user data from admin parent window
-                let realUser = null;
-                try {
-                    const parentData = window.parent?.allUserData;
-                    if (parentData) {
-                        const users = Object.values(parentData).filter(u => u.status === 'Approved');
-                        if (users.length > 0) {
-                            // Pick a random approved user for preview
-                            realUser = users[Math.floor(Math.random() * users.length)];
-                        }
-                    }
-                } catch (e) { }
-
-                if (realUser) {
-                    document.getElementById('showName').textContent = realUser.name || 'ไม่ทราบชื่อ';
-                    document.getElementById('showEmpId').textContent = `${realUser.empId || '—'} | ${realUser.dept || 'General'}`;
-                    document.getElementById('mainProfileImg').src = realUser.pictureUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
-                } else {
-                    document.getElementById('showName').textContent = 'สมชาย ตัวอย่าง';
-                    document.getElementById('showEmpId').textContent = 'EMP-66001 | General';
-                    document.getElementById('mainProfileImg').src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
-                }
-
-                // Clock
-                function updatePreviewClock() {
-                    const now = new Date();
-                    const el = document.getElementById('clock');
-                    if (el) el.textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-                    const dateEl = document.getElementById('currentDate');
-                    if (dateEl) dateEl.textContent = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                }
-                updatePreviewClock();
-                setInterval(updatePreviewClock, 1000);
-
-                // Shift
-                const shiftEl = document.getElementById('shiftStatus');
-                if (shiftEl) shiftEl.innerHTML = '☀️ กะเช้า (08:00 - 17:00)';
-
-                // Hours
-                const h1 = document.getElementById('hours1Value');
-                const h2 = document.getElementById('hours2Value');
-                const h3 = document.getElementById('hours3Value');
-                if (h1) h1.textContent = '1,250.50';
-                if (h2) h2.textContent = '82.71';
-                if (h3) h3.textContent = '310.25';
-
-                // Schedule mock
-                const schedEl = document.getElementById('scheduleList');
-                if (schedEl) {
-                    const today = new Date();
-                    const mockSchedule = [];
-                    for (let i = 0; i < 5; i++) {
-                        const d = new Date(today);
-                        d.setDate(d.getDate() + i);
-                        const dayStr = d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
-                        const shifts = ['☀️ เช้า (08:00-17:00)', '☀️ เช้า (09:00-18:00)', '🚫 หยุด (Day Off)', '🕛 เที่ยง (11:00-20:00)', '☀️ เช้า (08:00-17:00)'];
-                        const colors = ['#e8f5e9', '#e8f5e9', '#fff3e0', '#e3f2fd', '#e8f5e9'];
-                        mockSchedule.push(`<div style="padding:10px 14px;background:${colors[i]};border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-weight:600;font-size:13px;">${dayStr}</span>
-                            <span style="font-size:12px;opacity:0.8;">${shifts[i]}</span>
-                        </div>`);
-                    }
-                    schedEl.innerHTML = mockSchedule.join('');
-                }
-
-                // History mock
-                const histEl = document.getElementById('historyList');
-                if (histEl) {
-                    histEl.innerHTML = `
-                        <li class="history-item" style="padding:10px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;">
-                            <div><span style="font-weight:600;">🟢 เข้างาน</span><br><small style="color:#888;">08:31 น.</small></div>
-                            <small style="color:#888;">วันนี้</small>
-                        </li>`;
-                }
-
-                // Disable actual buttons in preview
-                const btnIn = document.getElementById('btnCheckIn');
-                const btnOut = document.getElementById('btnCheckOut');
-                if (btnIn) { btnIn.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
-                if (btnOut) { btnOut.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
-
-                return; // Skip LIFF init
-            }
-
             window.log('กำลังตรวจสอบสถานะ LIFF...');
             try {
                 // Initialize LIFF
@@ -905,14 +807,13 @@
             // ... (rest same) ...
             // โหลดตารางเวร (logic เดิม + UI ใหม่)
             const today = new Date().toISOString().split('T')[0];
-            const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today));
+            const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today), orderBy("date"));
             const snap = await getDocs(q);
             const div = document.getElementById('scheduleList');
             if (snap.empty) { div.innerHTML = "<p class='text-muted text-center small'>ไม่มีตารางเร็วๆ นี้</p>"; return; }
-
-            const docs = snap.docs.map(doc => doc.data()).sort((a, b) => a.date.localeCompare(b.date));
             div.innerHTML = "";
-            docs.forEach(v => {
+            snap.forEach(d => {
+                const v = d.data();
                 const dThai = new Date(v.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
                 let badgeClass = "bg-primary-subtle text-primary";
                 if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) badgeClass = "bg-danger-subtle text-danger";
@@ -949,14 +850,13 @@
             const start = document.getElementById('leaveStart').value;
             const end = document.getElementById('leaveEnd').value;
             const reason = document.getElementById('leaveReason').value;
-            const attachLink = document.getElementById('leaveLink').value;
             if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันให้ครบถ้วน', 'warning');
             if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
 
             try {
                 await addDoc(collection(db, "leave_requests"), {
                     userId: currentUser.lineUserId, name: currentUser.name, dept: currentUser.dept,
-                    type, startDate: start, endDate: end, reason, attachLink, status: "Pending", requestedAt: serverTimestamp()
+                    type, startDate: start, endDate: end, reason, status: "Pending", requestedAt: serverTimestamp()
                 });
                 Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
                 toggleLeaveForm();
@@ -964,60 +864,47 @@
         }
 
         async function loadMyLeaves() {
-            try {
-                const q = query(collection(db, "leave_requests"), where("userId", "==", currentUser.lineUserId));
-                const snap = await getDocs(q);
-                const list = document.getElementById('myLeaveList');
-                if (!list) return;
-                list.innerHTML = "";
-
-                if (snap.empty) {
-                    list.innerHTML = "<p class='text-muted text-center small'>ไม่มีประวัติการลา</p>";
-                    return;
-                }
-
-                const docs = snap.docs.map(doc => doc.data()).sort((a, b) => {
-                    const startA = a.startDate || "";
-                    const startB = b.startDate || "";
-                    return startB.localeCompare(startA);
-                });
-
-                docs.forEach(v => {
-                    let color = 'text-warning', icon = 'bi-hourglass-split';
-                    if (v.status === 'Approved') { color = 'text-success'; icon = 'bi-check-circle-fill'; }
-                    if (v.status === 'Rejected') { color = 'text-danger'; icon = 'bi-x-circle-fill'; }
-                    const dColor = getDeptCategoryColor(currentUser.dept);
-                    list.innerHTML += `<li class="history-item py-2 px-0 border-0 shadow-none d-flex justify-content-between mb-1">
-                    <div><span class="badge small border me-2" style="background:${dColor}20; color:${dColor}; border-color:${dColor}">${v.type}</span> <small class="text-muted">${v.startDate}</small></div>
+            // ... logic เดิม ...
+            const q = query(collection(db, "leave_requests"), where("userId", "==", currentUser.lineUserId), orderBy("startDate", "desc"));
+            const snap = await getDocs(q);
+            const list = document.getElementById('myLeaveList'); list.innerHTML = "";
+            snap.forEach(d => {
+                const v = d.data();
+                let color = 'text-warning', icon = 'bi-hourglass-split';
+                if (v.status === 'Approved') { color = 'text-success'; icon = 'bi-check-circle-fill'; }
+                if (v.status === 'Rejected') { color = 'text-danger'; icon = 'bi-x-circle-fill'; }
+                list.innerHTML += `<li class="history-item py-2 px-0 border-0 shadow-none d-flex justify-content-between mb-1">
+                    <div><span class="badg small border me-2">${v.type}</span> <small class="text-muted">${v.startDate}</small></div>
                     <div class="${color} fw-bold small"><i class="bi ${icon}"></i> ${v.status}</div>
                  </li>`
-                });
-            } catch (err) {
-                console.error("Error loading my leaves:", err);
-            }
+            });
         }
 
         // --- DEPARTMENT COLORS ---
-
+        function getDeptCategoryColor(dept) {
+            dept = dept || "";
+            if (dept.match(/Extern/i)) return 'bg-success';
+            if (dept.match(/Pharmacy|เภสัช/i)) return 'bg-info';
+            if (dept.match(/General|ทั่วไป/i)) return 'bg-secondary';
+            if (dept.match(/IT|ไอที/i)) return 'bg-dark text-white';
+            if (dept.match(/Admin|ธุรการ/i)) return 'bg-danger';
+            if (dept.match(/Sales|การตลาด/i)) return 'bg-warning';
+            return 'bg-light';
+        }
 
         function updateDeptUI() {
             if (!currentUser || !currentUser.dept) return;
-            const color = getDeptCategoryColor(currentUser.dept);
+            const colorClass = getDeptCategoryColor(currentUser.dept);
 
-            // Apply custom color to profile elements
-            const elements = ['showName', 'showEmpId'];
+            // Selective class application
+            const elements = ['showName', 'showEmpId', 'mainProfileImg'];
             elements.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    el.style.backgroundColor = color;
-                    el.style.color = 'white';
+                    el.classList.remove('bg-success', 'bg-info', 'bg-secondary', 'bg-dark', 'bg-danger', 'bg-warning', 'text-white');
+                    el.classList.add(colorClass);
                 }
             });
-
-            const profileImg = document.getElementById('mainProfileImg');
-            if (profileImg) {
-                profileImg.style.borderColor = color;
-            }
         }
 
 
