@@ -57,7 +57,10 @@ onAuthStateChanged(auth, async (user) => {
             updateLiveClock();
 
             if (window.autoRefreshInterval) clearInterval(window.autoRefreshInterval);
-            window.autoRefreshInterval = setInterval(loadData, 60000); // Auto refresh every 1 min
+            window.autoRefreshInterval = setInterval(async () => {
+                await cacheUserProfiles();
+                loadData();
+            }, 60000); // Auto refresh every 1 min
         } else {
             await signOut(auth);
             Swal.fire('Access Denied', 'คุณไม่มีสิทธิ์เข้าถึงส่วนนี้', 'error');
@@ -615,6 +618,9 @@ window.submitManualEntry = async (e) => {
 };
 
 window.loadData = async () => {
+    // Refresh user profiles to get latest names/pictures before rendering attendance
+    await cacheUserProfiles();
+
     const d = document.getElementById('filterDate').value;
     const s = new Date(d); s.setHours(0, 0, 0, 0); const e = new Date(d); e.setHours(23, 59, 59, 999);
     const t = document.getElementById('tableBody');
@@ -765,7 +771,10 @@ function renderDeptBreakdown(byDept) {
 
 function getProfileImg(uid) {
     const src = userProfileMap[uid] || 'https://via.placeholder.com/45';
-    return `<img src="${src}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'">`;
+    const cacheBuster = `?v=${new Date().getTime()}`;
+    // Only add cache buster if it's not a placeholder
+    const finalSrc = src.includes('placeholder') ? src : (src + (src.includes('?') ? '&' : '?') + 'v=' + new Date().getHours());
+    return `<img src="${finalSrc}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'">`;
 }
 
 function loadInitialData() {
