@@ -410,7 +410,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="card-title mb-1 text-success fw-bold">ชั่วโมงทำงานเดือนนี้</h6>
-                                        <small class="text-muted">ตั้งแต่วันที่ 1 ถึงเมื่อวาน</small>
+                                        <small class="text-muted">ตั้งแต่วันที่ 1 ถึงปัจจุบัน</small>
                                     </div>
                                     <div class="text-end">
                                         <h3 class="mb-0 text-success fw-bold" id="hours2Value">0.00</h3>
@@ -426,7 +426,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="card-title mb-1 text-info fw-bold">ชั่วโมงทำงานปีนี้</h6>
-                                        <small class="text-muted">ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน</small>
+                                        <small class="text-muted">ตั้งแต่วันที่ 1 มกราคม ถึงปัจจุบัน</small>
                                     </div>
                                     <div class="text-end">
                                         <h3 class="mb-0 text-info fw-bold" id="hours3Value">0.00</h3>
@@ -908,7 +908,16 @@
             const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today));
             const snap = await getDocs(q);
             const div = document.getElementById('scheduleList');
-            if (snap.empty) { div.innerHTML = "<p class='text-muted text-center small'>ไม่มีตารางเร็วๆ นี้</p>"; return; }
+            const statusEl = document.getElementById('shiftStatus');
+
+            if (snap.empty) {
+                div.innerHTML = "<p class='text-muted text-center small'>ไม่มีตารางเร็วๆ นี้</p>";
+                if (statusEl) {
+                    statusEl.innerText = "ไม่ได้ระบุเวร";
+                    statusEl.className = "badge rounded-pill bg-light text-muted border px-3 py-1";
+                }
+                return;
+            }
 
             const docs = snap.docs.map(doc => doc.data()).sort((a, b) => a.date.localeCompare(b.date));
             div.innerHTML = "";
@@ -926,7 +935,6 @@
 
             // Update Shift Status Badge current day
             const todaySched = snap.docs.find(d => d.data().date === today);
-            const statusEl = document.getElementById('shiftStatus');
             if (todaySched) {
                 statusEl.innerText = todaySched.data().shiftDetail;
                 statusEl.className = "badge rounded-pill px-3 py-1 border " + (todaySched.data().shiftDetail.includes('หยุด') ? "bg-danger text-white" : "bg-success text-white");
@@ -1104,9 +1112,7 @@
                     startDate = registrationDate.toDate ?
                         registrationDate.toDate() :
                         new Date(registrationDate);
-                    endDate = new Date();
-                    endDate.setDate(endDate.getDate() - 1); // Yesterday
-                    endDate.setHours(23, 59, 59, 999);
+                    endDate = new Date(); // Include today
                 }
 
                 const hours = await calculateWorkingHours(startDate, endDate);
@@ -1122,9 +1128,7 @@
             try {
                 const now = new Date();
                 const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of current month
-                const endDate = new Date();
-                endDate.setDate(endDate.getDate() - 1); // Yesterday
-                endDate.setHours(23, 59, 59, 999);
+                const endDate = now; // Include today
 
                 const hours = await calculateWorkingHours(startDate, endDate);
                 document.getElementById('hours2Value').innerText = hours.toFixed(2);
@@ -1139,9 +1143,7 @@
             try {
                 const now = new Date();
                 const startDate = new Date(now.getFullYear(), 0, 1); // 1st January
-                const endDate = new Date();
-                endDate.setDate(endDate.getDate() - 1); // Yesterday
-                endDate.setHours(23, 59, 59, 999);
+                const endDate = now; // Include today
 
                 const hours = await calculateWorkingHours(startDate, endDate);
                 document.getElementById('hours3Value').innerText = hours.toFixed(2);
@@ -1199,13 +1201,15 @@
                         }
                     });
 
-                    // Handle case where clocked in but no clock out (use 23:00 as default)
+                    // Handle case where clocked in but no clock out
                     if (clockInTime) {
-                        const endTime = new Date(clockInTime);
-                        endTime.setHours(23, 0, 0, 0);
+                        const now = new Date();
+                        const isToday = clockInTime.toDateString() === now.toDateString();
+                        const endTime = isToday ? now : new Date(clockInTime).setHours(23, 0, 0, 0);
+
                         const diffMs = endTime - clockInTime;
                         const diffHours = diffMs / (1000 * 60 * 60);
-                        dayHours += diffHours;
+                        dayHours += Math.max(0, diffHours);
                     }
 
                     totalHours += dayHours;
