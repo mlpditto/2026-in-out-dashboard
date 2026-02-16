@@ -478,12 +478,12 @@
 
     <div
         style="position: fixed; bottom: 5px; left: 5px; z-index: 10000; font-size: 10px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
-        v2.1
+        v3.15
     </div>
     <script type="module">
         import { getDeptCategoryColor } from './colors.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- 🔴 CONFIG (Public) ---
