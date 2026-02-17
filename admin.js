@@ -1186,6 +1186,7 @@ window.renderMainUserList = async () => {
                 <td class="ps-3"><div class="user-cell"><img src="${window.getSafeProfileSrc(img, 45)}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
                 <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;">${dept}</span></td>
                 <td class="text-end pe-3">
+                    <button onclick="viewUserStats('${u.id}')" class="btn btn-sm btn-light border me-1" title="สถิติ"><i class="bi bi-bar-chart"></i></button>
                     <button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button>
                     <button onclick="delUser('${u._docId || u.id}')" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></button>
                 </td>
@@ -1835,3 +1836,114 @@ async function showDayAttendanceDetail(dateStr) {
         Swal.update({ html: '<p class="text-danger text-center">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>' });
     }
 }
+
+window.viewUserStats = async (uid) => {
+    const u = window.allUserData?.[uid];
+    if (!u) return;
+
+    Swal.fire({
+        title: 'กำลังคำนวณสถิติ...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+        let startTotal = new Date();
+        startTotal.setFullYear(now.getFullYear() - 1);
+        if (u.registrationDate) startTotal = u.registrationDate.toDate ? u.registrationDate.toDate() : new Date(u.registrationDate);
+        else if (u.createdAt) startTotal = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
+
+        const [hMonth, hYear, hTotal] = await Promise.all([
+            calcHours(uid, startOfMonth, now),
+            calcHours(uid, startOfYear, now),
+            calcHours(uid, startTotal, now)
+        ]);
+
+        const qLeave = query(collection(db, "leave_requests"), where("userId", "==", uid), where("status", "==", "Approved"));
+        const snapLeave = await getDocs(qLeave);
+
+        let leaveSummary = {};
+        let totalLeaveDays = 0;
+
+        snapLeave.forEach(doc => {
+            const data = doc.data();
+            const type = data.type || data.leaveType || 'อื่นๆ';
+            const s = new Date(data.startDate);
+            const e = new Date(data.endDate);
+            const days = Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
+
+            if (!leaveSummary[type]) leaveSummary[type] = { days: 0, count: 0 };
+            leaveSummary[type].days += days;
+            leaveSummary[type].count += 1;
+            totalLeaveDays += days;
+        });
+
+        let leaveHtml = '';
+        if (totalLeaveDays > 0) {
+            leaveHtml = `<div class="mt-3"><h6 class="fw-bold border-bottom pb-1">รายละเอียดวันลา</h6><div class="row g-2">`;
+            Object.entries(leaveSummary).forEach(([type, stat]) => {
+                leaveHtml += `
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-light">
+                        <div class="small text-muted">${type}</div>
+                        <div class="fw-bold text-primary">${stat.days} วัน <small class="text-muted">(${stat.count} ครั้ง)</small></div>
+                    </div>
+                </div>`;
+            });
+            leaveHtml += `</div></div>`;
+        } else {
+            leaveHtml = `<div class="mt-3 p-3 bg-light rounded text-muted small">ไม่มีประวัติการลาที่อนุมัติ</div>`;
+        }
+
+        Swal.fire({
+            title: `<div class="d-flex align-items-center gap-2 text-start"><img src="${window.getSafeProfileSrc(u.pictureUrl, 40)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"> <div><div style="font-size:1.1rem;">${u.name}</div><div class="text-muted" style="font-size:0.8rem;">${uid}</div></div></div>`,
+            html: `
+            <div class="text-start mt-3">
+                <h6 class="fw-bold border-bottom pb-1">สถิติการทำงาน</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light text-center">
+                            <div class="small text-muted" style="font-size:0.7rem;">เดือนนี้</div>
+                            <div class="fw-bold text-success" style="font-size:1.1rem;">${hMonth.toFixed(2)}</div>
+                            <div class="small text-muted" style="font-size:0.7rem;">ชม.</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light text-center">
+                            <div class="small text-muted" style="font-size:0.7rem;">ปีนี้</div>
+                            <div class="fw-bold text-primary" style="font-size:1.1rem;">${hYear.toFixed(2)}</div>
+                            <div class="small text-muted" style="font-size:0.7rem;">ชม.</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light text-center">
+                            <div class="small text-muted" style="font-size:0.7rem;">ทั้งหมด</div>
+                            <div class="fw-bold text-dark" style="font-size:1.1rem;">${hTotal.toFixed(2)}</div>
+                            <div class="small text-muted" style="font-size:0.7rem;">ชม.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold border-bottom pb-1">สรุปการลาทั้งหมด</h6>
+                <div class="p-2 border rounded bg-white text-center shadow-sm">
+                    <div class="h4 mb-0 fw-bold text-danger">${totalLeaveDays} วัน</div>
+                    <div class="small text-muted">รวมวันลาที่ใช้ไปทั้งหมด</div>
+                </div>
+
+                ${leaveHtml}
+            </div>`,
+            showCloseButton: true,
+            confirmButtonText: 'ปิด',
+            confirmButtonColor: '#6c757d',
+            width: '450px'
+        });
+
+    } catch (err) {
+        console.error(err);
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลสถิติได้', 'error');
+    }
+};
