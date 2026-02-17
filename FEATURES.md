@@ -1,0 +1,64 @@
+# 🚀 Features - MLP Time Attendance Dashboard (v3.15)
+
+## 📋 Employee Interface (Mobile LIFF)
+The employee interface is accessible via LINE LIFF, providing a seamless experience for time recording and leave management.
+
+### 1. Registration & Profiling
+*   **LINE Profile Sync:** Automatic synchronization of Display Name and Profile Picture from LINE.
+*   **Registration Form:** Secure onboarding with Employee ID, Department selection, and Approval process.
+*   **Approval Status:** Real-time status tracking (Pending/Approved) with restricted access until approved.
+
+### 2. Time Attendance (GPS-Verified)
+*   **Check-In/Out:** One-tap time recording for "เข้างาน" (Clock-in) and "ออกงาน" (Clock-out).
+*   **GPS Verification:** Automatic capturing of geolocation and generation of Google Maps links for location audits.
+*   **Status Indicators:** Visual feedback of current status (In/Out) on the main dashboard.
+
+### 3. Leave Requests
+*   **Multi-type Leave:** Supports Sick Leave (ลาป่วย), Personal Leave (ลากิจ), Vacation (ลาพักร้อน), and others.
+*   **Attachment Support:** Ability to attach document links for medical certificates or proofs.
+*   **History Tracking:** Employees can view their past leave requests and approval status.
+
+### 4. Personal Dashboard
+*   **Working Hours Summary:** Real-time calculation of daily, monthly, and yearly working hours.
+*   **Internship Tracker:** Countdown timer for students showing "Days Left" until the completion of their internship.
+*   **Personal Schedule:** View of assigned shifts and approved leaves for the current month.
+
+---
+
+## 🛠️ Admin Dashboard (Management Portal)
+A comprehensive panel for administrators to monitor and manage staff operations.
+
+### 1. Real-time Monitoring (Dashboard)
+*   **Live Status Cards:** Instant metrics for "Currently In", "Pending Approvals", "Total Approved Users", and "New Members".
+*   **Visual Attendance Table:** List of today's activities with profile images, department color-coding, and GPS map buttons.
+*   **Auto-Refresh:** The dashboard refreshes every 60 seconds to ensure data is up-to-date.
+*   **Quick Copy Summary:** A tool to copy today's attendance summary for reporting in group chats.
+
+### 2. Shift Scheduling & Leave Management
+*   **Shift Picker (Chips UI):** Efficient shift assignment using pre-defined chips (08-17, 09-18, 10-19, 11-20, 12-21).
+*   **Leave Approval Workflow:** Dedicated tab for approving or rejecting leave requests with detailed popups.
+*   **Automatic Sync:** Approved leaves are automatically injected into the staff's schedule with appropriate emojis (🤒, 🌴, 📋).
+*   **Manual Entry v2:** Admins can record time on behalf of employees using a visual user picker.
+
+### 3. Reporting & Analytics
+*   **Calendar View (Hierarchy Cards):** Monthly calendar displaying either scheduled shifts or actual clock-in times.
+*   **Top Performers Chart:** Dynamic bar chart showing the most active employees based on working hours for any selected month.
+*   **CSV/Excel Export:** Export functionality for attendance records and evaluation results.
+
+### 4. User Management
+*   **Employee Directory:** Categorized lists of employees by department (General, Pharmacist, etc.).
+*   **Advanced Filtering:** Filter users by department or search by name/ID.
+*   **Archive System:** Deactivate employees or interns who have finished their term without deleting their history.
+
+### 5. Specialized Evaluation System (Pharm Interns)
+*   **Multi-File XLSX Support:** Fast processing of multiple student evaluation spreadsheets simultaneously.
+*   **Progress Tracking:** Visual progress bars for each evaluation section (ป-1 to ป-5).
+*   **Sectional Theming:** Each evaluation category is color-coded using 8 distinct palette colors.
+*   **Feedback System:** Separate feedback fields for Mid-term (Week 3) and Final (Week 6) evaluations.
+
+---
+
+## 🎨 Visual & UX Identity
+*   **Department Theme Colors:** Custom color palette defined in `colors.js` for consistent branding across UI elements.
+*   **Dark/Light Mode:** Full support for dark and light themes (especially in the Evaluation module).
+*   **Responsive Design:** Optimized for both desktop (Admin) and mobile (LIFF).

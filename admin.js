@@ -203,17 +203,23 @@ function renderSchedPage() {
         const sd = detailHtml.toLowerCase();
 
         if (sd.includes('ลาป่วย')) {
-            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🤒 ลาป่วย', '#dc3545', '${v.id}')">🤒 ลาป่วย</span>`;
+            const displayShift = v.shiftDetail.includes('🤒') ? v.shiftDetail : `🤒 ${v.shiftDetail}`;
+            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🤒 ลาป่วย', '#dc3545', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('ลาพักร้อน') || sd.includes('ลาพักผ่อน')) {
-            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🌴 ลาพักร้อน', '#0d9488', '${v.id}')">🌴 ลาพักร้อน</span>`;
+            const displayShift = v.shiftDetail.includes('🌴') ? v.shiftDetail : `🌴 ${v.shiftDetail}`;
+            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🌴 ลาพักร้อน', '#0d9488', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('ลากิจ')) {
-            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('📋 ลากิจ', '#0d6efd', '${v.id}')">📋 ลากิจ</span>`;
+            const displayShift = v.shiftDetail.includes('📋') ? v.shiftDetail : `📋 ${v.shiftDetail}`;
+            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('📋 ลากิจ', '#0d6efd', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('ลาคลอด')) {
-            detailHtml = `<span class="badge" style="background:#e91e8c;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('👶 ลาคลอด', '#e91e8c', '${v.id}')">👶 ลาคลอด</span>`;
+            const displayShift = v.shiftDetail.includes('👶') ? v.shiftDetail : `👶 ${v.shiftDetail}`;
+            detailHtml = `<span class="badge" style="background:#e91e8c;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('👶 ลาคลอด', '#e91e8c', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('ลาบวช')) {
-            detailHtml = `<span class="badge" style="background:#f59e0b;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🙏 ลาบวช', '#f59e0b', '${v.id}')">🙏 ลาบวช</span>`;
+            const displayShift = v.shiftDetail.includes('🙏') ? v.shiftDetail : `🙏 ${v.shiftDetail}`;
+            detailHtml = `<span class="badge" style="background:#f59e0b;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🙏 ลาบวช', '#f59e0b', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('หยุด') || sd.includes('day off')) {
-            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🚫 หยุด', '#6c757d', '${v.id}')">🚫 ${v.shiftDetail}</span>`;
+            const displayShift = v.shiftDetail.includes('🚫') ? v.shiftDetail : `🚫 ${v.shiftDetail}`;
+            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🚫 หยุด', '#6c757d', '${v.id}')">${displayShift}</span>`;
         } else {
             detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('⏰ เวรทำงาน', '#6c757d', '${v.id}')">${v.shiftDetail}</span>`;
         }
@@ -1585,7 +1591,7 @@ window.renderDetailModal = (title, color, schedId) => {
 
     Swal.fire({
         title: title,
-        html: `<div class='text-start'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล/รายละเอียด:</b> ${safeReason}</p>${linkHtml}</div>`,
+        html: `<div class='text-start'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>`,
         confirmButtonText: 'ปิด',
         confirmButtonColor: color || '#6c757d'
     });
