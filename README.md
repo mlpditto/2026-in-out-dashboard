@@ -2,7 +2,7 @@
 
 ระบบลงเวลาพนักงานผ่าน LINE LIFF + Firebase Firestore พร้อมหน้า Admin สำหรับดูรายงาน/จัดการข้อมูล
 
-**Current Version**: `v3.20 - Stable` | **Last Updated**: 2026-02-17
+**Current Version**: `v3.21 - Stable` | **Last Updated**: 2026-02-17
 
 ---
 
@@ -370,7 +370,10 @@
 - ✨ **Shift Chips**: ใช้ระบบปุ่ม Chip แทน Dropdown พร้อมกะใหม่ (เช้า 08-17, 09-18, เที่ยง 11-20, 12-21)
 
 
-### v3.20 (Current)
+### v3.21 (Current)
+- **Schedule Details Fix**: Fixed an issue where the "reason" and "attachment link" were not showing in the admin schedule details modal. The data loading logic now correctly includes these fields.
+
+### v3.20
 - **Silent Name/Pic Sync**: Both profile picture and LINE display name are now automatically synchronized whenever a user logs in.
 - **Admin Name Info**: Added a subtitle in the user management list to show the LINE name if it differs from the registered name, making identification easier.
 
