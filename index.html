@@ -352,7 +352,7 @@
             <div id="leaveFormSection" class="hidden"
                 style="background: white; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 5px 20px rgba(0,0,0,0.05); padding: 20px; margin-top: 15px; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; box-sizing: border-box;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>📝 ฟอร์มใบลา</h3>
+                    <h3>📝 ฟอร์ม</h3>
                     <button onclick="toggleLeaveForm()" class="btn-close"
                         style="background:none; border:none; font-size:1.5rem;">&times;</button>
                 </div>
@@ -365,25 +365,29 @@
                     <option value="แจ้งเวลาปฏิบัติงาน">🕒 แจ้งเวลาปฏิบัติงาน (Work Schedule)</option>
                 </select>
 
-                <div class="row g-2 mb-3">
+                <div class="row g-1 mb-2">
                     <div class="col-6">
-                        <label class="fw-bold mb-1 d-block small">ตั้งแต่วันที่</label>
-                        <input type="date" id="leaveStart" class="form-control mb-0">
+                        <label class="fw-bold mb-1 d-block" style="font-size:0.8rem;">ตั้งแต่วันที่</label>
+                        <input type="date" id="leaveStart" class="form-control form-control-sm mb-0"
+                            style="font-size:0.9rem;">
                     </div>
                     <div class="col-6">
-                        <label class="fw-bold mb-1 d-block small">ถึงวันที่</label>
-                        <input type="date" id="leaveEnd" class="form-control mb-0">
+                        <label class="fw-bold mb-1 d-block" style="font-size:0.8rem;">ถึงวันที่</label>
+                        <input type="date" id="leaveEnd" class="form-control form-control-sm mb-0"
+                            style="font-size:0.9rem;">
                     </div>
                 </div>
 
-                <div id="timeInputSection" class="row g-2 mb-3 hidden">
+                <div id="timeInputSection" class="row g-1 mb-2 hidden">
                     <div class="col-6">
-                        <label class="fw-bold mb-1 d-block small">เวลาเริ่ม</label>
-                        <input type="time" id="reqStartTime" class="form-control mb-0">
+                        <label class="fw-bold mb-1 d-block" style="font-size:0.8rem;">เวลาเริ่ม</label>
+                        <input type="time" id="reqStartTime" class="form-control form-control-sm mb-0"
+                            style="font-size:0.9rem;">
                     </div>
                     <div class="col-6">
-                        <label class="fw-bold mb-1 d-block small">เวลาสิ้นสุด</label>
-                        <input type="time" id="reqEndTime" class="form-control mb-0">
+                        <label class="fw-bold mb-1 d-block" style="font-size:0.8rem;">เวลาสิ้นสุด</label>
+                        <input type="time" id="reqEndTime" class="form-control form-control-sm mb-0"
+                            style="font-size:0.9rem;">
                     </div>
                 </div>
 
