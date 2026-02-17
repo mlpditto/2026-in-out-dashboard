@@ -387,7 +387,7 @@
             <div class="mt-4">
                 <h4 class="mb-3 text-muted"><i class="bi bi-clock-history"></i> สรุปชั่วโมงการทำงาน</h4>
                 <div id="workingHoursSummary" class="row g-2">
-                    <div class="col-12">
+                    <div class="col-12" id="totalHoursCard">
                         <div class="card border-primary bg-light">
                             <div class="card-body p-3">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -404,13 +404,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-12">
+                    <div class="col-12" id="monthlyHoursCard">
                         <div class="card border-success bg-light">
                             <div class="card-body p-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="card-title mb-1 text-success fw-bold">ชั่วโมงทำงานเดือนนี้</h6>
-                                        <small class="text-muted">ตั้งแต่วันที่ 1 ถึงปัจจุบัน</small>
+                                        <h6 class="card-title mb-1 text-success fw-bold" id="hours2Title">
+                                            ชั่วโมงทำงานเดือนนี้</h6>
+                                        <small class="text-muted" id="hours2Desc">ตั้งแต่วันที่ 1 ถึงปัจจุบัน</small>
                                     </div>
                                     <div class="text-end">
                                         <h3 class="mb-0 text-success fw-bold" id="hours2Value">0.00</h3>
@@ -425,8 +426,10 @@
                             <div class="card-body p-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="card-title mb-1 text-info fw-bold">ชั่วโมงทำงานปีนี้</h6>
-                                        <small class="text-muted">ตั้งแต่วันที่ 1 มกราคม ถึงปัจจุบัน</small>
+                                        <h6 class="card-title mb-1 text-info fw-bold" id="hours3Title">ชั่วโมงทำงานปีนี้
+                                        </h6>
+                                        <small class="text-muted" id="hours3Desc">ตั้งแต่วันที่ 1 มกราคม
+                                            ถึงปัจจุบัน</small>
                                     </div>
                                     <div class="text-end">
                                         <h3 class="mb-0 text-info fw-bold" id="hours3Value">0.00</h3>
@@ -1032,41 +1035,30 @@
         // --- WORKING HOURS CALCULATION ---
         async function loadWorkingHours() {
             try {
-                const isPharmacistExtern = currentUser.dept === 'Pharmacist Extern';
+                const dept = currentUser.dept || '';
+                const isPharmacistExtern = dept === 'Pharmacist Extern' || dept.includes('Intern');
 
                 const yearlyCard = document.getElementById('yearlyHoursCard');
                 const monthlyCard = document.getElementById('monthlyHoursCard');
-                const hours1Title = document.getElementById('hours1Title');
-                const hours1Desc = document.getElementById('hours1Desc');
-                const hours2Title = document.getElementById('hours2Title');
-                const hours2Desc = document.getElementById('hours2Desc');
 
+                // Always calculate all 3 if cards exist
+                await calculateInternshipHours();
+                await calculateHoursFromMonthStart();
+                await calculateHoursFromYearStart();
+
+                // Custom UI adjustments based on dept
                 if (isPharmacistExtern) {
-                    // Pharmacist Extern:
-                    // 1) ระยะเวลาฝึกงานทั้งหมด
-                    // 2) เดือนนี้ (1 -> เมื่อวาน)
-                    yearlyCard.style.display = 'none';
-                    monthlyCard.style.display = 'block'; // Make sure monthly card is visible
-                    hours1Title.innerText = 'ชม.ทำงานทั้งหมด';
-                    hours1Desc.innerText = 'ตลอดระยะเวลาฝึกงาน';
-                    hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
-                    hours2Desc.innerText = 'ตั้งแต่วันที่ 1 ถึงเมื่อวาน';
-
-                    await calculateInternshipHours();
-                    await calculateHoursFromMonthStart();
+                    if (yearlyCard) yearlyCard.style.display = 'none';
+                    const h1Title = document.getElementById('hours1Title');
+                    const h1Desc = document.getElementById('hours1Desc');
+                    if (h1Title) h1Title.innerText = 'ชม.ทำงานทั้งหมด';
+                    if (h1Desc) h1Desc.innerText = 'ตลอดระยะเวลาฝึกงาน';
                 } else {
-                    // ทุกแผนก (ยกเว้น Extern):
-                    // 1) เดือนนี้ (1 -> เมื่อวาน)
-                    // 2) ปีนี้ (1 ม.ค. -> เมื่อวาน)
-                    yearlyCard.style.display = 'block';
-                    monthlyCard.style.display = 'block';
-                    hours1Title.innerText = 'ชม.ทำงานปีนี้';
-                    hours1Desc.innerText = 'ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน';
-                    hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
-                    hours2Desc.innerText = 'ตั้งแต่วันที่ 1 ถึงเมื่อวาน';
-
-                    await calculateHoursFromMonthStart();
-                    await calculateHoursFromYearStart();
+                    if (yearlyCard) yearlyCard.style.display = 'block';
+                    const h1Title = document.getElementById('hours1Title');
+                    const h1Desc = document.getElementById('hours1Desc');
+                    if (h1Title) h1Title.innerText = 'ชั่วโมงทำงานทั้งหมด';
+                    if (h1Desc) h1Desc.innerText = 'ตั้งแต่วันแรกที่สมัคร';
                 }
 
             } catch (error) {

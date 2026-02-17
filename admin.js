@@ -162,8 +162,17 @@ window.createSchedule = async (e) => {
     }
 
     try {
+        const isLeave = type.includes('ลา') || type.includes('หยุด');
         await setDoc(doc(db, "schedules", `${uId}_${date}`), {
-            userId: uId, name: uName, date: date, shiftDetail: detail, timestamp: new Date()
+            userId: uId,
+            name: uName,
+            date: date,
+            shiftDetail: detail,
+            timestamp: new Date(),
+            // Add metadata for consistent popup display
+            startDate: date,
+            endDate: date,
+            reason: isLeave ? detail : ''
         });
         Toast.fire({ icon: 'success', title: 'บันทึกตารางเวรแล้ว' });
         loadSchedules();
@@ -1579,11 +1588,16 @@ window.renderDetailModal = (title, color, schedId) => {
     if (!v) return;
 
     const safeName = (v.name || '').replace(/'/g, "\\'");
-    const dateRange = (v.startDate && v.endDate) ? `${v.startDate} ถึง ${v.endDate}` : (v.endDate ? `${v.date} ถึง ${v.endDate}` : v.date);
-    const safeDateRange = dateRange.replace(/'/g, "\\'");
-    const safeReason = (v.reason || v.shiftDetail || 'ระบุผ่านตารางเวร').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-    const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+    // Always show range A ถึง B even if same day, to match Image 2
+    const start = v.startDate || v.date;
+    const end = v.endDate || v.date;
+    const safeDateRange = `${start} ถึง ${end}`.replace(/'/g, "\\'");
 
+    // If it's a leave type and reason is missing/contains emoji, use the cleaner version or fallback
+    let displayReason = v.reason || v.shiftDetail || 'ระบุผ่านตารางเวร';
+    const safeReason = displayReason.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+    const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
     let linkHtml = '';
     if (safeLink) {
         linkHtml = `<p><b>🔗 ลิงก์แนบ:</b> <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info py-0">เปิดดูเอกสาร</a></p>`;
