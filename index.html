@@ -721,15 +721,23 @@
                 document.getElementById('pendingImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
                 document.getElementById('pendingName').innerText = data.name;
             } else if (id === 'mainPage') {
-                document.getElementById('mainName').innerText = currentUser.name || currentUser.displayName;
-                document.getElementById('showEmpId').innerText = `${currentUser.empId || 'N/A'} | ${currentUser.dept || 'ทั่วไป'}`;
+                const displayName = currentUser.name || currentUser.displayName || 'ผู้ใช้งาน';
+                const empId = currentUser.empId || 'N/A';
+                const dept = currentUser.dept || 'ทั่วไป';
+
+                const nameEl = document.getElementById('mainName');
+                const empEl = document.getElementById('showEmpId');
+                if (nameEl) nameEl.innerText = displayName;
+                if (empEl) empEl.innerText = `${empId} | ${dept}`;
 
                 // Fallback for profile picture
                 const profileImg = document.getElementById('mainProfileImg');
-                const finalPic = currentUser.pictureUrl || userData?.pictureUrl || `https://via.placeholder.com/60`;
-                profileImg.src = finalPic + (finalPic.includes('?') ? '&' : '?') + `v=${Date.now()}`;
-                profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
-                profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
+                const finalPic = currentUser.pictureUrl || `https://via.placeholder.com/60`;
+
+                if (profileImg) {
+                    profileImg.src = finalPic + (finalPic.includes('?') ? '&' : '?') + `v=${Date.now()}`;
+                    profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
+                }
 
                 const updateClock = () => {
                     const now = new Date();
@@ -739,9 +747,10 @@
                     if (dateEl) dateEl.innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                 };
                 updateClock(); // Run immediately
-                setInterval(updateClock, 1000);
+                // Clear any existing interval to prevent duplicates if show is called multiple times
+                if (window.clockInterval) clearInterval(window.clockInterval);
+                window.clockInterval = setInterval(updateClock, 1000);
 
-                loadHistory();
                 loadHistory();
                 loadSchedule();
                 loadWorkingHours();
