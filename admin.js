@@ -661,6 +661,15 @@ window.submitManualEntry = async (e) => {
     }
 };
 
+window.changeDate = (offset) => {
+    const d = document.getElementById('filterDate');
+    if (!d || !d.value) return;
+    const current = new Date(d.value);
+    current.setDate(current.getDate() + offset);
+    d.valueAsDate = current; // Correctly updates the input value
+    loadData();
+};
+
 window.loadData = async () => {
     // Refresh user profiles to get latest names/pictures before rendering attendance
     await cacheUserProfiles();
