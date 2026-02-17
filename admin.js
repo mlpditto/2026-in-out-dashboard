@@ -380,9 +380,15 @@ window.loadLeaveRequests = async () => {
             const uData = window.allUserData?.[v.userId] || {};
             const subInfo = uData.empId || v.reason || '';
 
+            const safeString = (str) => (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, "\\n");
+
+            const sName = safeString(v.name);
+            const sType = safeString(displayType);
+            const sReason = safeString(v.reason || 'ไม่ได้ระบุเหตุผล');
+            const sLink = safeString(v.attachLink);
+
             if (v.status === 'Pending') {
-                const lType = v.type || v.leaveType;
-                const acts = `<button onclick="updLeave('${v.id}','Approved','${v.userId}','${v.name}','${v.startDate}','${v.endDate}','${lType}','${safeReason}','${safeLink}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
+                const acts = `<button onclick="updLeave('${v.id}','Approved','${v.userId}','${sName}','${v.startDate}','${v.endDate}','${sType}','${sReason}','${sLink}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
                              <button onclick="updLeave('${v.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
 
                 hPending += `<tr class="table-warning">
