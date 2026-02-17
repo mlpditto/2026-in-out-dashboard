@@ -1731,42 +1731,82 @@ window.copyAttendanceSummaryByDate = async (dateStr) => {
         if (snap.empty) return Toast.fire({ icon: 'info', title: 'ไม่มีข้อมูลในวันที่เลือก' });
 
         const statusMap = {};
-        const entryTimeMap = {};
         snap.forEach(doc => {
-            const v = doc.data();
-            const uid = v.userId;
-            if (!statusMap[uid] || (v.timestamp.seconds > statusMap[uid].time)) {
-                statusMap[uid] = { type: v.type, time: v.timestamp.seconds };
+            const data = doc.data();
+            const uid = data.userId;
+            if (!statusMap[uid]) {
+                // Try to get latest info from window.allUserData if possible, else use doc data
+                const uProfile = window.allUserData?.[uid];
+                statusMap[uid] = {
+                    n: uProfile ? uProfile.name : (data.name || 'พนักงาน'),
+                    d: uProfile ? (uProfile.dept || 'General') : (data.dept || 'General'),
+                    l: []
+                };
             }
-            if (v.type === 'เข้างาน') {
-                entryTimeMap[uid] = new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
-            }
+            statusMap[uid].l.push({ t: data.type, ts: data.timestamp.seconds });
         });
 
         const grouped = {};
-        Object.keys(statusMap).forEach(uid => {
-            if (statusMap[uid].type === 'เข้างาน' || true) { // Include all who had activity that day? User said 'ทำงานในวันที่กด'
-                const user = window.allUserData[uid];
-                const dept = user ? (user.dept || 'General') : 'General';
-                const name = user ? user.name : (snap.docs.find(x => x.data().userId === uid)?.data().name || 'พนักงาน');
+        let totalIn = 0;
 
-                if (!grouped[dept]) grouped[dept] = [];
-                grouped[dept].push({ name, time: entryTimeMap[uid] || '--:--' });
+        Object.keys(statusMap).forEach(uid => {
+            const u = statusMap[uid];
+            u.l.sort((a, b) => a.ts - b.ts);
+
+            let firstIn = null;
+            let lastOut = null;
+            let ms = 0;
+            let lastTs = null;
+
+            u.l.forEach(x => {
+                if (x.t === 'เข้างาน') {
+                    if (!firstIn) firstIn = x.ts;
+                    lastTs = x.ts;
+                } else if (x.t === 'ออกงาน') {
+                    lastOut = x.ts;
+                    if (lastTs) {
+                        ms += (x.ts - lastTs);
+                        lastTs = null; // Pair closed
+                    }
+                }
+            });
+
+            // If still clocked in (lastTs is not null), calculate pending hours based on "now" if it's today?? 
+            // Better to only count closed sessions or just leave it. 
+            // User requested "Total Hours", usually implies completed work. 
+            // Let's stick to closed pairs for accuracy.
+
+            if (u.l.length > 0) {
+                const tIn = firstIn ? new Date(firstIn * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
+                const tOut = lastOut ? new Date(lastOut * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false }) : '...';
+                const hrs = (ms / 3600).toFixed(2);
+
+                if (!grouped[u.d]) grouped[u.d] = [];
+                grouped[u.d].push({
+                    name: u.n,
+                    in: tIn,
+                    out: tOut,
+                    hrs: hrs
+                });
+                totalIn++;
             }
         });
 
         const d = new Date(dateStr);
         const formattedDate = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
 
-        let text = `📊 รายชื่อพนักงานเข้างานประจำวันที่ ${formattedDate}\n`;
-        let totalIn = 0;
+        let text = `📊 สรุปเวลาเข้า-ออกงาน วันที่ ${formattedDate}\n`;
 
         const depts = Object.keys(grouped).sort();
         depts.forEach(dept => {
-            text += `\n📍 แผนก: ${dept} (${grouped[dept].length} ท่าน)\n`;
-            grouped[dept].forEach((p, idx) => {
-                text += `${idx + 1}. ${p.name} (${p.time} น.)\n`;
-                totalIn++;
+            const users = grouped[dept];
+            // Sort users by Name? or Check-in time? Default to check-in time if possible, or just index
+            // Let's sort by Name for consistency
+            // users.sort((a, b) => a.name.localeCompare(b.name)); 
+
+            text += `\n📍 แผนก: ${dept} (${users.length} ท่าน)\n`;
+            users.forEach((p, idx) => {
+                text += `${idx + 1}. ${p.name}\n   ⏰ ${p.in} - ${p.out} | ⏳ ${p.hrs} ชม.\n`;
             });
         });
 
