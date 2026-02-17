@@ -211,26 +211,29 @@ function renderSchedPage() {
         let detailHtml = v.shiftDetail || '';
         const sd = detailHtml.toLowerCase();
 
+        // Helper to get clean display without duplicate prepending
+        const getDisplayShift = (text, emoji) => text.includes(emoji) ? text : `${emoji} ${text}`;
+
         if (sd.includes('ลาป่วย')) {
-            const displayShift = v.shiftDetail.includes('🤒') ? v.shiftDetail : `🤒 ${v.shiftDetail}`;
+            const displayShift = getDisplayShift(v.shiftDetail, '🤒');
             detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🤒 ลาป่วย', '#dc3545', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('ลาพักร้อน') || sd.includes('ลาพักผ่อน')) {
-            const displayShift = v.shiftDetail.includes('🌴') ? v.shiftDetail : `🌴 ${v.shiftDetail}`;
+            const displayShift = getDisplayShift(v.shiftDetail, '🌴');
             detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🌴 ลาพักร้อน', '#0d9488', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('ลากิจ')) {
-            const displayShift = v.shiftDetail.includes('📋') ? v.shiftDetail : `📋 ${v.shiftDetail}`;
+            const displayShift = getDisplayShift(v.shiftDetail, '📋');
             detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('📋 ลากิจ', '#0d6efd', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('ลาคลอด')) {
-            const displayShift = v.shiftDetail.includes('👶') ? v.shiftDetail : `👶 ${v.shiftDetail}`;
+            const displayShift = getDisplayShift(v.shiftDetail, '👶');
             detailHtml = `<span class="badge" style="background:#e91e8c;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('👶 ลาคลอด', '#e91e8c', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('ลาบวช')) {
-            const displayShift = v.shiftDetail.includes('🙏') ? v.shiftDetail : `🙏 ${v.shiftDetail}`;
+            const displayShift = getDisplayShift(v.shiftDetail, '🙏');
             detailHtml = `<span class="badge" style="background:#f59e0b;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🙏 ลาบวช', '#f59e0b', '${v.id}')">${displayShift}</span>`;
         } else if (sd.includes('หยุด') || sd.includes('day off')) {
-            const displayShift = v.shiftDetail.includes('🚫') ? v.shiftDetail : `🚫 ${v.shiftDetail}`;
+            const displayShift = getDisplayShift(v.shiftDetail, '🚫');
             detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🚫 หยุด', '#6c757d', '${v.id}')">${displayShift}</span>`;
         } else {
-            detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('⏰ เวรทำงาน', '#6c757d', '${v.id}')">${v.shiftDetail}</span>`;
+            detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('⏰ เวรทำงาน', '#e9ecef', '${v.id}')">${v.shiftDetail}</span>`;
         }
         h += `<tr><td class="ps-3">${v.date}</td><td>${v.name}</td><td>${detailHtml}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
     });
@@ -346,12 +349,15 @@ window.loadLeaveRequests = async () => {
             else if (lt.includes('บวช')) { leaveEmoji = '🙏'; leaveColor = '#f59e0b'; }
             const safeReason = (v.reason || 'ไม่ได้ระบุเหตุผล').replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            let linkHtml = '';
-            if (safeLink) {
-                linkHtml = `<p><b>🔗 ลิงก์แนบ:</b> <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info py-0">เปิดดูเอกสาร</a></p>`;
-            }
+            const safeObj = JSON.stringify({
+                name: v.name,
+                startDate: v.startDate,
+                endDate: v.endDate,
+                reason: v.reason || displayType,
+                attachLink: v.attachLink
+            }).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
-            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem; cursor:pointer;" onclick="Swal.fire({title:'${leaveEmoji} ${displayType}',html:'<div class=\\'text-start\\'><p><b>👤 พนักงาน:</b> ${v.name}</p><p><b>📅 วันที่:</b> ${v.startDate} ถึง ${v.endDate}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>',confirmButtonText:'ปิด',confirmButtonColor:'${leaveColor}'})">${leaveEmoji} ${displayType}</span>`;
+            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem; cursor:pointer;" onclick="renderDetailModal('${leaveEmoji} ${displayType}', '${leaveColor}', null, '${safeObj}')">${leaveEmoji} ${displayType}</span>`;
 
             // Get user info for display (empId instead of raw userId)
             const uData = window.allUserData?.[v.userId] || {};
@@ -803,12 +809,22 @@ window.updLeave = async (id, st, uid, nm, s, e, tp, rs, ln) => {
     await setDoc(doc(db, "leave_requests", id), { status: st }, { merge: true });
     if (st === 'Approved') {
         let c = new Date(s), end = new Date(e);
-        const emoji = tp.includes('ป่วย') ? '🤒' : (tp.includes('พักผ่อน') ? '🌴' : (tp.includes('กิจ') ? '📋' : (tp.includes('คลอด') ? '👶' : (tp.includes('บวช') ? '🙏' : '🛑'))));
+        const lt = (tp || "").toLowerCase();
+        let emoji = '🛑';
+        if (lt.includes('ป่วย')) emoji = '🤒';
+        else if (lt.includes('พักผ่อน') || lt.includes('พักร้อน')) emoji = '🌴';
+        else if (lt.includes('กิจ')) emoji = '📋';
+        else if (lt.includes('คลอด')) emoji = '👶';
+        else if (lt.includes('บวช')) emoji = '🙏';
+
+        const cleanType = tp.replace(/🤒|🌴|📋|👶|🙏|🛑/g, '').trim();
+        const finalShiftDetail = `${emoji} ${cleanType}`;
+
         while (c <= end) {
             let ds = c.toLocaleDateString('sv');
             await setDoc(doc(db, "schedules", `${uid}_${ds}`), {
-                userId: uid, name: nm, date: ds, shiftDetail: `${emoji} ${tp}`,
-                reason: rs || '', attachLink: ln || '', startDate: s, endDate: e
+                userId: uid, name: nm, date: ds, shiftDetail: finalShiftDetail,
+                reason: rs || cleanType, attachLink: ln || '', startDate: s, endDate: e
             });
             c.setDate(c.getDate() + 1);
         }
@@ -1477,23 +1493,14 @@ function initCalendar() {
                 return;
             }
 
-            const safeName = (p.name || '').replace(/'/g, "\\'");
-            const dateRange = (p.startDate && p.endDate) ? `${p.startDate} ถึง ${p.endDate}` : (p.endDate ? `${info.event.startStr} ถึง ${p.endDate}` : info.event.startStr);
-            const safeDateRange = dateRange.replace(/'/g, "\\'");
-            const safeReason = (p.reason || p.detail || 'ระบุผ่านตารางเวร').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            const safeLink = (p.link || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-
-            let linkHtml = '';
-            if (safeLink) {
-                linkHtml = `<p><b>🔗 ลิงก์แนบ:</b> <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info py-0">เปิดดูเอกสาร</a></p>`;
-            }
-
-            Swal.fire({
-                title: p.detail || 'รายละเอียด',
-                html: `<div class='text-start'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 รายละเอียด:</b> ${safeReason}</p>${linkHtml}</div>`,
-                confirmButtonText: 'ปิด',
-                confirmButtonColor: '#6c757d'
+            const safeObj = JSON.stringify({
+                name: p.name,
+                startDate: p.startDate,
+                endDate: p.endDate,
+                reason: p.reason || p.detail,
+                attachLink: p.link
             });
+            renderDetailModal(p.detail || 'รายละเอียด', '#6c757d', null, safeObj);
         },
         eventContent: function (arg) {
             const props = arg.event.extendedProps;
@@ -1595,6 +1602,9 @@ function initCalendar() {
                                     type: 'attendance',
                                     name: i.n,
                                     detail: hrsStr,
+                                    reason: `สรุปเวลาเข้างาน: ${hrsStr}`, // Add reason for attendance
+                                    startDate: k.split('_')[1], // Add startDate for attendance
+                                    endDate: k.split('_')[1],   // Add endDate for attendance
                                     image: prof.pictureUrl || i.pictureUrl,
                                     deptColor: baseColor,
                                     pastelColor: pastelColor
@@ -1614,9 +1624,23 @@ function initCalendar() {
 // Explicit export to window object to ensure availability
 window.initCalendar = initCalendar;
 
-window.renderDetailModal = (title, color, schedId) => {
-    // Find the record in local data
-    const v = schedAllData.find(x => x.id === schedId);
+window.renderDetailModal = (title, color, schedId, rawObj) => {
+    let v;
+    if (rawObj) {
+        if (typeof rawObj === 'string') {
+            try {
+                v = JSON.parse(rawObj.replace(/&quot;/g, '"'));
+            } catch (e) { console.error("Parse error", e); }
+        } else {
+            v = rawObj;
+        }
+    }
+
+    // Fallback to searching in schedAllData if not provided directly
+    if (!v && schedId) {
+        v = schedAllData.find(x => x.id === schedId);
+    }
+
     if (!v) return;
 
     const safeName = (v.name || '').replace(/'/g, "\\'");
