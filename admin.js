@@ -1821,7 +1821,7 @@ async function showDayAttendanceDetail(dateStr) {
 
         let html = `
         <div class="mb-3 text-start">
-            <button onclick="copyAttendanceSummaryByDate('${dateStr}')" class="btn btn-sm btn-outline-primary py-1 px-3 rounded-pill shadow-sm">
+            <button onclick="window.copyAttendanceSummaryByDate('${dateStr}')" class="btn btn-sm btn-outline-primary py-1 px-3 rounded-pill shadow-sm">
                 <i class="bi bi-clipboard-check me-1"></i> คัดลอกสรุปรายการ
             </button>
         </div>
@@ -1830,22 +1830,29 @@ async function showDayAttendanceDetail(dateStr) {
         const maxHrs = 12; // Baseline for full width
 
         users.forEach(u => {
-            const prof = window.allUserData?.[u.uid] || {};
+            const uData = window.allUserData?.[u.uid] || {};
+            const pictureUrl = uData.pictureUrl || u.pictureUrl;
             const pastel = getDeptPastelColor(u.d);
             const borderCol = getDeptCategoryColor(u.d);
-            const percent = Math.min((u.hrs / maxHrs) * 100, 100);
+            // Calculate percentage based on maxHrs (e.g., 12 hours = full width)
+            const percentWidth = Math.min((u.hrs / maxHrs) * 100, 100);
 
             html += `
-            <div class="d-flex align-items-center mb-2 p-2 position-relative" 
-                 style="background: #f8f9fa; border-radius: 12px; border-left: 5px solid ${borderCol}; overflow: hidden; min-height: 65px;">
-                <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${percent}%; background: ${pastel}; z-index: 1;"></div>
-                <div class="d-flex align-items-center gap-2" style="position: relative; z-index: 2; width: 100%;">
-                    <img src="${window.getSafeProfileSrc(prof.pictureUrl, 35)}" 
-                         onerror="this.src='https://via.placeholder.com/35'"
-                         style="width:35px; height:35px; border-radius:50%; object-fit: cover; border: 2px solid white; shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <div class="text-start">
-                        <div class="fw-bold small" style="color: #333;">${u.n}</div>
-                        <div class="fw-bold" style="color: ${borderCol}; font-size: 0.95rem;">${u.hrs.toFixed(2)} <small>ชม.</small></div>
+            <div class="d-flex align-items-center mb-2 p-2 position-relative shadow-sm" 
+                 style="background: #fff; border-radius: 12px; border-left: 5px solid ${borderCol}; overflow: hidden; min-height: 65px;">
+                 
+                <!-- Progress Bar Background -->
+                <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${percentWidth}%; background: ${pastel}40; z-index: 0;"></div>
+                
+                <div class="d-flex align-items-center gap-3 w-100" style="position: relative; z-index: 1;">
+                    <img src="${window.getSafeProfileSrc(pictureUrl, 40)}" 
+                         onerror="this.src='https://via.placeholder.com/40'"
+                         class="rounded-circle border border-2 border-white shadow-sm"
+                         style="width:40px; height:40px; object-fit: cover;">
+                         
+                    <div class="flex-grow-1">
+                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">${u.n}</div>
+                        <div class="fw-bold" style="color: ${borderCol}; font-size: 0.9rem;">${u.hrs.toFixed(2)} ชม.</div>
                     </div>
                 </div>
             </div>`;
