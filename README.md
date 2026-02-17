@@ -2,7 +2,7 @@
 
 ระบบลงเวลาพนักงานผ่าน LINE LIFF + Firebase Firestore พร้อมหน้า Admin สำหรับดูรายงาน/จัดการข้อมูล
 
-**Current Version**: `v3.21 - Stable` | **Last Updated**: 2026-02-17
+**Current Version**: `v3.24 - Stable` | **Last Updated**: 2026-02-17
 
 ---
 
