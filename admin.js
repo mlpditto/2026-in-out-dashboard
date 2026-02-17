@@ -238,6 +238,13 @@ function renderSchedPage() {
         } else {
             detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('⏰ เวรทำงาน', '#e9ecef', '${v.id}')">${v.shiftDetail}</span>`;
         }
+        const safeReason = (v.reason || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        // Store metadata in data attribute or pass directly. 
+        // Or better yet, rely on lookup by ID since we fixed schedAllData population.
+        // But for robustness, let's pass a safe object string or rely on ID lookup which renderDetailModal does.
+        // Since schedAllData is now fully populated, ID lookup is reliable.
+
         h += `<tr><td class="ps-3">${v.date}</td><td>${v.name}</td><td>${detailHtml}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
     });
     t.innerHTML = h || '<tr><td colspan="4" class="text-center text-muted py-3">ไม่พบข้อมูลในเดือนนี้</td></tr>';
@@ -266,12 +273,19 @@ window.loadSchedules = async () => {
         const s = await getDocs(q);
 
         // Filter by selected month
+        // Filter by selected month
         const selectedMonth = mf ? mf.value : '';
         schedAllData = [];
         s.forEach(d => {
             const v = d.data();
             if (selectedMonth && v.date && !v.date.startsWith(selectedMonth)) return;
-            schedAllData.push({ id: d.id, ...v });
+            // Ensure all fields are pushed including reason and attachLink
+            schedAllData.push({
+                id: d.id,
+                ...v,
+                reason: v.reason || '',
+                attachLink: v.attachLink || ''
+            });
         });
 
         schedCurrentPage = 1;
