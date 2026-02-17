@@ -2,7 +2,7 @@
 
 ระบบลงเวลาพนักงานผ่าน LINE LIFF + Firebase Firestore พร้อมหน้า Admin สำหรับดูรายงาน/จัดการข้อมูล
 
-**Current Version**: `v3.17 - Stable` | **Last Updated**: 2026-02-17
+**Current Version**: `v3.18 - Stable` | **Last Updated**: 2026-02-17
 
 ---
 
@@ -370,7 +370,11 @@
 - ✨ **Shift Chips**: ใช้ระบบปุ่ม Chip แทน Dropdown พร้อมกะใหม่ (เช้า 08-17, 09-18, เที่ยง 11-20, 12-21)
 
 
-### v3.17 (Current)
+### v3.18 (Current)
+- **User Stats Dashboard**: Added a new "Stats" button for each user to view their work hours (Total, Year, Month) and detailed leave history in a single view.
+- **Improved Performance Metrics**: Real-time calculation of accumulated hours and categorized leave breakdown.
+
+### v3.17
 - **Profile Image Sync Fix**: Implemented unified profile picture helper with per-minute cache busting.
 - **Improved Visual Accuracy**: All profile pictures across the admin panel now synchronize more reliably with the latest Firestore data.
 - **Unified Image Helper**: Simplified code by centralizing profile image rendering logic.
