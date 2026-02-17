@@ -1,4 +1,4 @@
-import { getDeptCategoryColor } from './colors.js';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -1447,11 +1447,35 @@ function initCalendar() {
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: ''
+            right: 'attendanceMode,scheduleMode'
+        },
+        customButtons: {
+            attendanceMode: {
+                text: 'เข้างาน',
+                click: function () {
+                    customCalendarMode = 'attendance';
+                    calendarObj.refetchEvents();
+                }
+            },
+            scheduleMode: {
+                text: 'ตารางเวร',
+                click: function () {
+                    customCalendarMode = 'schedule';
+                    calendarObj.refetchEvents();
+                }
+            }
+        },
+        dateClick: function (info) {
+            if (customCalendarMode === 'attendance') {
+                showDayAttendanceDetail(info.dateStr);
+            }
         },
         eventClick: function (info) {
             const p = info.event.extendedProps;
-            if (p.type === 'attendance') return; // Click on attendance - do nothing for now
+            if (p.type === 'attendance') {
+                showDayAttendanceDetail(info.event.startStr);
+                return;
+            }
 
             const safeName = (p.name || '').replace(/'/g, "\\'");
             const dateRange = (p.startDate && p.endDate) ? `${p.startDate} ถึง ${p.endDate}` : (p.endDate ? `${info.event.startStr} ถึง ${p.endDate}` : info.event.startStr);
@@ -1479,19 +1503,23 @@ function initCalendar() {
             const detail = props.detail || '';
 
             let statusClass = 'status-soft-secondary';
-            if (type === 'attendance') statusClass = 'status-soft-success';
+            let customStyle = '';
+            if (type === 'attendance') {
+                statusClass = ''; // Use custom colors
+                customStyle = `background: ${props.pastelColor}; border-left-color: ${props.deptColor};`;
+            }
             else if (detail.includes('หยุด') || detail.includes('ลา')) statusClass = 'status-soft-danger';
             else if (detail.includes('เช้า')) statusClass = 'status-soft-primary';
             else if (detail.includes('เที่ยง') || detail.includes('บ่าย')) statusClass = 'status-soft-warning';
 
             return {
                 html: `
-                <div class="calendar-event-card ${statusClass}">
+                <div class="calendar-event-card ${statusClass}" style="${customStyle}">
                     <div class="calendar-event-header">
                         <img src="${img}" onerror="this.src='https://via.placeholder.com/20'">
-                        <div class="calendar-event-title">${name}</div>
+                        <div class="calendar-event-title" style="${type === 'attendance' ? 'color: #333;' : ''}">${name}</div>
                     </div>
-                    <div class="calendar-event-subtitle">${detail || arg.event.title}</div>
+                    <div class="calendar-event-subtitle" style="${type === 'attendance' ? `color: ${props.deptColor};` : ''}">${detail || arg.event.title}</div>
                 </div>`
             };
         },
@@ -1555,17 +1583,21 @@ function initCalendar() {
 
                         if (ms > 0) {
                             let baseColor = getDeptCategoryColor(i.d);
+                            let pastelColor = getDeptPastelColor(i.d);
                             let prof = window.allUserData?.[i.uid] || {};
                             const hrsStr = `${(ms / 3600).toFixed(2)} ชม.`;
                             ev.push({
                                 title: hrsStr,
                                 start: k.split('_')[1],
-                                backgroundColor: baseColor,
+                                backgroundColor: pastelColor, // Use pastel for grid background
+                                borderColor: baseColor,      // Use solid for left border
                                 extendedProps: {
                                     type: 'attendance',
                                     name: i.n,
                                     detail: hrsStr,
-                                    image: prof.pictureUrl || i.pictureUrl
+                                    image: prof.pictureUrl || i.pictureUrl,
+                                    deptColor: baseColor,
+                                    pastelColor: pastelColor
                                 }
                             })
                         }
@@ -1613,75 +1645,160 @@ window.renderDetailModal = (title, color, schedId) => {
 
 window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.saveSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime; window.changeSchedMonth = changeSchedMonth; window.schedChangePage = schedChangePage; window.openManualEntry = openManualEntry; window.submitManualEntry = submitManualEntry; window.adjTime = adjTime;
 window.copyAttendanceSummary = () => {
-    if (!window.currentData || window.currentData.length === 0) {
-        return Toast.fire({ icon: 'warning', title: 'ไม่พบข้อมูลสำหรับคัดลอก' });
+    const filterDate = document.getElementById('filterDate')?.value;
+    if (filterDate) {
+        window.copyAttendanceSummaryByDate(filterDate);
+    } else {
+        Toast.fire({ icon: 'warning', title: 'กรุณาเลือกวันที่ก่อนคัดลอก' });
     }
-
-    // Identify who is currently clocked in based on the latest record
-    const statusMap = {};
-    const entryTimeMap = {};
-    window.currentData.forEach(v => {
-        const uid = v.userId;
-        // Keep track of the latest record for each user to see their current status
-        if (!statusMap[uid] || (v.timestamp.seconds > statusMap[uid].time)) {
-            statusMap[uid] = { type: v.type, time: v.timestamp.seconds };
-        }
-        // Always store entry time if it's a check-in
-        if (v.type === 'เข้างาน') {
-            entryTimeMap[uid] = new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
-        }
-    });
-
-    // Group by department
-    const grouped = {};
-    Object.keys(statusMap).forEach(uid => {
-        if (statusMap[uid].type === 'เข้างาน') {
-            const user = window.allUserData[uid];
-            const dept = user ? (user.dept || 'General') : 'General';
-            const name = user ? user.name : (window.currentData.find(x => x.userId === uid)?.name || 'พนักงาน');
-
-            if (!grouped[dept]) grouped[dept] = [];
-            grouped[dept].push({ name, time: entryTimeMap[uid] || '--:--' });
-        }
-    });
-
-    const dateStr = document.getElementById('filterDate').value;
-    const d = new Date(dateStr);
-    const formattedDate = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
-
-    let text = `📊 สรุปผู้เข้างานประจำวันที่ ${formattedDate}\n`;
-    let totalIn = 0;
-
-    const depts = Object.keys(grouped).sort();
-    if (depts.length === 0) return Toast.fire({ icon: 'info', title: 'ไม่มีพนักงานที่เข้างานอยู่ในขณะนี้' });
-
-    depts.forEach(dept => {
-        text += `\n📍 แผนก: ${dept} (${grouped[dept].length} ท่าน)\n`;
-        grouped[dept].forEach((p, idx) => {
-            text += `${idx + 1}. ${p.name} (${p.time} น.)\n`;
-            totalIn++;
-        });
-    });
-
-    text += `\n━━━━━━━━━━━━━━━\n✅ รวมเข้างานทั้งหมด: ${totalIn} ท่าน`;
-
-    const copyToClipboard = (str) => {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            return navigator.clipboard.writeText(str);
-        } else {
-            const textArea = document.createElement("textarea");
-            textArea.value = str;
-            document.body.appendChild(textArea);
-            textArea.select();
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            return successful ? Promise.resolve() : Promise.reject();
-        }
-    };
-
-    copyToClipboard(text).then(() => {
-        Toast.fire({ icon: 'success', title: 'คัดลอกสรุปเข้างานแล้ว' });
-    }).catch(err => {
-        Swal.fire('Error', 'ไม่สามารถคัดลอกได้: ' + err, 'error');
-    });
 };
+
+window.copyAttendanceSummaryByDate = async (dateStr) => {
+    try {
+        const start = new Date(dateStr);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(dateStr);
+        end.setHours(23, 59, 59, 999);
+
+        const q = query(collection(db, "attendance"), where("timestamp", ">=", start), where("timestamp", "<=", end));
+        const snap = await getDocs(q);
+
+        if (snap.empty) return Toast.fire({ icon: 'info', title: 'ไม่มีข้อมูลในวันที่เลือก' });
+
+        const statusMap = {};
+        const entryTimeMap = {};
+        snap.forEach(doc => {
+            const v = doc.data();
+            const uid = v.userId;
+            if (!statusMap[uid] || (v.timestamp.seconds > statusMap[uid].time)) {
+                statusMap[uid] = { type: v.type, time: v.timestamp.seconds };
+            }
+            if (v.type === 'เข้างาน') {
+                entryTimeMap[uid] = new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+        });
+
+        const grouped = {};
+        Object.keys(statusMap).forEach(uid => {
+            if (statusMap[uid].type === 'เข้างาน' || true) { // Include all who had activity that day? User said 'ทำงานในวันที่กด'
+                const user = window.allUserData[uid];
+                const dept = user ? (user.dept || 'General') : 'General';
+                const name = user ? user.name : (snap.docs.find(x => x.data().userId === uid)?.data().name || 'พนักงาน');
+
+                if (!grouped[dept]) grouped[dept] = [];
+                grouped[dept].push({ name, time: entryTimeMap[uid] || '--:--' });
+            }
+        });
+
+        const d = new Date(dateStr);
+        const formattedDate = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        let text = `📊 รายชื่อพนักงานเข้างานประจำวันที่ ${formattedDate}\n`;
+        let totalIn = 0;
+
+        const depts = Object.keys(grouped).sort();
+        depts.forEach(dept => {
+            text += `\n📍 แผนก: ${dept} (${grouped[dept].length} ท่าน)\n`;
+            grouped[dept].forEach((p, idx) => {
+                text += `${idx + 1}. ${p.name} (${p.time} น.)\n`;
+                totalIn++;
+            });
+        });
+
+        text += `\n━━━━━━━━━━━━━━━\n✅ รวมทั้งหมด: ${totalIn} ท่าน`;
+
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(text);
+            Toast.fire({ icon: 'success', title: 'คัดลอกสรุปรายวันแล้ว' });
+        }
+    } catch (err) {
+        console.error(err);
+        Swal.fire('Error', 'ไม่สามารถคัดลอกได้', 'error');
+    }
+};
+
+async function showDayAttendanceDetail(dateStr) {
+    const d = new Date(dateStr);
+    const title = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    Swal.fire({
+        title: title,
+        html: '<div id="dayAttendanceLoading" class="p-3 text-center"><div class="spinner-border text-primary"></div><p class="mt-2">กำลังโหลดข้อมูล...</p></div>',
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '500px'
+    });
+
+    try {
+        const start = new Date(dateStr);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(dateStr);
+        end.setHours(23, 59, 59, 999);
+
+        const att = await getDocs(query(collection(db, "attendance"), where("timestamp", ">=", start), where("timestamp", "<=", end)));
+        let map = {};
+        att.forEach(doc => {
+            const data = doc.data();
+            const uid = data.userId;
+            if (!map[uid]) map[uid] = { n: data.name, d: data.dept, uid: data.userId, l: [] };
+            map[uid].l.push({ t: data.type, ts: data.timestamp.seconds })
+        });
+
+        let users = [];
+        Object.keys(map).forEach(uid => {
+            const i = map[uid];
+            i.l.sort((a, b) => a.ts - b.ts);
+            let ms = 0, last = null;
+            i.l.forEach(x => {
+                if (x.t === 'เข้างาน') last = x.ts;
+                else if (x.t === 'ออกงาน' && last) { ms += (x.ts - last); last = null; }
+            });
+            if (ms > 0) users.push({ ...i, hrs: ms / 3600 });
+        });
+
+        users.sort((a, b) => b.hrs - a.hrs); // Top performers first
+
+        if (users.length === 0) {
+            Swal.update({ html: '<p class="text-center py-4 text-muted">ไม่มีข้อมูลการเข้างานในวันนี้</p>' });
+            return;
+        }
+
+        let html = `
+        <div class="mb-3 text-start">
+            <button onclick="copyAttendanceSummaryByDate('${dateStr}')" class="btn btn-sm btn-outline-primary py-1 px-3 rounded-pill shadow-sm">
+                <i class="bi bi-clipboard-check me-1"></i> คัดลอกสรุปรายการ
+            </button>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">`;
+
+        const maxHrs = 12; // Baseline for full width
+
+        users.forEach(u => {
+            const prof = window.allUserData?.[u.uid] || {};
+            const pastel = getDeptPastelColor(u.d);
+            const borderCol = getDeptCategoryColor(u.d);
+            const percent = Math.min((u.hrs / maxHrs) * 100, 100);
+
+            html += `
+            <div class="d-flex align-items-center mb-2 p-2 position-relative" 
+                 style="background: #f8f9fa; border-radius: 12px; border-left: 5px solid ${borderCol}; overflow: hidden; min-height: 65px;">
+                <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${percent}%; background: ${pastel}; z-index: 1;"></div>
+                <div class="d-flex align-items-center gap-2" style="position: relative; z-index: 2; width: 100%;">
+                    <img src="${prof.pictureUrl || 'https://via.placeholder.com/35'}" 
+                         style="width:35px; height:35px; border-radius:50%; object-fit: cover; border: 2px solid white; shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div class="text-start">
+                        <div class="fw-bold small" style="color: #333;">${u.n}</div>
+                        <div class="fw-bold" style="color: ${borderCol}; font-size: 0.95rem;">${u.hrs.toFixed(2)} <small>ชม.</small></div>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        html += '</div>';
+        Swal.update({ html: html });
+
+    } catch (err) {
+        console.error(err);
+        Swal.update({ html: '<p class="text-danger text-center">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>' });
+    }
+}
