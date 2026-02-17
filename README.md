@@ -2,7 +2,7 @@
 
 ระบบลงเวลาพนักงานผ่าน LINE LIFF + Firebase Firestore พร้อมหน้า Admin สำหรับดูรายงาน/จัดการข้อมูล
 
-**Current Version**: `v3.18 - Stable` | **Last Updated**: 2026-02-17
+**Current Version**: `v3.20 - Stable` | **Last Updated**: 2026-02-17
 
 ---
 
@@ -370,7 +370,15 @@
 - ✨ **Shift Chips**: ใช้ระบบปุ่ม Chip แทน Dropdown พร้อมกะใหม่ (เช้า 08-17, 09-18, เที่ยง 11-20, 12-21)
 
 
-### v3.18 (Current)
+### v3.20 (Current)
+- **Silent Name/Pic Sync**: Both profile picture and LINE display name are now automatically synchronized whenever a user logs in.
+- **Admin Name Info**: Added a subtitle in the user management list to show the LINE name if it differs from the registered name, making identification easier.
+
+### v3.19
+- **Emoji Fix**: Removed duplicate emojis (e.g., 🤒🛑) in leave/schedule lists. Only the primary category emoji is now shown.
+- **Profile Image Fallback**: Improved handling for users without a LINE profile picture, ensuring a fallback to previously saved versions or placeholders.
+
+### v3.18
 - **User Stats Dashboard**: Added a new "Stats" button for each user to view their work hours (Total, Year, Month) and detailed leave history in a single view.
 - **Improved Performance Metrics**: Real-time calculation of accumulated hours and categorized leave breakdown.
 
