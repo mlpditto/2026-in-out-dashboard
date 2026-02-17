@@ -722,11 +722,21 @@ window.loadData = async () => {
     if (profileContainer) {
         profileContainer.innerHTML = activeProfiles.slice(0, 8).map(u => {
             const dColor = getDeptCategoryColor(u.dept);
-            return `<img src="${u.pictureUrl || 'https://via.placeholder.com/22'}" 
+            const pic = window.getSafeProfileSrc(u.pictureUrl, 22);
+            return `<img src="${pic}" 
                   title="${u.name} (${u.dept || ''})" 
+                  onerror="this.src='https://via.placeholder.com/22'"
                   style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid ${dColor};margin-left:-6px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">`;
         }).join('') + (activeProfiles.length > 8 ? `<span class="small text-white-50 ms-1">+${activeProfiles.length - 8}</span>` : '');
     }
+};
+
+// Global helper for profile image source with cache buster
+window.getSafeProfileSrc = (src, size = 45) => {
+    if (!src || src.includes('placeholder') || src.includes('dicebear')) return src || `https://via.placeholder.com/${size}`;
+    // Use per-minute cache buster to ensure "current" pictures
+    const cacheBuster = `v_ref=${Math.floor(Date.now() / 60000)}`;
+    return src + (src.includes('?') ? '&' : '?') + cacheBuster;
 };
 
 async function cacheUserProfiles() {
@@ -772,7 +782,7 @@ function renderDeptBreakdown(byDept) {
     el.innerHTML = entries.map(([dept, list]) => {
         const color = getDeptCategoryColor(dept);
         const thumbs = list.slice(0, 8).map(u => {
-            const src = u.pictureUrl || 'https://via.placeholder.com/18';
+            const src = window.getSafeProfileSrc(u.pictureUrl, 18);
             return `<img src="${src}" title="${u.name || ''}" onerror="this.src='https://via.placeholder.com/18'" style="width:18px;height:18px;border-radius:50%;object-fit:cover;border:1.5px solid ${color};box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;">`;
         }).join('');
         const more = list.length > 8 ? `<span class="text-muted" style="margin-left:6px;">+${list.length - 8}</span>` : '';
@@ -791,10 +801,8 @@ function renderDeptBreakdown(byDept) {
 }
 
 function getProfileImg(uid) {
-    const src = userProfileMap[uid] || 'https://via.placeholder.com/45';
-    const cacheBuster = `?v=${new Date().getTime()}`;
-    // Only add cache buster if it's not a placeholder
-    const finalSrc = src.includes('placeholder') ? src : (src + (src.includes('?') ? '&' : '?') + 'v=' + new Date().getHours());
+    const src = userProfileMap[uid];
+    const finalSrc = window.getSafeProfileSrc(src, 45);
     return `<img src="${finalSrc}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'">`;
 }
 
@@ -866,7 +874,7 @@ window.loadPendingUsers = async () => {
             <tr>
                 <td class="ps-3">
                     <div class="user-cell">
-                        <img src="${v.pictureUrl || 'https://via.placeholder.com/45'}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'">
+                        <img src="${window.getSafeProfileSrc(v.pictureUrl, 45)}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'">
                         <div>
                             <h6 class="mb-0 fw-bold">${v.name}</h6>
                             <small class="text-muted">${v.empId || 'No ID'}</small>
@@ -1175,7 +1183,7 @@ window.renderMainUserList = async () => {
             }
 
             return `<tr class="${op}" style="${rowStyle}">
-                <td class="ps-3"><div class="user-cell"><img src="${img}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
+                <td class="ps-3"><div class="user-cell"><img src="${window.getSafeProfileSrc(img, 45)}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
                 <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;">${dept}</span></td>
                 <td class="text-end pe-3">
                     <button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button>
@@ -1560,7 +1568,7 @@ function initCalendar() {
                                 startDate: v.startDate,
                                 endDate: v.endDate,
                                 link: v.attachLink,
-                                image: prof.pictureUrl
+                                image: window.getSafeProfileSrc(prof.pictureUrl, 20)
                             }
                         })
                     });
@@ -1605,7 +1613,7 @@ function initCalendar() {
                                     reason: `สรุปเวลาเข้างาน: ${hrsStr}`, // Add reason for attendance
                                     startDate: k.split('_')[1], // Add startDate for attendance
                                     endDate: k.split('_')[1],   // Add endDate for attendance
-                                    image: prof.pictureUrl || i.pictureUrl,
+                                    image: window.getSafeProfileSrc(prof.pictureUrl || i.pictureUrl, 45),
                                     deptColor: baseColor,
                                     pastelColor: pastelColor
                                 }
@@ -1808,7 +1816,8 @@ async function showDayAttendanceDetail(dateStr) {
                  style="background: #f8f9fa; border-radius: 12px; border-left: 5px solid ${borderCol}; overflow: hidden; min-height: 65px;">
                 <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${percent}%; background: ${pastel}; z-index: 1;"></div>
                 <div class="d-flex align-items-center gap-2" style="position: relative; z-index: 2; width: 100%;">
-                    <img src="${prof.pictureUrl || 'https://via.placeholder.com/35'}" 
+                    <img src="${window.getSafeProfileSrc(prof.pictureUrl, 35)}" 
+                         onerror="this.src='https://via.placeholder.com/35'"
                          style="width:35px; height:35px; border-radius:50%; object-fit: cover; border: 2px solid white; shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <div class="text-start">
                         <div class="fw-bold small" style="color: #333;">${u.n}</div>

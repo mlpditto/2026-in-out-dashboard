@@ -2,7 +2,7 @@
 
 ระบบลงเวลาพนักงานผ่าน LINE LIFF + Firebase Firestore พร้อมหน้า Admin สำหรับดูรายงาน/จัดการข้อมูล
 
-**Current Version**: `v3.16 - Stable` | **Last Updated**: 2026-02-17
+**Current Version**: `v3.17 - Stable` | **Last Updated**: 2026-02-17
 
 ---
 
@@ -369,6 +369,20 @@
 - ✨ **Employee Picker**: ค้นหาพนักงานพร้อมรูปโปรไฟล์และแผนก ลิสต์แสดงเฉพาะเมื่อค้นหา
 - ✨ **Shift Chips**: ใช้ระบบปุ่ม Chip แทน Dropdown พร้อมกะใหม่ (เช้า 08-17, 09-18, เที่ยง 11-20, 12-21)
 
+
+### v3.17 (Current)
+- **Profile Image Sync Fix**: Implemented unified profile picture helper with per-minute cache busting.
+- **Improved Visual Accuracy**: All profile pictures across the admin panel now synchronize more reliably with the latest Firestore data.
+- **Unified Image Helper**: Simplified code by centralizing profile image rendering logic.
+
+### v3.16
+- **Calendar Mode Switching**: Added custom buttons to toggle between 'Attendance Mode' (Actual) and 'Schedule Mode' (Planned).
+- **Attendance Mode Details**: Clicking on a date or attendance event now shows a detailed breakdown of employees and their working hours with pastel-colored bars.
+- **Dynamic Work Intensity**: Calendar event backgrounds now reflect the duration of work hours (deeper colors for longer shifts).
+- **Department Pastel Colors**: Implemented a new design system for department-specific pastel tones to improve visual distinction.
+- **Copy Daily Summary**: Added a button within the daily attendance detail modal to copy a formatted text summary of employees working on that day, grouped by department.
+- **Fix Duplicate Emojis**: Resolved an issue in the schedule table where leave emojis were being prepended multiple times.
+- **Unify Leave Detail popups**: Synchronized the display format for leave details across the board (Schedules, Leave History, and Calendar).
 
 ### v3.1 — 2026-02-15 (Stable)
 - 🐛 **Critical Fix**: `switchTab()` crash เพราะ `getAttribute('onclick')` คืน `null` สำหรับ inner nav-links → ทำให้ Tab พนักงาน, ปฏิทิน, การลา ไม่โหลดข้อมูล
