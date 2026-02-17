@@ -264,23 +264,25 @@
             <p id="regisName" class="text-muted mb-4">ยินดีต้อนรับสมาชิกใหม่</p>
 
             <form onsubmit="handleRegister(event)" style="text-align: left;">
-                <label class="small text-muted fw-bold ms-1">รหัสพนักงาน</label>
-                <input type="text" id="empId" class="form-control" placeholder="เช่น 66001" required>
+                <label class="small text-muted fw-bold ms-1">เบอร์โทรศัพท์</label>
+                <input type="tel" id="userPhone" class="form-control" placeholder="08xxxxxxxx" pattern="[0-9]{9,10}"
+                    required>
 
                 <label class="small text-muted fw-bold ms-1">ชื่อ-นามสกุล (ภาษาไทย)</label>
-                <input type="text" id="fullName" class="form-control" placeholder="นาย รักงาน ขยันยิ่ง" required>
+                <input type="text" id="fullName" class="form-control" placeholder="ไม่ต้องระบุคำนำหน้า (นาย/นาง/นางสาว)"
+                    required>
 
                 <label class="small text-muted fw-bold ms-1">แผนก</label>
                 <input type="text" id="department" class="form-control" list="deptOptions"
                     placeholder="เลือกจากรายการหรือพิมพ์เพิ่ม" onchange="toggleInternshipFields()" required>
                 <datalist id="deptOptions">
-                    <option value="General">
-                    <option value="Pharmacy">
-                    <option value="IT">
-                    <option value="Admin">
-                    <option value="Sales">
-                    <option value="Pharmacist Extern">
-                    <option value="Pharmacist Intern (ex)">
+                    <option value="ทั่วไป (General)">
+                    <option value="💊 Pharmacy">
+                    <option value="💻 IT">
+                    <option value="📂 Admin">
+                    <option value="💰 Sales">
+                    <option value="🎓 Pharmacist Extern">
+                    <option value="🎓 Pharmacist Intern (ex)">
                 </datalist>
 
                 <!-- Internship Period Fields (initially hidden) -->
@@ -631,7 +633,7 @@
                 currentUser = {
                     lineUserId: profile.userId,
                     pictureUrl: profile.pictureUrl,
-                    displayName: profile.displayName
+                    displayName: profile.displayName // LINE Display Name
                 };
                 window.log('สวัสดีคุณ ' + currentUser.displayName);
                 await checkUser();
