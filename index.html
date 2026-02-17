@@ -357,11 +357,12 @@
                 </div>
 
                 <label class="fw-bold mb-1 d-block">ประเภทคำขอ</label>
-                <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
-                <option value="ลากิจ">💼 ลากิจ (Business Leave)</option>
-                <option value="ลาพักร้อน">🏖️ ลาพักร้อน (Vacation)</option>
-                <option value="วันหยุด">⛔ วันหยุด (Day Off)</option>
-                <option value="แจ้งเวลาปฏิบัติงาน">🕒 แจ้งเวลาปฏิบัติงาน (Work Schedule)</option>
+                <select id="leaveType" class="form-control mb-3" onchange="toggleTimeInputs()">
+                    <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
+                    <option value="ลากิจ">💼 ลากิจ (Business Leave)</option>
+                    <option value="ลาพักร้อน">🏖️ ลาพักร้อน (Vacation)</option>
+                    <option value="วันหยุด">⛔ วันหยุด (Day Off)</option>
+                    <option value="แจ้งเวลาปฏิบัติงาน">🕒 แจ้งเวลาปฏิบัติงาน (Work Schedule)</option>
                 </select>
 
                 <div class="row g-1 mb-2">
@@ -500,7 +501,8 @@
         });
     </script>
 
-    v3.22
+    <div style="position: absolute; bottom: 10px; left: 15px; font-size: 10px; color: #adb5bd; opacity: 0.7;">
+        v3.22
     </div>
     <script type="module">
         import { getDeptCategoryColor } from './colors.js';
