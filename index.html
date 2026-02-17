@@ -908,7 +908,18 @@
                     if (liff.isInClient()) {
                         liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}` }]).catch(e => console.error(e));
                     }
-                    if (!isAuto) Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
+                    if (!isAuto) {
+                        if (type === 'ออกงาน') {
+                            Swal.fire({
+                                title: 'เลิกงานแล้ว!',
+                                html: '<div class="mb-2">พักผ่อนให้เต็มที่นะครับ</div><div style="font-size:1.8rem; font-weight:bold; color:#ff6b6b;">또 만나요</div><div class="text-muted small mt-1">(แล้วเจอกันใหม่ครับ)</div>',
+                                icon: 'success',
+                                confirmButtonText: 'ปิด'
+                            });
+                        } else {
+                            Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
+                        }
+                    }
                     loadHistory(); // Reload to toggle buttons
                     loadWorkingHours(); // Reload working hours
                 } catch (e) { Swal.fire('Error', e.message, 'error'); }
