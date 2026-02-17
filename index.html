@@ -481,7 +481,7 @@
 
     <div
         style="position: fixed; bottom: 5px; left: 5px; z-index: 10000; font-size: 10px; color: #adb5bd; font-family: 'Sarabun', sans-serif; pointer-events: none; opacity: 0.7;">
-        v3.18
+        v3.20
     </div>
     <script type="module">
         import { getDeptCategoryColor } from './colors.js';
@@ -641,13 +641,21 @@
                     currentUser = { ...userData, ...currentUser };
                     window.log('ยินดีต้อนรับกลับ ' + (userData.name || ''));
 
-                    // Update profile info silently if changed
-                    if (currentUser.pictureUrl && currentUser.pictureUrl !== userData.pictureUrl) {
-                        updateDoc(userRef, {
-                            pictureUrl: currentUser.pictureUrl,
-                            displayName: currentUser.displayName,
-                            lastProfileUpdate: serverTimestamp()
-                        }).catch(err => console.error("Silent sync error:", err));
+                    // Update profile info silently if changed (both picture and name)
+                    const hasPicChanged = currentUser.pictureUrl && currentUser.pictureUrl !== userData.pictureUrl;
+                    const hasNameChanged = currentUser.displayName && currentUser.displayName !== userData.displayName;
+
+                    if (hasPicChanged || hasNameChanged) {
+                        const upd = {};
+                        if (hasPicChanged) upd.pictureUrl = currentUser.pictureUrl;
+                        if (hasNameChanged) upd.displayName = currentUser.displayName;
+                        upd.lastProfileUpdate = serverTimestamp();
+
+                        updateDoc(userRef, upd).catch(err => console.error("Silent sync error:", err));
+
+                        // Local update for immediate UI effect
+                        if (hasPicChanged) userData.pictureUrl = currentUser.pictureUrl;
+                        if (hasNameChanged) userData.displayName = currentUser.displayName;
                     }
 
                     if (userData.status === 'Pending') {
@@ -697,9 +705,14 @@
                 document.getElementById('pendingImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
                 document.getElementById('pendingName').innerText = data.name;
             } else if (id === 'mainPage') {
-                document.getElementById('showName').innerText = currentUser.name;
-                document.getElementById('showEmpId').innerText = `${currentUser.empId} | ${currentUser.dept}`;
-                document.getElementById('mainProfileImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
+                document.getElementById('mainName').innerText = currentUser.name || currentUser.displayName;
+                document.getElementById('showEmpId').innerText = `${currentUser.empId || 'N/A'} | ${currentUser.dept || 'ทั่วไป'}`;
+
+                // Fallback for profile picture
+                const profileImg = document.getElementById('mainProfileImg');
+                const finalPic = currentUser.pictureUrl || userData?.pictureUrl || `https://via.placeholder.com/60`;
+                profileImg.src = finalPic + (finalPic.includes('?') ? '&' : '?') + `v=${Date.now()}`;
+                profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
                 setInterval(() => {
                     const now = new Date();
                     document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false });
@@ -930,9 +943,20 @@
                 if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) badgeClass = "bg-danger-subtle text-danger";
                 else if (v.shiftDetail.includes('ดึก')) badgeClass = "bg-dark-subtle text-dark";
 
+                // Clean emojis to prevent duplicates like 🤒🛑
+                const cleanDetail = v.shiftDetail.replace(/🤒|🌴|📋|👶|🙏|🛑|🚫|🏖️|💼|⏰|☀️|🕛|🕙|⚙️/g, '').trim();
+                let emoji = '';
+                const lLower = v.shiftDetail.toLowerCase();
+                if (lLower.includes('ป่วย')) emoji = '🤒';
+                else if (lLower.includes('พัก')) emoji = '🌴';
+                else if (lLower.includes('กิจ')) emoji = '📋';
+                else if (lLower.includes('หยุด')) emoji = '🛑';
+
+                const displayDetail = emoji ? `${emoji} ${cleanDetail}` : v.shiftDetail;
+
                 div.innerHTML += `<div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-white rounded border border-light shadow-sm">
                     <div class="fw-bold text-secondary"><i class="bi bi-calendar-day me-2"></i>${dThai}</div>
-                    <span class="badge ${badgeClass} border">${v.shiftDetail}</span>
+                    <span class="badge ${badgeClass} border">${displayDetail}</span>
                 </div>`;
             });
 

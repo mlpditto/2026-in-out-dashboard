@@ -212,7 +212,10 @@ function renderSchedPage() {
         const sd = detailHtml.toLowerCase();
 
         // Helper to get clean display without duplicate prepending
-        const getDisplayShift = (text, emoji) => text.includes(emoji) ? text : `${emoji} ${text}`;
+        const getDisplayShift = (text, emoji) => {
+            const clean = text.replace(/🤒|🌴|📋|👶|🙏|🛑|🚫|🏖️|💼|⏰|☀️|🕛|🕙|⚙️/g, '').trim();
+            return `${emoji} ${clean}`;
+        };
 
         if (sd.includes('ลาป่วย')) {
             const displayShift = getDisplayShift(v.shiftDetail, '🤒');
@@ -825,7 +828,7 @@ window.updLeave = async (id, st, uid, nm, s, e, tp, rs, ln) => {
         else if (lt.includes('คลอด')) emoji = '👶';
         else if (lt.includes('บวช')) emoji = '🙏';
 
-        const cleanType = tp.replace(/🤒|🌴|📋|👶|🙏|🛑/g, '').trim();
+        const cleanType = tp.replace(/🤒|🌴|📋|👶|🙏|🛑|🚫|🏖️|💼|⏰|☀️|🕛|🕙|⚙️/g, '').trim();
         const finalShiftDetail = `${emoji} ${cleanType}`;
 
         while (c <= end) {
@@ -1183,7 +1186,7 @@ window.renderMainUserList = async () => {
             }
 
             return `<tr class="${op}" style="${rowStyle}">
-                <td class="ps-3"><div class="user-cell"><img src="${window.getSafeProfileSrc(img, 45)}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
+                <td class="ps-3"><div class="user-cell"><img src="${window.getSafeProfileSrc(img, 45)}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.displayName && u.displayName !== u.name ? `<small class="text-muted d-block" style="font-size:0.7rem;">(${u.displayName})</small>` : ''}${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
                 <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;">${dept}</span></td>
                 <td class="text-end pe-3">
                     <button onclick="viewUserStats('${u.id}')" class="btn btn-sm btn-light border me-1" title="สถิติ"><i class="bi bi-bar-chart"></i></button>
