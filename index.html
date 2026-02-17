@@ -330,16 +330,20 @@
             </div>
 
             <div class="row g-2">
-                <button onclick="recordTime('เข้างาน')" class="btn btn-success" id="btnCheckIn">
+                <button onclick="recordTime('เข้างาน')" class="btn btn-success hidden" id="btnCheckIn">
                     <i class="bi bi-geo-alt-fill"></i> เข้างาน (Clock In)
                 </button>
-                <button onclick="recordTime('ออกงาน')" class="btn btn-danger" id="btnCheckOut">
+                <button onclick="recordTime('ออกงาน')" class="btn btn-danger hidden" id="btnCheckOut">
                     <i class="bi bi-box-arrow-right"></i> ออกงาน (Clock Out)
                 </button>
             </div>
 
+            <div id="clockInStatusMsg" class="text-center text-muted small mt-2 mb-3 hidden">
+                <i class="bi bi-info-circle"></i> คุณเพิ่งลงเวลาเข้างาน (ต้องทำงานอย่างน้อย 1 ชม.)
+            </div>
+
             <button onclick="toggleLeaveForm()" class="btn btn-warning py-3" style="font-size:1rem; opacity:0.9;">
-                <i class="bi bi-file-earmark-text"></i> แจ้งลา / ตรวจสอบวันลา
+                <i class="bi bi-file-earmark-text"></i> แจ้งลา / แจ้งเวร / ตรวจสอบ
             </button>
 
             <!-- Leave Form Modal-ish -->
@@ -351,21 +355,33 @@
                         style="background:none; border:none; font-size:1.5rem;">&times;</button>
                 </div>
 
-                <label class="fw-bold mb-1 d-block">ประเภทการลา</label>
-                <select id="leaveType" class="form-control">
+                <label class="fw-bold mb-1 d-block">ประเภทคำขอ</label>
+                <select id="leaveType" class="form-control" onchange="toggleTimeInputs()">
                     <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
                     <option value="ลากิจ">💼 ลากิจ (Business Leave)</option>
                     <option value="ลาพักร้อน">🏖️ ลาพักร้อน (Vacation)</option>
+                    <option value="แจ้งเวลาปฏิบัติงาน">🕒 แจ้งเวลาปฏิบัติงาน (Work Schedule)</option>
                 </select>
 
-                <div style="display: flex; gap: 10px;">
-                    <div style="flex:1;">
-                        <label class="fw-bold mb-1 d-block">ตั้งแต่วันที่</label>
-                        <input type="date" id="leaveStart" class="form-control">
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="fw-bold mb-1 d-block small">ตั้งแต่วันที่</label>
+                        <input type="date" id="leaveStart" class="form-control mb-0">
                     </div>
-                    <div style="flex:1;">
-                        <label class="fw-bold mb-1 d-block">ถึงวันที่</label>
-                        <input type="date" id="leaveEnd" class="form-control">
+                    <div class="col-6">
+                        <label class="fw-bold mb-1 d-block small">ถึงวันที่</label>
+                        <input type="date" id="leaveEnd" class="form-control mb-0">
+                    </div>
+                </div>
+
+                <div id="timeInputSection" class="row g-2 mb-3 hidden">
+                    <div class="col-6">
+                        <label class="fw-bold mb-1 d-block small">เวลาเริ่ม</label>
+                        <input type="time" id="reqStartTime" class="form-control mb-0">
+                    </div>
+                    <div class="col-6">
+                        <label class="fw-bold mb-1 d-block small">เวลาสิ้นสุด</label>
+                        <input type="time" id="reqEndTime" class="form-control mb-0">
                     </div>
                 </div>
 
@@ -713,11 +729,19 @@
                 const finalPic = currentUser.pictureUrl || userData?.pictureUrl || `https://via.placeholder.com/60`;
                 profileImg.src = finalPic + (finalPic.includes('?') ? '&' : '?') + `v=${Date.now()}`;
                 profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
-                setInterval(() => {
+                profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
+
+                const updateClock = () => {
                     const now = new Date();
-                    document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false });
-                    document.getElementById('currentDate').innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                }, 1000);
+                    const clockEl = document.getElementById('clock');
+                    const dateEl = document.getElementById('currentDate');
+                    if (clockEl) clockEl.innerText = now.toLocaleTimeString('th-TH', { hour12: false });
+                    if (dateEl) dateEl.innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                };
+                updateClock(); // Run immediately
+                setInterval(updateClock, 1000);
+
+                loadHistory();
                 loadHistory();
                 loadSchedule();
                 loadWorkingHours();
@@ -846,19 +870,40 @@
             const snap = await getDocs(q);
 
             // 🟡 SMART BUTTONS LOGIC
+            // 🟡 SMART BUTTONS LOGIC
             const logs = snap.docs.map(d => d.data());
             const btnIn = document.getElementById('btnCheckIn');
             const btnOut = document.getElementById('btnCheckOut');
+            const statusMsg = document.getElementById('clockInStatusMsg');
 
             let lastType = null;
-            if (logs.length > 0) lastType = logs[logs.length - 1].type;
+            let lastTimestamp = null;
+            if (logs.length > 0) {
+                const lastLog = logs[logs.length - 1];
+                lastType = lastLog.type;
+                lastTimestamp = lastLog.timestamp ? lastLog.timestamp.toDate() : new Date();
+            }
 
             if (lastType === 'เข้างาน') {
                 btnIn.classList.add('hidden'); // Hide In
-                btnOut.classList.remove('hidden'); // Show Out
+
+                // Check if 1 hour has passed
+                const now = new Date();
+                const diffMs = now - lastTimestamp;
+                const diffHours = diffMs / (1000 * 60 * 60);
+
+                if (diffHours >= 1) {
+                    btnOut.classList.remove('hidden'); // Show Out
+                    if (statusMsg) statusMsg.classList.add('hidden');
+                } else {
+                    btnOut.classList.add('hidden'); // Hide Out too (wait for 1 hr)
+                    if (statusMsg) {
+                        statusMsg.classList.remove('hidden');
+                        statusMsg.innerHTML = `<i class="bi bi-hourglass-split"></i> คุณเพิ่งลงเวลา ${lastTimestamp.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} (รอ 1 ชม. เพื่อออกงาน)`;
+                    }
+                }
 
                 // 🔴 AUTO CHECKOUT LOGIC (23:00 Rule)
-                const now = new Date();
                 if (now.getHours() >= 23) {
                     await performAutoCheckout();
                     return; // Stop here, reload will happen inside
@@ -868,6 +913,7 @@
                 // No logs OR Last was 'ออกงาน' -> Show In, Hide Out
                 btnIn.classList.remove('hidden');
                 btnOut.classList.add('hidden');
+                if (statusMsg) statusMsg.classList.add('hidden');
             }
 
             // Render List
@@ -977,21 +1023,43 @@
             if (!el.classList.contains('hidden')) loadMyLeaves();
         }
 
+        window.toggleTimeInputs = () => {
+            const type = document.getElementById('leaveType').value;
+            const timeSection = document.getElementById('timeInputSection');
+            if (type === 'แจ้งเวลาปฏิบัติงาน') {
+                timeSection.classList.remove('hidden');
+            } else {
+                timeSection.classList.add('hidden');
+            }
+        };
+
         window.submitLeaveRequest = async () => {
-            // ... logic เดิม ...
-            // (Copy logic from previous step but update UI calls if needed, skipping for brevity but assuming implemented in real flow, strict mode: include it)
             const type = document.getElementById('leaveType').value;
             const start = document.getElementById('leaveStart').value;
             const end = document.getElementById('leaveEnd').value;
             const reason = document.getElementById('leaveReason').value;
             const attachLink = document.getElementById('leaveLink').value;
+
+            // Time inputs if applicable
+            const startTime = document.getElementById('reqStartTime').value;
+            const endTime = document.getElementById('reqEndTime').value;
+
             if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันให้ครบถ้วน', 'warning');
             if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
+
+            // If Specify Schedule, validate time
+            let finalReason = reason;
+            if (type === 'แจ้งเวลาปฏิบัติงาน') {
+                if (!startTime || !endTime) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุเวลาเริ่มและสิ้นสุดงาน', 'warning');
+                finalReason = `[ขอลงเวร ${startTime} - ${endTime}] ${reason || ''}`;
+            }
 
             try {
                 await addDoc(collection(db, "leave_requests"), {
                     userId: currentUser.lineUserId, name: currentUser.name, dept: currentUser.dept,
-                    type, startDate: start, endDate: end, reason, attachLink, status: "Pending", requestedAt: serverTimestamp()
+                    type, startDate: start, endDate: end, reason: finalReason,
+                    attachLink, status: "Pending", requestedAt: serverTimestamp(),
+                    ...(startTime && endTime ? { reqStartTime: startTime, reqEndTime: endTime } : {})
                 });
                 Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
                 toggleLeaveForm();
