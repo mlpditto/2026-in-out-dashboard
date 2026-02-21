@@ -146,6 +146,8 @@
                             class="bi bi-person-gear me-2"></i>พนักงาน</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('fairness')"><i
                             class="bi bi-shield-check me-2"></i>fair·ness</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('survey')"><i
+                            class="bi bi-clipboard-data me-2"></i>ผลแบบสำรวจ</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('eval')"><i
                             class="bi bi-journal-check me-2"></i>แบบประเมิน</a></li>
             </ul>
@@ -486,6 +488,87 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabSurvey" class="tab-section hidden">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-primary"><i
+                                class="bi bi-clipboard-data me-2"></i>สรุปผลแบบสำรวจความพึงพอใจ</h5>
+                        <button onclick="loadSurveyResults()" class="btn btn-sm btn-outline-primary"><i
+                                class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="surveyEmptyState" class="text-center py-5">
+                            <i class="bi bi-chat-dots text-muted" style="font-size: 3rem;"></i>
+                            <p class="mt-3 text-muted">กำลังโหลดข้อมูลแบบสำรวจ...</p>
+                        </div>
+
+                        <div id="surveyDataContainer" class="hidden">
+                            <!-- Overall stats -->
+                            <div class="row g-3 mb-5" id="surveyStatsRow"></div>
+
+                            <!-- Quantitative Charts -->
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded-3 shadow-sm h-100">
+                                        <h6 class="fw-bold mb-3"><i
+                                                class="bi bi-clock-history me-2"></i>กะงานที่ชื่นชอบที่สุด</h6>
+                                        <canvas id="surveyFavShiftChart" style="max-height: 250px;"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded-3 shadow-sm h-100">
+                                        <h6 class="fw-bold mb-3"><i
+                                                class="bi bi-star-fill me-2 text-warning"></i>ความพึงพอใจการวนกะ &
+                                            ความยุติธรรม (เฉลี่ย)</h6>
+                                        <canvas id="surveyRatingChart" style="max-height: 250px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detailed Feedback Tabs -->
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white">
+                                    <ul class="nav nav-tabs card-header-tabs" id="surveyDetailTabs">
+                                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab"
+                                                data-bs-target="#surveyFeedbackTab">ความคิดเห็น/ข้อเสนอแนะ</button></li>
+                                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
+                                                data-bs-target="#surveyHealthTab">สุขภาพ & ข้อจำกัด</button></li>
+                                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
+                                                data-bs-target="#surveyFullListTab">รายการทั้งหมด</button></li>
+                                    </ul>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content pt-3">
+                                        <div class="tab-pane fade show active" id="surveyFeedbackTab">
+                                            <div id="surveyFeedbackList"></div>
+                                        </div>
+                                        <div class="tab-pane fade" id="surveyHealthTab">
+                                            <div id="surveyHealthSummary" class="row g-3"></div>
+                                        </div>
+                                        <div class="tab-pane fade" id="surveyFullListTab">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-hover align-middle">
+                                                    <thead>
+                                                        <tr class="small text-muted">
+                                                            <th>วันที่</th>
+                                                            <th>พนักงาน</th>
+                                                            <th>กะที่ชอบ</th>
+                                                            <th>ระดับความพอใจ</th>
+                                                            <th class="text-end">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="surveyFullTableBody" class="small"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
