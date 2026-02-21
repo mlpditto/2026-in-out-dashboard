@@ -498,7 +498,7 @@
             </div>
 
             <div class="text-center text-muted small mt-5 mb-2" style="opacity: 0.6;">
-                v3.24
+                v3.30
             </div>
         </div>
     </div>
@@ -899,10 +899,62 @@
             async function save(type, lat, lng, isAuto = false) {
                 try {
                     btn.innerHTML = '💾 บันทึก...';
+
+                    let lateReason = "";
+                    let isLate = false;
+                    let delayMin = 0;
+
+                    // 🕒 LATE DETECTION LOGIC (Only for Clock-In)
+                    if (type === 'เข้างาน' && !isAuto) {
+                        const todayStr = new Date().toLocaleDateString('sv');
+                        const schedSnap = await getDocs(query(collection(db, "schedules"),
+                            where("userId", "==", currentUser.lineUserId),
+                            where("date", "==", todayStr)));
+
+                        if (!schedSnap.empty) {
+                            const schedData = schedSnap.docs[0].data();
+                            const shiftDetail = schedData.shiftDetail || "";
+                            // Match HH:mm from shiftDetail (e.g., ⏰ 10:00 - 19:00)
+                            const timeMatch = shiftDetail.match(/(\d{1,2}):(\d{2})/);
+
+                            if (timeMatch) {
+                                const schedHour = parseInt(timeMatch[1]);
+                                const schedMin = parseInt(timeMatch[2]);
+
+                                const now = new Date();
+                                const schedTime = new Date(now);
+                                schedTime.setHours(schedHour, schedMin, 0, 0);
+
+                                // Grace period: 5 minutes
+                                if (now > new Date(schedTime.getTime() + 5 * 60000)) {
+                                    isLate = true;
+                                    delayMin = Math.round((now - schedTime) / 60000);
+
+                                    const { value: reason } = await Swal.fire({
+                                        title: 'คุณมาสายกว่ากำหนด',
+                                        text: `ตารางงานเริ่ม ${timeMatch[0]} น. (สาย ${delayMin} นาที)`,
+                                        input: 'textarea',
+                                        inputLabel: 'กรุณาระบุเหตุผลที่มาสาย',
+                                        inputPlaceholder: 'ติดฝน / รถติด / ธุระส่วนตัว...',
+                                        icon: 'warning',
+                                        allowOutsideClick: false,
+                                        inputValidator: (value) => {
+                                            if (!value) return 'จำเป็นต้องระบุเหตุผลครับ'
+                                        }
+                                    });
+                                    lateReason = reason || "ไม่ได้ระบุเหตุผล";
+                                }
+                            }
+                        }
+                    }
+
                     await addDoc(collection(db, "attendance"), {
                         userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
                         type: type, timestamp: serverTimestamp(),
-                        location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`, userAgent: navigator.userAgent
+                        location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`, userAgent: navigator.userAgent,
+                        isLate: isLate,
+                        lateReason: lateReason,
+                        delayMin: delayMin
                     });
 
                     if (liff.isInClient()) {
@@ -928,55 +980,76 @@
         };
 
         async function loadHistory() {
+            const now = new Date();
+            const todayStr = now.toLocaleDateString('sv');
             const start = new Date(); start.setHours(0, 0, 0, 0);
+
+            // 1. Check for schedule today (Option 2: Hard Block)
+            const schedQuery = query(collection(db, "schedules"),
+                where("userId", "==", currentUser.lineUserId),
+                where("date", "==", todayStr));
+            const schedSnap = await getDocs(schedQuery);
+            const hasSchedule = !schedSnap.empty;
+
             const q = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", start), orderBy("timestamp"));
             const snap = await getDocs(q);
 
-            // 🟡 SMART BUTTONS LOGIC
             // 🟡 SMART BUTTONS LOGIC
             const logs = snap.docs.map(d => d.data());
             const btnIn = document.getElementById('btnCheckIn');
             const btnOut = document.getElementById('btnCheckOut');
             const statusMsg = document.getElementById('clockInStatusMsg');
 
-            let lastType = null;
-            let lastTimestamp = null;
-            if (logs.length > 0) {
-                const lastLog = logs[logs.length - 1];
-                lastType = lastLog.type;
-                lastTimestamp = lastLog.timestamp ? lastLog.timestamp.toDate() : new Date();
-            }
-
-            if (lastType === 'เข้างาน') {
-                btnIn.classList.add('hidden'); // Hide In
-
-                // Check if 1 hour has passed
-                const now = new Date();
-                const diffMs = now - lastTimestamp;
-                const diffHours = diffMs / (1000 * 60 * 60);
-
-                if (diffHours >= 1) {
-                    btnOut.classList.remove('hidden'); // Show Out
-                    if (statusMsg) statusMsg.classList.add('hidden');
-                } else {
-                    btnOut.classList.add('hidden'); // Hide Out too (wait for 1 hr)
-                    if (statusMsg) {
-                        statusMsg.classList.remove('hidden');
-                        statusMsg.innerHTML = `<i class="bi bi-hourglass-split"></i> คุณเพิ่งลงเวลา ${lastTimestamp.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} (รอ 1 ชม. เพื่อออกงาน)`;
-                    }
-                }
-
-                // 🔴 AUTO CHECKOUT LOGIC (23:00 Rule)
-                if (now.getHours() >= 23) {
-                    await performAutoCheckout();
-                    return; // Stop here, reload will happen inside
-                }
-
-            } else {
-                // No logs OR Last was 'ออกงาน' -> Show In, Hide Out
-                btnIn.classList.remove('hidden');
+            if (!hasSchedule) {
+                // BLOCK CLOCKING IF NO SCHEDULE
+                btnIn.classList.add('hidden');
                 btnOut.classList.add('hidden');
-                if (statusMsg) statusMsg.classList.add('hidden');
+                if (statusMsg) {
+                    statusMsg.classList.remove('hidden');
+                    statusMsg.innerHTML = `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 text-start mb-1">
+                        <div class="fw-bold text-warning-emphasis mb-1"><i class="bi bi-exclamation-triangle-fill"></i> ยังไม่ได้แจ้งเวรของวันนี้</div>
+                        <div class="small text-muted mb-2">กรุณาแจ้งเวลาปฏิบัติงานก่อนเริ่มลงเวลาครับ</div>
+                        <button onclick="toggleLeaveForm(); document.getElementById('leaveType').value='แจ้งเวลาปฏิบัติงาน'; toggleTimeInputs();" 
+                                class="btn btn-warning btn-sm w-100 py-2 fw-bold" style="font-size:0.85rem; border-radius:8px;">
+                            <i class="bi bi-calendar-plus"></i> แจ้งเวลาทำงาน (อนุมัติทันที)
+                        </button>
+                    </div>`;
+                }
+            } else {
+                // PROCEED WITH NORMAL IN/OUT LOGIC
+                let lastType = null;
+                let lastTimestamp = null;
+                if (logs.length > 0) {
+                    const lastLog = logs[logs.length - 1];
+                    lastType = lastLog.type;
+                    lastTimestamp = lastLog.timestamp ? lastLog.timestamp.toDate() : new Date();
+                }
+
+                if (lastType === 'เข้างาน') {
+                    btnIn.classList.add('hidden');
+                    const diffMs = now - lastTimestamp;
+                    const diffHours = diffMs / (1000 * 60 * 60);
+
+                    if (diffHours >= 1) {
+                        btnOut.classList.remove('hidden');
+                        if (statusMsg) statusMsg.classList.add('hidden');
+                    } else {
+                        btnOut.classList.add('hidden');
+                        if (statusMsg) {
+                            statusMsg.classList.remove('hidden');
+                            statusMsg.innerHTML = `<i class="bi bi-hourglass-split"></i> คุณเพิ่งลงเวลา ${lastTimestamp.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} (รอ 1 ชม. เพื่อออกงาน)`;
+                        }
+                    }
+
+                    if (now.getHours() >= 23) {
+                        await performAutoCheckout();
+                        return;
+                    }
+                } else {
+                    btnIn.classList.remove('hidden');
+                    btnOut.classList.add('hidden');
+                    if (statusMsg) statusMsg.classList.add('hidden');
+                }
             }
 
             // Render List
@@ -1103,29 +1176,52 @@
             const reason = document.getElementById('leaveReason').value;
             const attachLink = document.getElementById('leaveLink').value;
 
-            // Time inputs if applicable
             const startTime = document.getElementById('reqStartTime').value;
             const endTime = document.getElementById('reqEndTime').value;
 
             if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันให้ครบถ้วน', 'warning');
             if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
 
-            // If Specify Schedule, validate time
             let finalReason = reason;
-            if (type === 'แจ้งเวลาปฏิบัติงาน') {
+            const isWorkSchedule = (type === 'แจ้งเวลาปฏิบัติงาน');
+            if (isWorkSchedule) {
                 if (!startTime || !endTime) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุเวลาเริ่มและสิ้นสุดงาน', 'warning');
-                finalReason = `[ขอลงเวร ${startTime} - ${endTime}] ${reason || ''}`;
+                finalReason = `[ลงเวร ${startTime} - ${endTime}] ${reason || ''}`;
             }
 
             try {
+                // Auto-Approve logic for Work Schedule
+                const currentStatus = isWorkSchedule ? "Approved" : "Pending";
+
                 await addDoc(collection(db, "leave_requests"), {
                     userId: currentUser.lineUserId, name: currentUser.name, dept: currentUser.dept,
                     type, startDate: start, endDate: end, reason: finalReason,
-                    attachLink, status: "Pending", requestedAt: serverTimestamp(),
+                    attachLink, status: currentStatus, requestedAt: serverTimestamp(),
                     ...(startTime && endTime ? { reqStartTime: startTime, reqEndTime: endTime } : {})
                 });
-                Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
+
+                if (isWorkSchedule) {
+                    let c = new Date(start), finish = new Date(end);
+                    const shiftDetail = `⏰ ${startTime} - ${endTime}`;
+                    const batchPromises = [];
+
+                    while (c <= finish) {
+                        let ds = c.toLocaleDateString('sv');
+                        batchPromises.push(setDoc(doc(db, "schedules", `${currentUser.lineUserId}_${ds}`), {
+                            userId: currentUser.lineUserId, name: currentUser.name, date: ds, shiftDetail: shiftDetail,
+                            reason: finalReason, attachLink: attachLink || '', timestamp: serverTimestamp()
+                        }));
+                        c.setDate(c.getDate() + 1);
+                    }
+                    await Promise.all(batchPromises);
+                    Swal.fire('สำเร็จ', 'บันทึกเวลาปฏิบัติงานเรียบร้อย (อนุมัติอัตโนมัติ)', 'success');
+                } else {
+                    Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
+                }
+
                 toggleLeaveForm();
+                loadSchedule();
+                loadHistory(); // Re-check buttons after shift is added
             } catch (e) { Swal.fire('Error', e.message, 'error'); }
         }
 
