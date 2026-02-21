@@ -1818,6 +1818,20 @@ window.loadFairnessReport = async () => {
             logsByUser[uid].push({ ...v, ts });
         });
 
+        // Fairness Logic Configuration
+        const MAX_HOURS_PER_DAY = 12.5; // [ก] กัดเพดานชั่วโมงทำงานต่อวัน
+        const GPS_WEIGHT = 0.8; // [ข] น้ำหนักลดลงหากลงเวลานอกสถานที่ (500ม.)
+        const OFFICE_COORDS = { lat: 13.7367, lng: 100.5231 }; // แก้ไขพิกัดที่นี่
+        const GPS_RADIUS = 500; // รัศมีเมตร
+
+        const getDistance = (l1, l2) => {
+            if (!l1.lat || !l1.lng || !l2.lat) return 0;
+            const R = 6371e3, p1 = l1.lat * Math.PI / 180, p2 = l2.lat * Math.PI / 180;
+            const dp = (l2.lat - l1.lat) * Math.PI / 180, dl = (l2.lng - l1.lng) * Math.PI / 180;
+            const a = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        };
+
         // 3. Process metrics
         const report = [];
         let totalHrsSum = 0;
@@ -1831,7 +1845,7 @@ window.loadFairnessReport = async () => {
             const daysSet = new Set(uLogs.map(l => l.ts.toLocaleDateString('sv')));
             const daysCount = daysSet.size;
 
-            // Analyze shift distribution
+            // Analyze shift distribution & metrics
             const shiftCounts = {};
             const byDay = {};
             uLogs.forEach(l => {
@@ -1839,25 +1853,47 @@ window.loadFairnessReport = async () => {
                 if (!byDay[k]) byDay[k] = [];
                 byDay[k].push(l);
             });
+
+            let weightedHoursTotal = 0;
+            let anomaliesCount = 0;
+            let outOfRangeCount = 0;
+
             Object.values(byDay).forEach(list => {
                 list.sort((a, b) => a.ts - b.ts);
+                let dailyHrs = 0, lastIn = null;
+
                 const firstIn = list.find(l => l.type === 'เข้างาน');
                 const lastOut = [...list].reverse().find(l => l.type === 'ออกงาน');
                 if (firstIn && lastOut) {
                     const matchedShift = getClosestShift(firstIn.ts, lastOut.ts);
                     shiftCounts[matchedShift] = (shiftCounts[matchedShift] || 0) + 1;
                 }
-            });
 
-            // Calc hours
-            const workHours = calcHoursFromLogs(uLogs.map(l => ({ type: l.type, timestamp: l.ts })));
+                list.forEach(l => {
+                    if (l.type === 'เข้างาน') lastIn = l;
+                    else if (l.type === 'ออกงาน' && lastIn) {
+                        const sessHrs = (l.ts - lastIn.ts) / 3600000;
+                        let weight = 1.0;
+                        const dist = getDistance(lastIn.location || {}, OFFICE_COORDS);
+                        if (dist > GPS_RADIUS && (lastIn.location?.lat)) {
+                            weight = GPS_WEIGHT;
+                            outOfRangeCount++;
+                        }
+                        dailyHrs += sessHrs * weight;
+                        lastIn = null;
+                    }
+                });
+
+                if (dailyHrs > 12) anomaliesCount++;
+                weightedHoursTotal += Math.min(dailyHrs, MAX_HOURS_PER_DAY);
+            });
 
             // Calc lates
             const lates = uLogs.filter(l => l.type === 'เข้างาน' && l.isLate);
             const lateCount = lates.length;
             const lateMins = lates.reduce((sum, l) => sum + (l.delayMin || 0), 0);
 
-            totalHrsSum += workHours;
+            totalHrsSum += weightedHoursTotal;
             totalLateMins += lateMins;
 
             report.push({
@@ -1866,46 +1902,50 @@ window.loadFairnessReport = async () => {
                 pictureUrl: u.pictureUrl,
                 dept: u.dept || u.department,
                 days: daysCount,
-                hours: workHours,
-                avg: daysCount > 0 ? (workHours / daysCount) : 0,
+                hours: weightedHoursTotal,
+                avg: daysCount > 0 ? (weightedHoursTotal / daysCount) : 0,
                 lateCount,
                 lateMins,
-                shiftCounts
+                shiftCounts,
+                anomaliesCount,
+                outOfRangeCount
             });
         });
 
-        // 4. Calculate Scores & Sort (Higher hours, lower lates = better)
+        // 4. Calculate Scores & Sort
         report.forEach(r => {
-            // Fairness Score = (Hours * 2) - (LateCount * 5) - (LateMins / 10)
-            // This is a simple heuristic to show relative "fairness" or "effort"
-            r.score = (r.hours * 2) - (r.lateCount * 3);
+            // Formula: Higher weight on productivity, penalties for inconsistency and off-site
+            r.score = (r.hours * 2.5) - (r.lateCount * 3) - (r.anomaliesCount * 8) - (r.outOfRangeCount * 2);
         });
-        report.sort((a, b) => b.hours - a.hours);
+        report.sort((a, b) => b.score - a.score);
 
         // 5. Render Table
         const tbody = document.getElementById('fairnessTableBody');
         let h = '';
         report.forEach(r => {
-            const scoreColor = r.score < 0 ? 'text-danger' : (r.score < 20 ? 'text-warning' : 'text-success');
+            const scoreColor = r.score < 10 ? 'text-danger' : (r.score < 40 ? 'text-warning' : 'text-success');
             const avgBadgeCol = r.avg > 8 ? 'bg-success' : 'bg-secondary';
             const safePic = window.getSafeProfileSrc(r.pictureUrl, 32);
 
             const shiftDetails = Object.entries(r.shiftCounts)
                 .sort((a, b) => {
-                    // Extract HH:mm from "HH:mm - HH:mm" or label
                     const getVal = (s) => parseInt(s.split(':')[0]) || 999;
                     return getVal(a[0]) - getVal(b[0]);
                 })
                 .map(([sh, count]) => `<span class="badge bg-light text-dark border-0 fw-normal" style="font-size:0.65rem;">${sh.replace(/ - /g, '-').replace(/:00/g, '')} (${count})</span>`)
                 .join(' ');
 
+            let flags = '';
+            if (r.anomaliesCount > 0) flags += `<i class="bi bi-exclamation-triangle-fill text-danger me-1" title="ชั่วโมงทำงานผิดปกติ ${r.anomaliesCount} วัน"></i>`;
+            if (r.outOfRangeCount > 0) flags += `<i class="bi bi-geo-alt-fill text-warning" title="ลงเวลานอกสถานที่ ${r.outOfRangeCount} ครั้ง"></i>`;
+
             h += `
-            <tr>
+            <tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}">
                 <td class="ps-3">
                     <div class="user-cell">
                         <img src="${safePic}" class="profile-thumb" style="width:32px; height:32px;" onerror="this.src='https://via.placeholder.com/32'">
                         <div>
-                            <div class="fw-bold" style="font-size:0.85rem;">${r.name}</div>
+                            <div class="fw-bold" style="font-size:0.85rem;">${flags}${r.name}</div>
                             <small class="text-muted" style="font-size:0.7rem;">${r.dept}</small>
                         </div>
                     </div>
@@ -1916,7 +1956,7 @@ window.loadFairnessReport = async () => {
                         ${shiftDetails || '<small class="text-muted" style="font-size:0.6rem;">ไม่มีข้อมูลกะ</small>'}
                     </div>
                 </td>
-                <td class="text-center text-primary fw-bold">${r.hours.toFixed(2)}</td>
+                <td class="text-center text-primary fw-bold" title="ชั่วโมงถ่วงน้ำหนักและจำกัดเพดาน">${r.hours.toFixed(2)}</td>
                 <td class="text-center"><span class="badge ${avgBadgeCol}">${r.avg.toFixed(2)}</span></td>
                 <td class="text-center ${r.lateCount > 0 ? 'text-danger fw-bold' : 'text-muted'}">${r.lateCount} ครั้ง</td>
                 <td class="text-center text-muted">${r.lateMins} น.</td>
