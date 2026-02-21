@@ -1891,7 +1891,11 @@ window.loadFairnessReport = async () => {
             const safePic = window.getSafeProfileSrc(r.pictureUrl, 32);
 
             const shiftDetails = Object.entries(r.shiftCounts)
-                .sort((a, b) => b[1] - a[1])
+                .sort((a, b) => {
+                    // Extract HH:mm from "HH:mm - HH:mm" or label
+                    const getVal = (s) => parseInt(s.split(':')[0]) || 999;
+                    return getVal(a[0]) - getVal(b[0]);
+                })
                 .map(([sh, count]) => `<span class="badge bg-light text-dark border-0 fw-normal" style="font-size:0.65rem;">${sh.replace(/ - /g, '-').replace(/:00/g, '')} (${count})</span>`)
                 .join(' ');
 
@@ -1923,42 +1927,106 @@ window.loadFairnessReport = async () => {
         });
         tbody.innerHTML = h || '<tr><td colspan="7" class="text-center py-5">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>';
 
-        // 6. Summary Stats
-        const summary = document.getElementById('fairnessSummary');
-        summary.classList.remove('hidden');
-        summary.innerHTML = `
-            <div class="col-md-3">
-                <div class="p-3 border rounded bg-white shadow-sm">
-                    <small class="text-muted d-block">จำนวนบุคลากร</small>
-                    <div class="h4 mb-0 fw-bold text-dark">${filteredUsers.length} ท่าน</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-3 border rounded bg-white shadow-sm">
-                    <small class="text-muted d-block">รวมเวลาทำงาน</small>
-                    <div class="h4 mb-0 fw-bold text-primary">${totalHrsSum.toFixed(1)} ชม.</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-3 border rounded bg-white shadow-sm">
-                    <small class="text-muted d-block">เฉลี่ยต่อคน</small>
-                    <div class="h4 mb-0 fw-bold text-success">${(totalHrsSum / filteredUsers.length).toFixed(1)} ชม.</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-3 border rounded bg-white shadow-sm">
-                    <small class="text-muted d-block">รวมเวลามาสาย</small>
-                    <div class="h4 mb-0 fw-bold text-danger">${totalLateMins} นาที</div>
-                </div>
-            </div>
-        `;
+        // 6. Summary Statistics & Chart
+        const totalEmployees = report.length;
+        const avgHrs = totalEmployees > 0 ? (totalHrsSum / totalEmployees) : 0;
 
+        const sumEl = document.getElementById('fairnessSummary');
+        sumEl.classList.remove('hidden');
+        sumEl.innerHTML = `
+            <div class="col-md-3">
+                <div class="p-3 bg-white border rounded shadow-sm text-center">
+                    <div class="small text-muted mb-1">จำนวนบุคลากร</div>
+                    <div class="h4 fw-bold mb-0">${totalEmployees} ท่าน</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-white border rounded shadow-sm text-center">
+                    <div class="small text-muted mb-1">รวมเวลาทำงาน</div>
+                    <div class="h4 fw-bold mb-0 text-primary">${totalHrsSum.toFixed(1)} ชม.</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-white border rounded shadow-sm text-center">
+                    <div class="small text-muted mb-1">เฉลี่ยต่อคน</div>
+                    <div class="h4 fw-bold mb-0">${avgHrs.toFixed(1)} ชม.</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-white border rounded shadow-sm text-center">
+                    <div class="small text-muted mb-1">รวมเวลามาสาย</div>
+                    <div class="h4 fw-bold mb-0 text-danger">${totalLateMins} นาที</div>
+                </div>
+            </div>`;
+
+        renderFairnessChart(report);
         Swal.close();
+
     } catch (err) {
         console.error(err);
         Swal.fire('Error', 'ไม่สามารถดึงข้อมูลวิเคราะห์ได้: ' + err.message, 'error');
     }
 };
+
+let fairnessChartInstance;
+function renderFairnessChart(report) {
+    const ctx = document.getElementById('fairnessChart');
+    const box = document.getElementById('fairnessChartBox');
+    if (!ctx) return;
+
+    if (fairnessChartInstance) fairnessChartInstance.destroy();
+    box.classList.remove('hidden');
+
+    const labels = report.map(r => r.name.split(' ')[0]); // Use first name
+
+    // Define shift labels in chronological order
+    const shiftLabels = [
+        '08:00 - 17:00',
+        '09:00 - 18:00',
+        '10:00 - 19:00',
+        '11:00 - 20:00',
+        '12:00 - 21:00',
+        'กะสั้น/OT',
+        'กำหนดเอง'
+    ];
+
+    const shiftColors = {
+        '08:00 - 17:00': '#fbbf24',
+        '09:00 - 18:00': '#34d399',
+        '10:00 - 19:00': '#60a5fa',
+        '11:00 - 20:00': '#a78bfa',
+        '12:00 - 21:00': '#f472b6',
+        'กะสั้น/OT': '#fb7185',
+        'กำหนดเอง': '#94a3b8'
+    };
+
+    const datasets = shiftLabels.map(sh => {
+        return {
+            label: sh.replace(/:00/g, ''),
+            data: report.map(r => r.shiftCounts[sh] || 0),
+            backgroundColor: shiftColors[sh],
+            borderRadius: 4
+        };
+    }).filter(ds => ds.data.some(v => v > 0)); // Only show shifts that are actually used
+
+    fairnessChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, beginAtZero: true, title: { display: true, text: 'จำนวนวัน (ครั้ง)' } },
+                y: { stacked: true }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+                tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${c.raw} วัน` } }
+            }
+        }
+    });
+}
 window.copyAttendanceSummary = () => {
     const filterDate = document.getElementById('filterDate')?.value;
     if (filterDate) {
