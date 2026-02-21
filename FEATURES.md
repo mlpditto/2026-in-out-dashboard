@@ -1,4 +1,4 @@
-# 🚀 Features - MLP Time Attendance Dashboard (v3.30)
+# 🚀 Features - MLP Time Attendance Dashboard (v3.31)
 
 ## 📋 Employee Interface (Mobile LIFF)
 The employee interface is accessible via LINE LIFF, providing a seamless experience for time recording and leave management.
@@ -32,10 +32,14 @@ The employee interface is accessible via LINE LIFF, providing a seamless experie
 
 ---
 
-## 🛠️ Admin Dashboard (Management Portal)
-A comprehensive panel for administrators to monitor and manage staff operations.
+### 6. Admin Panel (Desktop Web)
+*   **fair·ness Analysis (NEW):** Advanced department-level analysis to ensure overall fairness in work hours and discipline.
+    *   **Batch Filtering:** Search by department or keywords (e.g., "#6") to focus on specific groups or batches.
+    *   **Fairness Score (Beta):** Proprietary metric combining total work hours, average daily effort, and lateness penalties.
+    *   **Late Analysis:** Automated summary of total late counts and total delayed minutes for the group.
+    *   **Group Summary:** Real-time calculation of total personnel, group effort (hours), and average hours per person.
 
-### 1. Real-time Monitoring (Dashboard)
+### 7. Global Settings & Branding (Dashboard)
 *   **Live Status Cards:** Instant metrics for "Currently In", "Pending Approvals", "Total Approved Users", and "New Members".
 *   **Visual Attendance Table:** List of today's activities with profile images, department color-coding, and GPS map buttons.
 *   **Auto-Refresh:** The dashboard refreshes every 60 seconds to ensure data is up-to-date.

@@ -144,6 +144,8 @@
                             class="bi bi-graph-up me-2"></i>รายงาน & ปฏิทิน</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('users')"><i
                             class="bi bi-person-gear me-2"></i>พนักงาน</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="switchTab('fairness')"><i
+                            class="bi bi-shield-check me-2"></i>fair·ness</a></li>
                 <li class="nav-item"><a class="nav-link" onclick="switchTab('eval')"><i
                             class="bi bi-journal-check me-2"></i>แบบประเมิน</a></li>
             </ul>
@@ -407,6 +409,77 @@
                     </div>
                     <div class="card-body">
                         <div class="tab-content" id="mainUsersContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabFairness" class="tab-section hidden">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-shield-check me-2"></i>fair·ness :
+                            ตรวจสอบความยุติธรรม</h5>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-light text-dark border">Batch Analysis</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <label class="small text-muted fw-bold mb-1">เลือกแผนก / กลุ่ม</label>
+                                <select id="fairnessDept" class="form-select">
+                                    <option value="Pharmacist Extern">Pharmacist Extern (นักศึกษาฝึกงาน)</option>
+                                    <option value="Pharmacy">Pharmacy (คลังยา/เภสัช)</option>
+                                    <option value="General">General (ทั่วไป)</option>
+                                    <option value="Admin">Admin (ธุรการ)</option>
+                                    <option value="All">ทุกแผนก</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="small text-muted fw-bold mb-1">คำค้นหา (ชื่อ/รุ่น/Batch)</label>
+                                <input type="text" id="fairnessKeyword" class="form-control"
+                                    placeholder="เช่น #6 หรือ ชื่อ">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small text-muted fw-bold mb-1">ช่วงวันที่ตรวจสอบ</label>
+                                <div class="input-group">
+                                    <input type="date" id="fairnessStart" class="form-control">
+                                    <span class="input-group-text">ถึง</span>
+                                    <input type="date" id="fairnessEnd" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button onclick="loadFairnessReport()" class="btn btn-primary w-100">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="fairnessSummary" class="row g-3 mb-4 hidden">
+                            <!-- Stats summary will be injected here -->
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="fairnessTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3">พนักงาน</th>
+                                        <th class="text-center">มาทำงาน (วัน)</th>
+                                        <th class="text-center">ชม. ทั้งหมด</th>
+                                        <th class="text-center">เฉลี่ย (ชม./วัน)</th>
+                                        <th class="text-center">สาย (ครั้ง)</th>
+                                        <th class="text-center">รวมเวลาสาย</th>
+                                        <th class="text-end pe-3">Fairness Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fairnessTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5 text-muted">
+                                            กรุณาเลือกเงื่อนไขและกด "วิเคราะห์ข้อมูล"
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -677,7 +750,7 @@
         }
     </script>
 
-    <script type="module" src="admin.js?v=3.15"></script>
+    <script type="module" src="admin.js?v=3.31"></script>
 </body>
 
 </html>
