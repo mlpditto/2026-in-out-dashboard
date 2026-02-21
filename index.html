@@ -61,6 +61,52 @@
             display: none !important;
         }
 
+        .tiny-text {
+            font-size: 0.7rem !important;
+        }
+
+        .letter-spacing-1 {
+            letter-spacing: 1px;
+        }
+
+        .scroller-x {
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .scroller-x::-webkit-scrollbar {
+            display: none;
+        }
+
+        .shift-chip {
+            transition: all 0.2s ease;
+            border-width: 2px !important;
+            white-space: nowrap;
+        }
+
+        .shift-chip.active {
+            transform: scale(1.05);
+        }
+
+        .rounded-4 {
+            border-radius: 1rem !important;
+        }
+
+        .bg-light {
+            background-color: #f8f9fa !important;
+        }
+
+        .input-group-text {
+            border: none !important;
+        }
+
+        input[type="date"],
+        input[type="time"] {
+            -webkit-appearance: none;
+            min-height: 24px;
+        }
+
         .profile-section {
             text-align: center;
             margin-bottom: 30px;
@@ -260,7 +306,7 @@
         <!-- Register -->
         <div id="registerPage" class="hidden text-center" style="padding-top: 20px;">
             <img src="https://via.placeholder.com/100" class="profile-img" id="regisProfileImg">
-            <h3 class="mb-3">ลงทะเบียนพนักงาน</h3>
+            <h3>ลงทะเบียนพนักงาน</h3>
             <p id="regisName" class="text-muted mb-4">ยินดีต้อนรับสมาชิกใหม่</p>
 
             <form onsubmit="handleRegister(event)" style="text-align: left;">
@@ -355,53 +401,118 @@
                     <button onclick="toggleLeaveForm()" class="btn-close"
                         style="background:none; border:none; font-size:1.5rem;">&times;</button>
                 </div>
-
-                <label class="fw-bold mb-1 d-block">ประเภทคำขอ</label>
-                <select id="leaveType" class="form-control mb-3" onchange="toggleTimeInputs()">
-                    <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
-                    <option value="ลากิจ">💼 ลากิจ (Business Leave)</option>
-                    <option value="ลาพักร้อน">🏖️ ลาพักร้อน (Vacation)</option>
-                    <option value="วันหยุด">⛔ วันหยุด (Day Off)</option>
-                    <option value="แจ้งเวลาปฏิบัติงาน">🕒 แจ้งเวลาปฏิบัติงาน (Work Schedule)</option>
-                </select>
-
-                <div class="row g-1 mb-2 mx-0">
-                    <div class="col-6">
-                        <label class="fw-bold mb-1 d-block" style="font-size:0.8rem;">ตั้งแต่วันที่</label>
-                        <input type="date" id="leaveStart" class="form-control form-control-sm mb-0"
-                            style="font-size:0.9rem;">
+                <!-- MODERN FORM -->
+                <div id="leaveFormSection" class="p-3">
+                    <div class="mb-4">
+                        <label
+                            class="form-label small fw-bold text-muted mb-2 text-uppercase letter-spacing-1">ประเภทคำขอ
+                            / Request Type</label>
+                        <select id="leaveType"
+                            class="form-select border-0 bg-light rounded-4 py-3 shadow-sm font-weight-600"
+                            onchange="toggleTimeInputs()" style="height: 56px;">
+                            <option value="ลากิจ">📋 ลากิจ (Personal Leave)</option>
+                            <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
+                            <option value="ลาพักผ่อน">🌴 ลาพักผ่อน (Annual Leave)</option>
+                            <option value="ลาบวช">🙏 ลาบวช (Ordination Leave)</option>
+                            <option value="ลาคลอด">👶 ลาคลอด (Maternity Leave)</option>
+                            <option value="อื่น ๆ">🛑 อื่น ๆ (Others)</option>
+                            <option value="แจ้งเวลาปฏิบัติงาน">🕒 แจ้งเวลาปฏิบัติงาน (Work Schedule)</option>
+                        </select>
                     </div>
-                    <div class="col-6">
-                        <label class="fw-bold mb-1 d-block" style="font-size:0.8rem;">ถึงวันที่</label>
-                        <input type="date" id="leaveEnd" class="form-control form-control-sm mb-0"
-                            style="font-size:0.9rem;">
+
+                    <!-- Date Range Section -->
+                    <div class="card border-0 rounded-4 bg-light shadow-none mb-3 overflow-hidden">
+                        <div class="card-body p-3">
+                            <label class="form-label small fw-bold text-muted mb-3 d-flex align-items-center">
+                                <i class="bi bi-calendar-event me-2 text-primary"></i> ช่วงวันปฏิบัติงาน / Date Range
+                            </label>
+                            <div class="row g-2">
+                                <div class="col-6 text-center">
+                                    <div class="bg-white rounded-3 p-2 border">
+                                        <small class="text-muted d-block tiny-text mb-1">วันที่เริ่ม / From</small>
+                                        <input type="date" id="leaveStart"
+                                            class="form-control border-0 p-0 text-center fw-bold"
+                                            onchange="syncMinDate(); updateDaySummary();"
+                                            style="background: transparent;">
+                                    </div>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <div class="bg-white rounded-3 p-2 border">
+                                        <small class="text-muted d-block tiny-text mb-1">ถึงวันที่ / To</small>
+                                        <input type="date" id="leaveEnd"
+                                            class="form-control border-0 p-0 text-center fw-bold"
+                                            onchange="updateDaySummary()" style="background: transparent;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="daySummary" class="text-center mt-2 small text-primary fw-bold hidden">
+                                <i class="bi bi-info-circle"></i> รวมทั้งสิ้น <span id="totalDays">0</span> วัน
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Work Shift Section (Visible only for Work Schedule) -->
+                    <div id="timeInputGroup"
+                        class="card border-0 rounded-4 bg-light shadow-none mb-3 overflow-hidden hidden"
+                        style="border-left: 4px solid #198754 !important;">
+                        <div class="card-body p-3">
+                            <label class="form-label small fw-bold text-muted mb-3 d-flex align-items-center">
+                                <i class="bi bi-clock me-2 text-success"></i> กะการทำงาน / Work Shift
+                            </label>
+
+                            <!-- Quick Shift Chips -->
+                            <div class="d-flex flex-wrap gap-2 mb-3 scroller-x">
+                                <button class="btn btn-outline-success btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
+                                    onclick="setQuickShift('10:00','19:00', this)">10:00 - 19:00</button>
+                                <button class="btn btn-outline-success btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
+                                    onclick="setQuickShift('08:00','17:00', this)">08:00 - 17:00</button>
+                                <button class="btn btn-outline-success btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
+                                    onclick="setQuickShift('12:00','21:00', this)">12:00 - 21:00</button>
+                                <button class="btn btn-outline-success btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
+                                    onclick="setQuickShift('11:00','20:00', this)">11:00 - 20:00</button>
+                                <button
+                                    class="btn btn-outline-secondary btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
+                                    onclick="setQuickShift('09:00','18:00', this)">09:00 - 18:00</button>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-6 text-center border-end">
+                                    <small class="text-muted d-block tiny-text mb-1">เริ่ม / In</small>
+                                    <input type="time" id="reqStartTime"
+                                        class="form-control border-0 bg-transparent text-center p-0 fw-bold"
+                                        value="10:00">
+                                </div>
+                                <div class="col-6 text-center">
+                                    <small class="text-muted d-block tiny-text mb-1">เลิกงาน / Out</small>
+                                    <input type="time" id="reqEndTime"
+                                        class="form-control border-0 bg-transparent text-center p-0 fw-bold"
+                                        value="19:00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reason & Link -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted mb-2">เหตุผลหรือหมายเหตุ / Reason</label>
+                        <textarea id="leaveReason" class="form-control border-0 bg-light rounded-4 p-3 mb-2" rows="3"
+                            placeholder="ไม่มีเหตุผลเพิ่มเติม..."></textarea>
+
+                        <label class="form-label small fw-bold text-muted mb-2 d-block">ลิงก์แนบรูปภาพ / Attachment
+                            Link</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 bg-light rounded-start-4"><i
+                                    class="bi bi-link-45deg"></i></span>
+                            <input type="url" id="leaveLink" class="form-control border-0 bg-light rounded-end-4 py-2"
+                                placeholder="https://drive.google.com/...">
+                        </div>
+                    </div>
+
+                    <button onclick="submitLeaveRequest()"
+                        class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-lg mb-4" id="btnSubmitLeave">
+                        <i class="bi bi-send-fill me-2"></i> ส่งคำขอลงทะเบียน
+                    </button>
                 </div>
-
-                <div id="timeInputSection" class="row g-1 mb-2 hidden mx-0">
-                    <div class="col-6">
-                        <label class="fw-bold mb-1 d-block" style="font-size:0.8rem;">เวลาเริ่ม</label>
-                        <input type="time" id="reqStartTime" class="form-control form-control-sm mb-0"
-                            style="font-size:0.9rem;">
-                    </div>
-                    <div class="col-6">
-                        <label class="fw-bold mb-1 d-block" style="font-size:0.8rem;">เวลาสิ้นสุด</label>
-                        <input type="time" id="reqEndTime" class="form-control form-control-sm mb-0"
-                            style="font-size:0.9rem;">
-                    </div>
-                </div>
-
-                <label class="fw-bold mb-1 d-block">เหตุผล</label>
-                <textarea id="leaveReason" class="form-control mb-2" rows="2" placeholder="ระบุเหตุผล..."></textarea>
-
-                <label class="fw-bold mb-1 d-block small text-muted">แนบลิงก์ประกอบ (เช่น รูปใบรับรองแพทย์จาก
-                    Drive/iCloud)</label>
-                <input type="url" id="leaveLink" class="form-control mb-3" placeholder="https://...">
-
-                <button onclick="submitLeaveRequest()" class="btn btn-primary mt-2">ส่งใบลา</button>
-
-                <hr class="my-4">
-                <h4 class="mb-3">ประวัติการลาของคุณ</h4>
                 <ul id="myLeaveList" class="history-list" style="max-height: 200px; overflow-y: auto;"></ul>
             </div>
 
@@ -1161,12 +1272,45 @@
 
         window.toggleTimeInputs = () => {
             const type = document.getElementById('leaveType').value;
-            const timeSection = document.getElementById('timeInputSection');
-            if (type === 'แจ้งเวลาปฏิบัติงาน') {
-                timeSection.classList.remove('hidden');
-            } else {
-                timeSection.classList.add('hidden');
-            }
+            const group = document.getElementById('timeInputGroup');
+            if (type === 'แจ้งเวลาปฏิบัติงาน') group.classList.remove('hidden'); else group.classList.add('hidden');
+        };
+
+        window.setQuickShift = (start, end, btn) => {
+            document.getElementById('reqStartTime').value = start;
+            document.getElementById('reqEndTime').value = end;
+
+            // UI feedback for chips
+            document.querySelectorAll('.shift-chip').forEach(c => c.classList.remove('active', 'btn-success'));
+            document.querySelectorAll('.shift-chip').forEach(c => c.classList.add('btn-outline-success'));
+
+            btn.classList.remove('btn-outline-success');
+            btn.classList.add('btn-success', 'active');
+        };
+
+        window.syncMinDate = () => {
+            const start = document.getElementById('leaveStart').value;
+            const endInput = document.getElementById('leaveEnd');
+            endInput.min = start;
+            if (endInput.value && endInput.value < start) endInput.value = start;
+        };
+
+        window.updateDaySummary = () => {
+            const startStr = document.getElementById('leaveStart').value;
+            const endStr = document.getElementById('leaveEnd').value;
+            const summaryDiv = document.getElementById('daySummary');
+
+            if (startStr && endStr) {
+                const s = new Date(startStr);
+                const e = new Date(endStr);
+                const diffTime = Math.abs(e - s);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                if (diffDays > 0) {
+                    document.getElementById('totalDays').innerText = diffDays;
+                    summaryDiv.classList.remove('hidden');
+                } else summaryDiv.classList.add('hidden');
+            } else summaryDiv.classList.add('hidden');
         };
 
         window.submitLeaveRequest = async () => {
@@ -1179,14 +1323,18 @@
             const startTime = document.getElementById('reqStartTime').value;
             const endTime = document.getElementById('reqEndTime').value;
 
-            if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันให้ครบถ้วน', 'warning');
+            if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันเริ่มและวันสิ้นสุดให้ครบถ้วน', 'warning');
             if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
 
-            let finalReason = reason;
+            let finalReason = reason || "";
             const isWorkSchedule = (type === 'แจ้งเวลาปฏิบัติงาน');
             if (isWorkSchedule) {
                 if (!startTime || !endTime) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุเวลาเริ่มและสิ้นสุดงาน', 'warning');
-                finalReason = `[ลงเวร ${startTime} - ${endTime}] ${reason || ''}`;
+                if (startTime >= endTime) return Swal.fire('ข้อมูลผิดพลาด', 'เวลาเริ่มงานต้องมาก่อนเวลาเลิกงาน', 'warning');
+                finalReason = `[ลงเวร ${startTime} - ${endTime}] ${reason || '(ไม่มีเหตุผลเพิ่มเติม)'}`;
+            } else {
+                // For Leave requests, reason might be more important, but let's keep it optional if needed
+                if (!reason && type !== 'อื่น ๆ') finalReason = `ขออนุญาต${type}`;
             }
 
             try {
