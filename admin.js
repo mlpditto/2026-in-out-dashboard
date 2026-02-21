@@ -441,6 +441,37 @@ window.loadLeaveRequests = async () => {
     }
 };
 
+const FALLBACK_PROFILE = "https://via.placeholder.com/45";
+
+function getClosestShift(inDate, outDate) {
+    if (!inDate || !outDate) return 'N/A';
+    const shifts = [
+        { label: '08:00 - 17:00', s: 8, e: 17 },
+        { label: '09:00 - 18:00', s: 9, e: 18 },
+        { label: '10:00 - 19:00', s: 10, e: 19 },
+        { label: '11:00 - 20:00', s: 11, e: 20 },
+        { label: '12:00 - 21:00', s: 12, e: 21 }
+    ];
+    const inMins = inDate.getHours() * 60 + inDate.getMinutes();
+    const outMins = outDate.getHours() * 60 + outDate.getMinutes();
+
+    let minDiff = 180; // 3 hours window
+    let best = 'กำหนดเอง';
+
+    // Also consider duration (approx 9h)
+    const durationHrs = (outDate - inDate) / 3600000;
+    if (durationHrs < 3) return 'กะสั้น/OT';
+
+    shifts.forEach(sh => {
+        const diff = Math.abs(inMins - sh.s * 60) + Math.abs(outMins - sh.e * 60);
+        if (diff < minDiff) {
+            minDiff = diff;
+            best = sh.label;
+        }
+    });
+    return best;
+}
+
 const workHoursCache = {};
 function calcHoursFromLogs(logs) {
     const byDay = {};
@@ -1800,6 +1831,24 @@ window.loadFairnessReport = async () => {
             const daysSet = new Set(uLogs.map(l => l.ts.toLocaleDateString('sv')));
             const daysCount = daysSet.size;
 
+            // Analyze shift distribution
+            const shiftCounts = {};
+            const byDay = {};
+            uLogs.forEach(l => {
+                const k = l.ts.toLocaleDateString('sv');
+                if (!byDay[k]) byDay[k] = [];
+                byDay[k].push(l);
+            });
+            Object.values(byDay).forEach(list => {
+                list.sort((a, b) => a.ts - b.ts);
+                const firstIn = list.find(l => l.type === 'เข้างาน');
+                const lastOut = [...list].reverse().find(l => l.type === 'ออกงาน');
+                if (firstIn && lastOut) {
+                    const matchedShift = getClosestShift(firstIn.ts, lastOut.ts);
+                    shiftCounts[matchedShift] = (shiftCounts[matchedShift] || 0) + 1;
+                }
+            });
+
             // Calc hours
             const workHours = calcHoursFromLogs(uLogs.map(l => ({ type: l.type, timestamp: l.ts })));
 
@@ -1820,7 +1869,8 @@ window.loadFairnessReport = async () => {
                 hours: workHours,
                 avg: daysCount > 0 ? (workHours / daysCount) : 0,
                 lateCount,
-                lateMins
+                lateMins,
+                shiftCounts
             });
         });
 
@@ -1840,6 +1890,11 @@ window.loadFairnessReport = async () => {
             const avgBadgeCol = r.avg > 8 ? 'bg-success' : 'bg-secondary';
             const safePic = window.getSafeProfileSrc(r.pictureUrl, 32);
 
+            const shiftDetails = Object.entries(r.shiftCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([sh, count]) => `<span class="badge bg-light text-dark border-0 fw-normal" style="font-size:0.65rem;">${sh.replace(/ - /g, '-').replace(/:00/g, '')} (${count})</span>`)
+                .join(' ');
+
             h += `
             <tr>
                 <td class="ps-3">
@@ -1851,7 +1906,12 @@ window.loadFairnessReport = async () => {
                         </div>
                     </div>
                 </td>
-                <td class="text-center fw-bold">${r.days} วัน</td>
+                <td class="text-center">
+                    <div class="fw-bold">${r.days} วัน</div>
+                    <div class="d-flex flex-wrap justify-content-center gap-1 mt-1">
+                        ${shiftDetails || '<small class="text-muted" style="font-size:0.6rem;">ไม่มีข้อมูลกะ</small>'}
+                    </div>
+                </td>
                 <td class="text-center text-primary fw-bold">${r.hours.toFixed(2)}</td>
                 <td class="text-center"><span class="badge ${avgBadgeCol}">${r.avg.toFixed(2)}</span></td>
                 <td class="text-center ${r.lateCount > 0 ? 'text-danger fw-bold' : 'text-muted'}">${r.lateCount} ครั้ง</td>
