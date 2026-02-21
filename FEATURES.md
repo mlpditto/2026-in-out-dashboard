@@ -23,6 +23,13 @@ The employee interface is accessible via LINE LIFF, providing a seamless experie
 *   **Internship Tracker:** Countdown timer for students showing "Days Left" until the completion of their internship.
 *   **Personal Schedule:** View of assigned shifts and approved leaves for the current month.
 
+### 5. Advanced Attendance Logic (v3.30)
+*   🔒 **Schedule-Lock System**: บังคับพนักงานต้องมีเวรในระบบก่อนจึงจะกดเข้างานได้ ป้องกันข้อมูลขาดหาย
+*   ⚡ **Auto-Approve Schedules**: ระบบอนุมัติกะงานทันที พนักงานส่งเสร็จลงเวลาได้เลยไม่ต้องรอ
+*   🔘 **Modern Grid Selection**: หน้าแจ้งเวรใหม่แบบ Grid (08-17, 09-18, ...) เลือกง่ายแค่คลิกเดียว
+*   📝 **Late Detection System**: ระบบแจ้งเตือนมาสายอัตโนมัติ (เกิน 5 นาที) พร้อมบังคับระบุเหตุผลผ่าน Popup
+*   🛠️ **Time Validation**: ระบบป้องกันการกรอกวัน/เวลาเริ่ม-จบที่ย้อนสลับกัน
+
 ---
 
 ## 🛠️ Admin Dashboard (Management Portal)
@@ -32,6 +39,7 @@ A comprehensive panel for administrators to monitor and manage staff operations.
 *   **Live Status Cards:** Instant metrics for "Currently In", "Pending Approvals", "Total Approved Users", and "New Members".
 *   **Visual Attendance Table:** List of today's activities with profile images, department color-coding, and GPS map buttons.
 *   **Auto-Refresh:** The dashboard refreshes every 60 seconds to ensure data is up-to-date.
+*   ⚠️ **Late Status Badges (new)**: แสดงสถานะการมาสายพร้อมจำนวนนาที และคลิกดูเหตุผลได้ทันที
 *   **Quick Copy Summary:** A tool to copy today's attendance summary for reporting in group chats.
 
 ### 2. Shift Scheduling & Leave Management
