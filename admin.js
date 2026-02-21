@@ -105,6 +105,12 @@ window.switchTab = (tabName) => {
     if (tabName === 'manage') { loadSchedules(); loadLeaveRequests(); }
     if (tabName === 'report') { setTimeout(initCalendar, 200); renderCharts(); }
     if (tabName === 'users') { renderMainUserList(); loadPendingUsers(); }
+    if (tabName === 'fairness') {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        if (!document.getElementById('fairnessStart').value) document.getElementById('fairnessStart').valueAsDate = firstDay;
+        if (!document.getElementById('fairnessEnd').value) document.getElementById('fairnessEnd').valueAsDate = now;
+    }
 };
 
 window.openPendingModal = () => {
@@ -852,6 +858,15 @@ function getProfileImg(uid) {
 
 function loadInitialData() {
     document.getElementById('filterDate').valueAsDate = new Date();
+
+    // Default fairness range to current month
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const fs = document.getElementById('fairnessStart');
+    const fe = document.getElementById('fairnessEnd');
+    if (fs) fs.valueAsDate = firstDay;
+    if (fe) fe.valueAsDate = now;
+
     loadData();
     loadUsersList();
     loadPendingUsers();
@@ -1721,6 +1736,169 @@ window.renderDetailModal = (title, color, schedId, rawObj) => {
 };
 
 window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.saveSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime; window.changeSchedMonth = changeSchedMonth; window.schedChangePage = schedChangePage; window.openManualEntry = openManualEntry; window.submitManualEntry = submitManualEntry; window.adjTime = adjTime;
+window.loadFairnessReport = async () => {
+    const dept = document.getElementById('fairnessDept').value;
+    const kw = (document.getElementById('fairnessKeyword')?.value || "").toLowerCase();
+    const startStr = document.getElementById('fairnessStart').value;
+    const endStr = document.getElementById('fairnessEnd').value;
+
+    if (!startStr || !endStr) {
+        return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุช่วงวันที่ต้องการตรวจสอบ', 'warning');
+    }
+
+    const start = new Date(startStr); start.setHours(0, 0, 0, 0);
+    const end = new Date(endStr); end.setHours(23, 59, 59, 999);
+
+    Swal.fire({
+        title: 'กำลังประมวลผล...',
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+        // 1. Get filtered users
+        let filteredUsers = Object.values(window.allUserData || {}).filter(u => u.status === 'Approved');
+        if (dept !== 'All') {
+            filteredUsers = filteredUsers.filter(u => (u.dept || u.department || '').includes(dept));
+        }
+        if (kw) {
+            filteredUsers = filteredUsers.filter(u =>
+                (u.name || "").toLowerCase().includes(kw) ||
+                (u.dept || u.department || "").toLowerCase().includes(kw) ||
+                (u.empId || "").toLowerCase().includes(kw)
+            );
+        }
+
+        if (filteredUsers.length === 0) {
+            Swal.close();
+            return Swal.fire('ไม่พบพนักงาน', 'ไม่พบสมาชิกในแผนกที่เลือก', 'info');
+        }
+
+        // 2. Get attendance for the period
+        const attSnap = await getDocs(query(collection(db, "attendance"),
+            where("timestamp", ">=", start),
+            where("timestamp", "<=", end)));
+
+        const logsByUser = {};
+        attSnap.forEach(d => {
+            const v = d.data();
+            const uid = v.userId;
+            if (!logsByUser[uid]) logsByUser[uid] = [];
+            const ts = v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp.seconds * 1000);
+            logsByUser[uid].push({ ...v, ts });
+        });
+
+        // 3. Process metrics
+        const report = [];
+        let totalHrsSum = 0;
+        let totalLateMins = 0;
+
+        filteredUsers.forEach(u => {
+            const uid = u.lineUserId || u.id;
+            const uLogs = logsByUser[uid] || [];
+
+            // Calc days worked (distinct dates)
+            const daysSet = new Set(uLogs.map(l => l.ts.toLocaleDateString('sv')));
+            const daysCount = daysSet.size;
+
+            // Calc hours
+            const workHours = calcHoursFromLogs(uLogs.map(l => ({ type: l.type, timestamp: l.ts })));
+
+            // Calc lates
+            const lates = uLogs.filter(l => l.type === 'เข้างาน' && l.isLate);
+            const lateCount = lates.length;
+            const lateMins = lates.reduce((sum, l) => sum + (l.delayMin || 0), 0);
+
+            totalHrsSum += workHours;
+            totalLateMins += lateMins;
+
+            report.push({
+                uid,
+                name: u.name,
+                pictureUrl: u.pictureUrl,
+                dept: u.dept || u.department,
+                days: daysCount,
+                hours: workHours,
+                avg: daysCount > 0 ? (workHours / daysCount) : 0,
+                lateCount,
+                lateMins
+            });
+        });
+
+        // 4. Calculate Scores & Sort (Higher hours, lower lates = better)
+        report.forEach(r => {
+            // Fairness Score = (Hours * 2) - (LateCount * 5) - (LateMins / 10)
+            // This is a simple heuristic to show relative "fairness" or "effort"
+            r.score = (r.hours * 2) - (r.lateCount * 3);
+        });
+        report.sort((a, b) => b.hours - a.hours);
+
+        // 5. Render Table
+        const tbody = document.getElementById('fairnessTableBody');
+        let h = '';
+        report.forEach(r => {
+            const scoreColor = r.score < 0 ? 'text-danger' : (r.score < 20 ? 'text-warning' : 'text-success');
+            const avgBadgeCol = r.avg > 8 ? 'bg-success' : 'bg-secondary';
+            const safePic = window.getSafeProfileSrc(r.pictureUrl, 32);
+
+            h += `
+            <tr>
+                <td class="ps-3">
+                    <div class="user-cell">
+                        <img src="${safePic}" class="profile-thumb" style="width:32px; height:32px;" onerror="this.src='https://via.placeholder.com/32'">
+                        <div>
+                            <div class="fw-bold" style="font-size:0.85rem;">${r.name}</div>
+                            <small class="text-muted" style="font-size:0.7rem;">${r.dept}</small>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center fw-bold">${r.days} วัน</td>
+                <td class="text-center text-primary fw-bold">${r.hours.toFixed(2)}</td>
+                <td class="text-center"><span class="badge ${avgBadgeCol}">${r.avg.toFixed(2)}</span></td>
+                <td class="text-center ${r.lateCount > 0 ? 'text-danger fw-bold' : 'text-muted'}">${r.lateCount} ครั้ง</td>
+                <td class="text-center text-muted">${r.lateMins} น.</td>
+                <td class="text-end pe-3">
+                    <div class="fw-bold ${scoreColor}">${r.score.toFixed(1)}</div>
+                </td>
+            </tr>`;
+        });
+        tbody.innerHTML = h || '<tr><td colspan="7" class="text-center py-5">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>';
+
+        // 6. Summary Stats
+        const summary = document.getElementById('fairnessSummary');
+        summary.classList.remove('hidden');
+        summary.innerHTML = `
+            <div class="col-md-3">
+                <div class="p-3 border rounded bg-white shadow-sm">
+                    <small class="text-muted d-block">จำนวนบุคลากร</small>
+                    <div class="h4 mb-0 fw-bold text-dark">${filteredUsers.length} ท่าน</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 border rounded bg-white shadow-sm">
+                    <small class="text-muted d-block">รวมเวลาทำงาน</small>
+                    <div class="h4 mb-0 fw-bold text-primary">${totalHrsSum.toFixed(1)} ชม.</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 border rounded bg-white shadow-sm">
+                    <small class="text-muted d-block">เฉลี่ยต่อคน</small>
+                    <div class="h4 mb-0 fw-bold text-success">${(totalHrsSum / filteredUsers.length).toFixed(1)} ชม.</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 border rounded bg-white shadow-sm">
+                    <small class="text-muted d-block">รวมเวลามาสาย</small>
+                    <div class="h4 mb-0 fw-bold text-danger">${totalLateMins} นาที</div>
+                </div>
+            </div>
+        `;
+
+        Swal.close();
+    } catch (err) {
+        console.error(err);
+        Swal.fire('Error', 'ไม่สามารถดึงข้อมูลวิเคราะห์ได้: ' + err.message, 'error');
+    }
+};
 window.copyAttendanceSummary = () => {
     const filterDate = document.getElementById('filterDate')?.value;
     if (filterDate) {
