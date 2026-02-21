@@ -73,19 +73,22 @@
             overflow-x: auto;
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
+            display: flex !important;
         }
 
         .scroller-x::-webkit-scrollbar {
             display: none;
         }
 
-        .shift-chip {
+        .shift-chip-compact {
             transition: all 0.2s ease;
-            border-width: 2px !important;
-            white-space: nowrap;
+            border-width: 1.5px !important;
+            padding: 8px 16px !important;
+            font-size: 0.85rem !important;
+            flex: 0 0 auto;
         }
 
-        .shift-chip.active {
+        .shift-chip-compact.active {
             transform: scale(1.05);
         }
 
@@ -460,19 +463,18 @@
                                 <i class="bi bi-clock me-2 text-success"></i> กะการทำงาน / Work Shift
                             </label>
 
-                            <!-- Quick Shift Chips -->
-                            <div class="d-flex flex-wrap gap-2 mb-3 scroller-x">
-                                <button class="btn btn-outline-success btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
-                                    onclick="setQuickShift('10:00','19:00', this)">10:00 - 19:00</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
-                                    onclick="setQuickShift('08:00','17:00', this)">08:00 - 17:00</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
-                                    onclick="setQuickShift('12:00','21:00', this)">12:00 - 21:00</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
-                                    onclick="setQuickShift('11:00','20:00', this)">11:00 - 20:00</button>
-                                <button
-                                    class="btn btn-outline-secondary btn-sm rounded-pill py-1 px-3 fw-bold shift-chip"
-                                    onclick="setQuickShift('09:00','18:00', this)">09:00 - 18:00</button>
+                            <!-- Quick Shift Chips (Sorted & Compact) -->
+                            <div class="d-flex scroller-x gap-2 mb-3 pb-1">
+                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                    onclick="setQuickShift('08:00','17:00', this)">08-17</button>
+                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                    onclick="setQuickShift('09:00','18:00', this)">09-18</button>
+                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                    onclick="setQuickShift('10:00','19:00', this)">10-19</button>
+                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                    onclick="setQuickShift('11:00','20:00', this)">11-20</button>
+                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                    onclick="setQuickShift('12:00','21:00', this)">12-21</button>
                             </div>
 
                             <div class="row g-2">
@@ -1281,8 +1283,10 @@
             document.getElementById('reqEndTime').value = end;
 
             // UI feedback for chips
-            document.querySelectorAll('.shift-chip').forEach(c => c.classList.remove('active', 'btn-success'));
-            document.querySelectorAll('.shift-chip').forEach(c => c.classList.add('btn-outline-success'));
+            document.querySelectorAll('.shift-chip-compact').forEach(c => {
+                c.classList.remove('active', 'btn-success');
+                c.classList.add('btn-outline-success');
+            });
 
             btn.classList.remove('btn-outline-success');
             btn.classList.add('btn-success', 'active');
