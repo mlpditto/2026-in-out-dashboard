@@ -105,6 +105,7 @@ window.switchTab = (tabName) => {
     if (tabName === 'manage') { loadSchedules(); loadLeaveRequests(); }
     if (tabName === 'report') { setTimeout(initCalendar, 200); renderCharts(); }
     if (tabName === 'users') { renderMainUserList(); loadPendingUsers(); }
+    if (tabName === 'survey') { loadSurveyResults(); }
     if (tabName === 'fairness') {
         const now = new Date();
         const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -2391,4 +2392,227 @@ window.viewUserStats = async (uid) => {
         console.error(err);
         Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลสถิติได้', 'error');
     }
+};
+
+// --- 📋 SURVEY RESULTS DASHBOARD LOGIC ---
+let surveyFavShiftChart, surveyRatingChart;
+
+window.loadSurveyResults = async () => {
+    const container = document.getElementById('surveyDataContainer');
+    const emptyState = document.getElementById('surveyEmptyState');
+
+    try {
+        const snap = await getDocs(query(collection(db, "survey_responses"), orderBy("timestamp", "desc")));
+        if (snap.empty) {
+            emptyState.innerHTML = `<i class="bi bi-chat-dots text-muted" style="font-size: 3rem;"></i><p class="mt-3 text-muted">ยังไม่มีผู้ตอบแบบสำรวจ</p>`;
+            return;
+        }
+
+        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        emptyState.classList.add('hidden');
+        container.classList.remove('hidden');
+
+        processSurveyData(data);
+    } catch (err) {
+        console.error("Survey Load Error:", err);
+        Swal.fire('Error', 'ไม่สามารถโหลดผลแบบสำรวจได้: ' + err.message, 'error');
+    }
+};
+
+function processSurveyData(responses) {
+    // 1. Overall Stats
+    const total = responses.length;
+    const statsRow = document.getElementById('surveyStatsRow');
+    statsRow.innerHTML = `
+        <div class="col-md-3">
+            <div class="p-3 bg-white border rounded shadow-sm text-center">
+                <small class="text-muted d-block">จำนวนผู้ตอบทั้งหมด</small>
+                <h3 class="fw-bold mb-0 text-primary">${total} <small class="fs-6 fw-normal">คน</small></h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-white border rounded shadow-sm text-center">
+                <small class="text-muted d-block">เฉลี่ยความพอใจ (วนกะ)</small>
+                <h3 class="fw-bold mb-0 text-success">${calculateAvg(responses, '3').toFixed(1)} <small class="fs-6 fw-normal">/ 5</small></h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-white border rounded shadow-sm text-center">
+                <small class="text-muted d-block">เฉลี่ยความยุติธรรม</small>
+                <h3 class="fw-bold mb-0 text-info">${calculateAvg(responses, '6').toFixed(1)} <small class="fs-6 fw-normal">/ 5</small></h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-white border rounded shadow-sm text-center">
+                <small class="text-muted d-block">ต้องการเน้น Preference</small>
+                <h3 class="fw-bold mb-0 text-warning">${calculatePrefWeight(responses)}%</h3>
+            </div>
+        </div>
+    `;
+
+    // 2. Favorite Shifts Chart
+    const shiftCounts = {};
+    responses.forEach(r => {
+        const val = r.answers['1']?.[0] || 'ไม่ระบุ';
+        shiftCounts[val] = (shiftCounts[val] || 0) + 1;
+    });
+    renderFavShiftChart(shiftCounts);
+
+    // 3. Ratings Chart (Satisfaction vs fairness)
+    renderRatingComparisonChart(responses);
+
+    // 4. Feedback List
+    const feedbackList = document.getElementById('surveyFeedbackList');
+    let fbHtml = '';
+    responses.forEach(r => {
+        const comment = r.answers['9'] || r.answers['8'] || r.answers['3_reason'] || r.answers['6_reason'];
+        if (comment) {
+            fbHtml += `
+            <div class="p-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="fw-bold text-primary small d-flex align-items-center gap-2">
+                        <img src="${window.getSafeProfileSrc(userProfileMap[r.userId]?.pictureUrl, 24)}" class="rounded-circle" width="24" height="24">
+                        ${r.name} <span class="badge bg-light text-dark fw-normal">${r.dept}</span>
+                    </div>
+                    <small class="text-muted">${r.timestamp?.toDate().toLocaleDateString('th-TH')}</small>
+                </div>
+                <p class="mb-1 small">${comment}</p>
+                <div class="d-flex gap-2">
+                    ${r.answers['3_reason'] ? `<small class="badge bg-light text-muted fw-normal" title="เหตุผลความพอใจ">💡 ${r.answers['3_reason']}</small>` : ''}
+                    ${r.answers['6_reason'] ? `<small class="badge bg-light text-muted fw-normal" title="เหตุผลความยุติธรรม">⚖️ ${r.answers['6_reason']}</small>` : ''}
+                </div>
+            </div>`;
+        }
+    });
+    feedbackList.innerHTML = fbHtml || '<p class="text-muted text-center p-3">ไม่มีข้อเสนอแนะเพิ่มเติม</p>';
+
+    // 5. Full Table
+    const tableBody = document.getElementById('surveyFullTableBody');
+    tableBody.innerHTML = responses.map(r => `
+        <tr>
+            <td>${r.timestamp?.toDate().toLocaleDateString('th-TH')}</td>
+            <td>
+                <div class="fw-bold">${r.name}</div>
+                <div class="tiny-text text-muted">${r.dept}</div>
+            </td>
+            <td>${r.answers['1']?.[0] || '-'}</td>
+            <td class="text-center">
+                <span class="badge bg-info">วนกะ: ${r.answers['3'] || 0}</span>
+                <span class="badge bg-primary">เป็นธรรม: ${r.answers['6'] || 0}</span>
+            </td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-light" onclick="viewFullSurvey('${r.id}')"><i class="bi bi-eye"></i></button>
+            </td>
+        </tr>
+    `).join('');
+
+    // 6. Health & Constraints Summary
+    const healthSummary = document.getElementById('surveyHealthSummary');
+    const healthCounts = {};
+    responses.forEach(r => {
+        (r.answers['4'] || []).forEach(h => { healthCounts[h] = (healthCounts[h] || 0) + 1; });
+    });
+    healthSummary.innerHTML = Object.entries(healthCounts).map(([h, count]) => `
+        <div class="col-md-6">
+            <div class="p-2 border rounded bg-white d-flex justify-content-between align-items-center">
+                <small>${h}</small>
+                <span class="badge bg-danger rounded-pill">${count}</span>
+            </div>
+        </div>
+    `).join('') || '<div class="col-12 text-center text-muted">ไม่มีรายงานปัญหาสุขภาพ</div>';
+}
+
+function calculateAvg(responses, qId) {
+    const list = responses.map(r => parseInt(r.answers[qId]) || 0).filter(v => v > 0);
+    return list.length ? (list.reduce((a, b) => a + b, 0) / list.length) : 0;
+}
+
+function calculatePrefWeight(responses) {
+    let count = 0;
+    responses.forEach(r => {
+        const val = r.answers['10']?.[0] || '';
+        if (val.includes('สูง')) count += 80;
+        else if (val.includes('กลาง')) count += 50;
+        else if (val.includes('ต่ำ')) count += 20;
+    });
+    return (count / responses.length).toFixed(0);
+}
+
+function renderFavShiftChart(counts) {
+    const ctx = document.getElementById('surveyFavShiftChart').getContext('2d');
+    if (surveyFavShiftChart) surveyFavShiftChart.destroy();
+
+    surveyFavShiftChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(counts),
+            datasets: [{
+                data: Object.values(counts),
+                backgroundColor: ['#6c5ce7', '#00b894', '#00cec9', '#fab1a0', '#ffeaa7']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+        }
+    });
+}
+
+function renderRatingComparisonChart(responses) {
+    const ctx = document.getElementById('surveyRatingChart').getContext('2d');
+    if (surveyRatingChart) surveyRatingChart.destroy();
+
+    const depts = [...new Set(responses.map(r => r.dept))];
+    const satData = depts.map(d => calculateAvg(responses.filter(r => r.dept === d), '3'));
+    const fairData = depts.map(d => calculateAvg(responses.filter(r => r.dept === d), '6'));
+
+    surveyRatingChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: depts,
+            datasets: [
+                { label: 'พึงพอใจ', data: satData, backgroundColor: '#a29bfe' },
+                { label: 'ยุติธรรม', data: fairData, backgroundColor: '#81ecec' }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            scales: { x: { min: 0, max: 5 } },
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+}
+
+window.viewFullSurvey = async (id) => {
+    const docSnap = await getDoc(doc(db, "survey_responses", id));
+    if (!docSnap.exists()) return;
+    const r = docSnap.data();
+
+    let html = `<div class="text-start small" style="max-height: 400px; overflow-y: auto;">`;
+    const questions = [
+        "1. กะที่ชอบ", "2. การเดินทาง", "3. ความพอใจ", "4. สุขภาพ",
+        "5. วันหยุด", "6. ความเป็นธรรม", "7. Extern", "8. ข้อจำกัดอื่น",
+        "9. ข้อเสนอแนะ", "10. Preference Weight"
+    ];
+
+    questions.forEach((q, i) => {
+        const idx = (i + 1).toString();
+        const ans = r.answers[idx];
+        const reason = r.answers[idx + '_reason'] || r.answers[idx + '_other'] || '';
+        html += `
+        <div class="mb-3 border-bottom pb-2">
+            <div class="fw-bold text-muted mb-1">${q}</div>
+            <div class="text-dark">${Array.isArray(ans) ? ans.join(', ') : (ans || '-')}</div>
+            ${reason ? `<div class="mt-1 p-2 bg-light rounded text-muted italic">"${reason}"</div>` : ''}
+        </div>`;
+    });
+    html += `</div>`;
+
+    Swal.fire({
+        title: `ผลแบบสำรวจ: ${r.name}`,
+        html: html,
+        width: '500px',
+        confirmButtonText: 'ปิด'
+    });
 };

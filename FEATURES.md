@@ -1,5 +1,9 @@
 # 🚀 Features - MLP Time Attendance Dashboard (v3.31)
 
+### 🌟 New in v3.31: Fairness 2.0 & Global Survey
+*   🛡️ **Fairness Score (Refined):** Added Hours Capping, GPS Weighting, and Anomaly Detection.
+*   📊 **Satisfaction Survey:** Full-cycle survey for staff shift preferences with Admin Analytics dash.
+
 ## 📋 Employee Interface (Mobile LIFF)
 The employee interface is accessible via LINE LIFF, providing a seamless experience for time recording and leave management.
 
@@ -33,11 +37,23 @@ The employee interface is accessible via LINE LIFF, providing a seamless experie
 ---
 
 ### 6. Admin Panel (Desktop Web)
-*   **fair·ness Analysis (NEW):** Advanced department-level analysis to ensure overall fairness in work hours and discipline.
+*   **fair·ness Analysis (v3.31 Refined):** Advanced department-level analysis with built-in data quality safeguards.
     *   **Batch Filtering:** Search by department or keywords (e.g., "#6") to focus on specific groups or batches.
-    *   **Fairness Score (Beta):** Proprietary metric combining total work hours, average daily effort, and lateness penalties.
-    *   **Late Analysis:** Automated summary of total late counts and total delayed minutes for the group.
-    *   **Group Summary:** Real-time calculation of total personnel, group effort (hours), and average hours per person.
+    *   **Fairness Score (Refined):** Improved scoring formula: `(Adj_Hours * 2.5) - (Lates * 3) - (Anomalies * 8) - (Offsite * 2)`.
+    *   **[ก] Hours Capping:** Work hours are capped at **12.5 hrs/day** to prevent inflation from forgotten clock-outs.
+    *   **[ข] GPS-Based Weighting:** Work hours logged outside a 500m radius are penalized (multiplied by **0.8x**).
+    *   **[ค] Anomaly Detection:** System flags days with >12 hrs of work with a ⚠️ icon and row highlighting.
+    *   **Off-site Indicators:** Logs outside allowed perimeters are marked with a 📍 icon.
+    *   **Shift Distribution Chart:** Stacked bar chart visualizing the diversity of shifts worked by each employee.
+
+### 8. Satisfaction Survey & Insights (NEW v3.31)
+*   **Employee Survey (LIFF):** 10-question smart survey covering shift preferences, travel constraints, health, and fairness perception.
+*   **Progressive Wizard UI:** Engaging multi-step interface with choice chips and visual rating scales (1-5).
+*   **Analytics Dashboard (Admin):** 
+    *   **Executive Metrics:** Average Satisfaction, Fairness Perception, and Team vs Self Weighting.
+    *   **Quantitative Analytics:** Doughnut charts for favorite shifts and department benchmarking.
+    *   **Qualitative Feedback:** Consolidated list of comments, health reports, and constraints.
+    *   **Detail Viewer:** Ability to drill down into a specific employee's full survey responses.
 
 ### 7. Global Settings & Branding (Dashboard)
 *   **Live Status Cards:** Instant metrics for "Currently In", "Pending Approvals", "Total Approved Users", and "New Members".
