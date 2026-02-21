@@ -716,6 +716,17 @@ window.loadData = async () => {
             actionBtns = `<button onclick="openManualEntry('${v.userId}', '${v.name}', 'ออกงาน')" class="btn btn-sm btn-outline-warning me-1" title="ลงเวลาออกงาน"><i class="bi bi-box-arrow-right"></i></button>` + actionBtns;
         }
 
+        // Late indicator
+        let lateBadge = "";
+        if (v.isLate) {
+            lateBadge = `<div class="mt-1">
+                <span class="badge bg-warning text-dark shadow-sm" style="font-size:0.7rem; cursor:pointer;" 
+                      title="เหตุผล: ${v.lateReason || '-'}" onclick="Swal.fire('เหตุผลการมาสาย', '${(v.lateReason || 'ไม่ได้ระบุเหตุผล').replace(/'/g, "\\'")}', 'info')">
+                    <i class="bi bi-clock-history"></i> สาย ${v.delayMin || 0} น.
+                </span>
+            </div>`;
+        }
+
         const dColor = getDeptCategoryColor(deptText);
         h += `<tr class="${rowClass}">
             <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false })}</td>
@@ -723,6 +734,7 @@ window.loadData = async () => {
             <td><span class="badge" style="background:${dColor} !important; color:white !important; border:none; font-weight:600; min-width:80px; text-align:center;">${deptText}</span></td>
             <td>
                 <span class="badge ${bg} bg-opacity-10 text-${bg.split('-')[1]} badge-pill"><span class="status-dot ${bg}"></span>${v.type}</span>
+                ${lateBadge}
                 ${hoursHtml}
             </td>
             <td>${map}</td>
