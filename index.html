@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.37</title>
+    <title>MLP Time Attendance v3.38</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -283,6 +283,26 @@
             margin-bottom: 20px;
         }
 
+        /* Custom Range Slider Styling */
+        .custom-range::-webkit-slider-runnable-track {
+            background: #fcece8 !important;
+            height: 10px !important;
+            border-radius: 10px;
+        }
+
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none !important;
+            appearance: none !important;
+            width: 24px !important;
+            height: 24px !important;
+            background: #ff8e71 !important;
+            border-radius: 50% !important;
+            cursor: pointer;
+            margin-top: -7px !important;
+            border: 3px solid white !important;
+            box-shadow: 0 2px 8px rgba(255, 142, 113, 0.4) !important;
+        }
+
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
@@ -372,7 +392,7 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.37</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.38</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -597,23 +617,21 @@
                 </div>
             </div>
 
-            <!-- Satisfaction Survey Card (Compact) -->
+            <!-- Satisfaction Survey Card (Ultra-Compact) -->
             <div id="surveyPrompt" class="card shadow-sm border-0 mb-3"
                 style="background: linear-gradient(135deg, #ffbe94 0%, #ff8e71 100%); cursor: pointer; border-radius: 12px;"
                 onclick="show('surveyPage')">
-                <div class="card-body py-2 px-3 text-white d-flex align-items-center gap-2">
+                <div class="card-body py-1 px-3 text-white d-flex align-items-center gap-2">
                     <div class="rounded-circle bg-white bg-opacity-25"
-                        style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i class="bi bi-pencil-square h5 mb-0"></i>
+                        style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="bi bi-pencil-square mb-0" style="font-size: 0.9rem;"></i>
                     </div>
                     <div style="flex-grow: 1;">
-                        <h6 class="mb-0"
-                            style="font-weight: 900; letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">📝
-                            Satisfaction Survey</h6>
-                        <p class="mb-0" style="font-size: 0.75rem; opacity: 0.9;">
-                            ประเมินกะงานเพื่อความยุติธรรมสำหรับทุกคน</p>
+                        <h6 class="mb-0 text-truncate"
+                            style="font-weight: 900; letter-spacing: 0.5px; font-size: 0.85rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                            📝 Satisfaction Survey</h6>
                     </div>
-                    <i class="bi bi-chevron-right opacity-75"></i>
+                    <i class="bi bi-chevron-right opacity-75" style="font-size: 0.8rem;"></i>
                 </div>
             </div>
 
@@ -1669,22 +1687,22 @@
                 }
                 h += `</div>`;
             } else if (q.type === 'rating') {
-                h += `<div class="d-flex flex-column align-items-center mb-4">
-                        <div class="d-flex justify-content-between w-100 mb-2 px-1">
-                            <small class="text-muted">${q.labels[0]}</small>
-                            <small class="text-muted">${q.labels[1]}</small>
+                const currentVal = surveyAnswers[q.id] || 3;
+                h += `<div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-end mb-3">
+                            <small class="text-muted" style="max-width: 80px; line-height: 1.1;">${q.labels[0]}</small>
+                            <div class="text-center">
+                                <div class="badge rounded-pill mb-1" style="background-color: #ff8e71; font-size: 1rem; padding: 8px 16px;">${currentVal}</div>
+                                <div class="small text-muted" style="font-size: 0.7rem;">คะแนนความพึงพอใจ</div>
+                            </div>
+                            <small class="text-muted text-end" style="max-width: 80px; line-height: 1.1;">${q.labels[1]}</small>
                         </div>
-                        <div class="d-flex justify-content-between w-100 gap-2">`;
-                [1, 2, 3, 4, 5].forEach(num => {
-                    const isSelected = surveyAnswers[q.id] === num;
-                    h += `<div onclick="selectRating(${q.id}, ${num})" 
-                               style="width:50px; height:50px; cursor:pointer; background-color: ${isSelected ? '#ff8e71' : ''}; flex: 1 0 auto;"
-                               class="rounded-circle d-flex align-items-center justify-content-center fw-bold border-2 
-                               ${isSelected ? 'text-white border-transparent shadow-sm' : 'bg-light text-muted border-transparent'}">
-                            ${num}
-                          </div>`;
-                });
-                h += `  </div>
+                        <input type="range" class="form-range custom-range" min="1" max="5" step="1" 
+                               value="${currentVal}" 
+                               oninput="selectRating(${q.id}, parseInt(this.value)); this.parentElement.querySelector('.badge').innerText = this.value">
+                        <div class="d-flex justify-content-between mt-2 px-1 text-muted fw-bold" style="font-size: 0.8rem;">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                        </div>
                       </div>
                       <textarea class="form-control rounded-4 p-3 border-2" rows="3" placeholder="${q.subQ}"
                                 onchange="surveyAnswers['${q.id}_reason']=this.value">${surveyAnswers[q.id + '_reason'] || ''}</textarea>`;
