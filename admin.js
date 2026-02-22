@@ -371,6 +371,12 @@ window.loadLeaveRequests = async () => {
             else if (lt.includes('กิจ')) { leaveEmoji = '📋'; leaveColor = '#0d6efd'; }
             else if (lt.includes('คลอด')) { leaveEmoji = '👶'; leaveColor = '#e91e8c'; }
             else if (lt.includes('บวช')) { leaveEmoji = '🙏'; leaveColor = '#f59e0b'; }
+            else if (lt.includes('เวร') || lt.includes('schedule')) { leaveEmoji = '🕒'; leaveColor = '#0d6efd'; }
+
+            let timeBadge = "";
+            if (v.reqStartTime && v.reqEndTime) {
+                timeBadge = `<div class="mt-1"><span class="badge bg-light text-primary border border-primary-subtle" style="font-size:0.7rem;"><i class="bi bi-clock"></i> ${v.reqStartTime} - ${v.reqEndTime}</span></div>`;
+            }
             const safeReason = (v.reason || 'ไม่ได้ระบุเหตุผล').replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeObj = JSON.stringify({
@@ -400,7 +406,7 @@ window.loadLeaveRequests = async () => {
 
                 hPending += `<tr class="table-warning">
                      <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${subInfo}</small></td>
-                     <td>${leaveBadge}</td>
+                     <td>${leaveBadge}${timeBadge}</td>
                      <td>${v.startDate} ถึง ${v.endDate}</td>
                      <td>${v.reason || '-'}</td>
                      <td class="text-end pe-3">${acts}</td>
@@ -412,7 +418,7 @@ window.loadLeaveRequests = async () => {
 
                 hApproved += `<tr>
                      <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${subInfo}</small></td>
-                     <td>${leaveBadge}</td>
+                     <td>${leaveBadge}${timeBadge}</td>
                      <td>${v.startDate} ถึง ${v.endDate}</td>
                      <td>${statusBadge}</td>
                  </tr>`;
