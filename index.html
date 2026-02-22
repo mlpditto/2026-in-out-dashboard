@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.38</title>
+    <title>MLP Time Attendance v3.39</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -94,6 +94,37 @@
             border-color: #198754 !important;
         }
 
+
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .type-chip {
+            transition: all 0.2s ease;
+            border-width: 1.5px !important;
+            padding: 12px 6px !important;
+            font-size: 0.82rem !important;
+            text-align: center;
+            width: 100%;
+            border-color: #eee !important;
+            color: #666 !important;
+        }
+
+        .type-chip.active.btn-primary {
+            background: var(--primary-gradient) !important;
+            color: white !important;
+            border-color: transparent !important;
+            font-weight: 700;
+        }
+
+        .type-chip.active.btn-warning {
+            background: var(--warning-gradient) !important;
+            color: #444 !important;
+            border-color: transparent !important;
+            font-weight: 700;
+        }
 
         .rounded-4 {
             border-radius: 1rem !important;
@@ -392,7 +423,7 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.38</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.39</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -435,19 +466,25 @@
                 <div class="p-3">
                     <div class="mb-4">
                         <label
-                            class="form-label small fw-bold text-muted mb-2 text-uppercase letter-spacing-1">ประเภทคำขอ
+                            class="form-label small fw-bold text-muted mb-3 text-uppercase letter-spacing-1">ประเภทคำขอ
                             / Request Type</label>
-                        <select id="leaveType"
-                            class="form-select border-0 bg-light rounded-4 py-3 shadow-sm font-weight-600"
-                            onchange="toggleTimeInputs()" style="height: 56px;">
-                            <option value="ลากิจ">📋 ลากิจ (Personal Leave)</option>
-                            <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
-                            <option value="ลาพักผ่อน">🌴 ลาพักผ่อน (Annual Leave)</option>
-                            <option value="ลาบวช">🙏 ลาบวช (Ordination Leave)</option>
-                            <option value="ลาคลอด">👶 ลาคลอด (Maternity Leave)</option>
-                            <option value="อื่น ๆ">🛑 อื่น ๆ (Others)</option>
-                            <option value="แจ้งเวลาปฏิบัติงาน">🕒 แจ้งเวลาปฏิบัติงาน (Work Schedule)</option>
-                        </select>
+                        <input type="hidden" id="leaveType" value="แจ้งเวลาปฏิบัติงาน">
+                        <div class="type-grid">
+                            <button type="button" class="btn btn-outline-secondary type-chip active btn-primary"
+                                onclick="selectRequestType('แจ้งเวลาปฏิบัติงาน', this)">🕒 แจ้งเวร (Schedule)</button>
+                            <button type="button" class="btn btn-outline-secondary type-chip"
+                                onclick="selectRequestType('ลากิจ', this)">📋 ลากิจ (Personal)</button>
+                            <button type="button" class="btn btn-outline-secondary type-chip"
+                                onclick="selectRequestType('ลาป่วย', this)">🤒 ลาป่วย (Sick)</button>
+                            <button type="button" class="btn btn-outline-secondary type-chip"
+                                onclick="selectRequestType('ลาพักผ่อน', this)">🌴 ลาพักผ่อน (Annual)</button>
+                            <button type="button" class="btn btn-outline-secondary type-chip"
+                                onclick="selectRequestType('ลาบวช', this)">🙏 ลาบวช (Ordination)</button>
+                            <button type="button" class="btn btn-outline-secondary type-chip"
+                                onclick="selectRequestType('ลาคลอด', this)">👶 ลาคลอด (Maternity)</button>
+                            <button type="button" class="btn btn-outline-secondary type-chip"
+                                onclick="selectRequestType('อื่น ๆ', this)">🛑 อื่น ๆ (Others)</button>
+                        </div>
                     </div>
 
                     <!-- Date Range Section -->
@@ -1371,6 +1408,22 @@
             const type = document.getElementById('leaveType').value;
             const group = document.getElementById('timeInputGroup');
             if (type === 'แจ้งเวลาปฏิบัติงาน') group.classList.remove('hidden'); else group.classList.add('hidden');
+        };
+
+        window.selectRequestType = (val, btn) => {
+            document.getElementById('leaveType').value = val;
+
+            // UI feedback
+            document.querySelectorAll('.type-chip').forEach(c => {
+                c.classList.remove('active', 'btn-primary', 'btn-warning', 'btn-outline-secondary');
+                c.classList.add('btn-outline-secondary');
+            });
+
+            const isLeave = val.startsWith('ลา') || val === 'อื่น ๆ';
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('active', isLeave ? 'btn-warning' : 'btn-primary');
+
+            window.toggleTimeInputs();
         };
 
         window.setQuickShift = (start, end, btn) => {
