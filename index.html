@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.41</title>
+    <title>MLP Time Attendance v3.42</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -423,7 +423,7 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.41</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.42</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -1754,20 +1754,27 @@
             } else if (q.type === 'rating') {
                 const currentVal = surveyAnswers[q.id] || 3;
                 h += `<div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-end mb-3">
-                            <small class="text-muted" style="max-width: 80px; line-height: 1.1;">${q.labels[0]}</small>
-                            <div class="text-center">
-                                <div class="badge rounded-pill mb-1" style="background-color: #ff8e71; font-size: 1rem; padding: 8px 16px;">${currentVal}</div>
-                                <div class="small text-muted" style="font-size: 0.7rem;">คะแนนความพึงพอใจ</div>
-                            </div>
-                            <small class="text-muted text-end" style="max-width: 80px; line-height: 1.1;">${q.labels[1]}</small>
+                        <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+                            <small class="text-muted" style="max-width: 70px; line-height: 1.1; font-size: 0.75rem;">${q.labels[0]}</small>
+                            <div class="d-flex gap-2">`;
+
+                [1, 2, 3, 4, 5].forEach(num => {
+                    const isActive = currentVal === num;
+                    h += `<div onclick="selectRating(${q.id}, ${num})" 
+                               class="rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                               style="width: 46px; height: 46px; cursor: pointer; border: 2px solid ${isActive ? '#ff8e71' : '#f1f2f6'}; 
+                                      background: ${isActive ? '#ff8e71' : 'white'}; color: ${isActive ? 'white' : '#636e72'}; 
+                                      font-weight: 700; font-size: 1.2rem; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                               ${num}
+                          </div>`;
+                });
+
+                h += `      </div>
+                            <small class="text-muted text-end" style="max-width: 70px; line-height: 1.1; font-size: 0.75rem;">${q.labels[1]}</small>
                         </div>
-                        <input type="range" class="form-range custom-range" min="1" max="5" step="1" 
-                               value="${currentVal}" 
-                               oninput="selectRating(${q.id}, parseInt(this.value)); this.parentElement.querySelector('.badge').innerText = this.value">
-                        <div class="d-flex justify-content-between mt-2 px-1 text-muted fw-bold" style="font-size: 0.8rem;">
-                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                        </div>
+                      </div>
+                      <div class="text-center mb-4">
+                        <span class="badge rounded-pill" style="background-color: #fcece8; color: #ff8e71; font-size: 0.85rem; padding: 6px 16px; border: 1px solid #ff8e71;">คะแนนที่เลือก: ${currentVal}</span>
                       </div>
                       <textarea class="form-control rounded-4 p-3 border-2" rows="3" placeholder="${q.subQ}"
                                 onchange="surveyAnswers['${q.id}_reason']=this.value">${surveyAnswers[q.id + '_reason'] || ''}</textarea>`;
