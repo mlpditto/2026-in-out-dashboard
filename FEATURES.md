@@ -1,6 +1,8 @@
-# 🚀 Features - MLP Time Attendance Dashboard (v3.31)
+# 🚀 Features - MLP Time Attendance Dashboard (v3.47)
 
-### 🌟 New in v3.31: Fairness 2.0 & Global Survey
+### 🌟 New in v3.47: Closing Shift & Survey UI Fix
+*   🕙 **Closing Shift (12:00 - 21:00):** Integrated throughout the system (Daily Shift, Survey Preferences, and Admin Analysis).
+*   📱 **Mobile Survey Optimization:** Forced horizontal layout for rating buttons (1-5) using CSS Grid, preventing vertical stacking on narrow screens.
 *   🛡️ **Fairness Score (Refined):** Added Hours Capping, GPS Weighting, and Anomaly Detection.
 *   📊 **Satisfaction Survey:** Full-cycle survey for staff shift preferences with Admin Analytics dash.
 
