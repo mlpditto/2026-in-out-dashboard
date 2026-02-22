@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.36</title>
+    <title>MLP Time Attendance v3.37</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -110,6 +110,7 @@
         input[type="date"],
         input[type="time"] {
             -webkit-appearance: none;
+            appearance: none;
             min-height: 24px;
         }
 
@@ -371,7 +372,7 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.36</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.37</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -596,21 +597,23 @@
                 </div>
             </div>
 
-            <!-- Satisfaction Survey Card -->
-            <div id="surveyPrompt" class="card shadow-sm border-0 mb-4"
-                style="background: linear-gradient(135deg, #ffbe94 0%, #ff8e71 100%); cursor: pointer;"
+            <!-- Satisfaction Survey Card (Compact) -->
+            <div id="surveyPrompt" class="card shadow-sm border-0 mb-3"
+                style="background: linear-gradient(135deg, #ffbe94 0%, #ff8e71 100%); cursor: pointer; border-radius: 12px;"
                 onclick="show('surveyPage')">
-                <div class="card-body p-3 text-white d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-white bg-opacity-25 p-3"
-                        style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-pencil-square h3 mb-0"></i>
+                <div class="card-body py-2 px-3 text-white d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-white bg-opacity-25"
+                        style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="bi bi-pencil-square h5 mb-0"></i>
                     </div>
-                    <div>
-                        <h6 class="fw-bold mb-1">📝 Satisfaction Survey</h6>
-                        <p class="small mb-0 opacity-75">ร่วมประเมินความพึงพอใจการจัดกะงาน เพื่อความยุติธรรมสำหรับทุกคน
-                        </p>
+                    <div style="flex-grow: 1;">
+                        <h6 class="mb-0"
+                            style="font-weight: 900; letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">📝
+                            Satisfaction Survey</h6>
+                        <p class="mb-0" style="font-size: 0.75rem; opacity: 0.9;">
+                            ประเมินกะงานเพื่อความยุติธรรมสำหรับทุกคน</p>
                     </div>
-                    <i class="bi bi-chevron-right ms-auto"></i>
+                    <i class="bi bi-chevron-right opacity-75"></i>
                 </div>
             </div>
 
@@ -1628,14 +1631,14 @@
         const surveyQuestions = [
             { id: 1, type: 'single', q: '1. คุณชอบกะงานประเภทใดมากที่สุด?', options: ['กะเช้า (08:00-16:00)', 'กะบ่าย (12:00-20:00)', 'กะดึก (16:00-00:00)', 'ไม่มี preference ชัดเจน'], hasOther: true },
             { id: 2, type: 'multiple', q: '2. คุณมีข้อจำกัดเกี่ยวกับเวลาเดินทางหรือไม่?', options: ['มีปัญหาการเดินทางในช่วงเช้ามืดหรือดึก', 'ต้องดูแลครอบครัวหรือภาระส่วนตัว', 'ไม่มีข้อจำกัดด้านการเดินทาง'], hasOther: true },
-            { id: 3, type: 'rating', q: '3. คุณพึงพอใจกับการหมุนเวียนกะปัจจุบันแค่ไหน?', subQ: 'เหตุผล:' },
+            { id: 3, type: 'rating', q: '3. คุณพึงพอใจกับการหมุนเวียนกะปัจจุบันแค่ไหน?', subQ: 'ระบุเหตุผลประกอบ (ถ้ามี):', labels: ['น้อยที่สุด', 'มากที่สุด'] },
             { id: 4, type: 'multiple', q: '4. คุณมีปัญหาสุขภาพที่เกี่ยวข้องกับกะงานหรือไม่?', options: ['ใช่ นอนไม่หลับ/รบกวนนาฬิกาชีวิต', 'ใช่ ความเครียดจากงานต่อเนื่อง', 'ไม่มีปัญหา'], hasOther: true },
             { id: 5, type: 'single', q: '5. คุณต้องการวันหยุดหรือพักเบรกในกะงานอย่างไร?', options: ['หยุด 2 วัน (สพ.-อา.)', 'หยุดหมุนเวียนตาม preference', 'ไม่มี preference แต่ขอพักเบรก 1 ชม.'], hasOther: true },
-            { id: 6, type: 'rating', q: '6. คุณคิดว่าการกระจายกะงานปัจจุบันยุติธรรมแค่ไหน?', subQ: 'เหตุผล:' },
+            { id: 6, type: 'rating', q: '6. คุณคิดว่าการกระจายกะงานปัจจุบันยุติธรรมแค่ไหน?', subQ: 'ระบุเหตุผลประกอบ (ถ้ามี):', labels: ['ไม่ยุติธรรมเลย', 'ยุติธรรมมาก'] },
             { id: 7, type: 'single', q: '7. ความพึงพอใจการทำงานร่วมกับ Extern (แบ่งเบาภาระ)?', options: ['ใช่ ชอบทำงานคู่เพื่อแลกเปลี่ยนความรู้', 'ไม่มี preference'], hasOther: true },
             { id: 8, type: 'open', q: '8. ข้อจำกัดอื่นๆ ที่อาจกระทบการจัดกะ (เช่น การเรียน/กิจกรรม)?' },
             { id: 9, type: 'open', q: '9. คุณมีข้อเสนอแนะเพื่อปรับปรุงระบบกะงานอย่างไร?' },
-            { id: 10, type: 'single', q: '10. คุณยินดีให้ความสำคัญ (weight) กับ preference ตนเองระดับใด?', options: ['สูงมาก (80/20)', 'ปานกลาง (50/50)', 'ต่ำ (เน้นสมดุลทีม)'], hasOther: true }
+            { id: 10, type: 'single', q: '10. ในการจัดตารางเวร คุณให้ความสำคัญกับ "ความต้องการส่วนตัว" (Preference) เมื่อเทียบกับ "ความสมดุลของทีม" ในสัดส่วนเท่าใด?', options: ['เน้นความต้องการส่วนตัวเป็นหลัก (สัดส่วน 80:20)', 'เน้นความเท่าเทียมและสลับกันรับผิดชอบ (สัดส่วน 50:50)', 'เน้นความสมดุลและความต้องการของทีมเป็นหลัก (สัดส่วน 20:80)'], hasOther: true }
         ];
         const surveyAnswers = {};
 
@@ -1666,17 +1669,23 @@
                 }
                 h += `</div>`;
             } else if (q.type === 'rating') {
-                h += `<div class="d-flex justify-content-between mb-4 gap-2">`;
+                h += `<div class="d-flex flex-column align-items-center mb-4">
+                        <div class="d-flex justify-content-between w-100 mb-2 px-1">
+                            <small class="text-muted">${q.labels[0]}</small>
+                            <small class="text-muted">${q.labels[1]}</small>
+                        </div>
+                        <div class="d-flex justify-content-between w-100 gap-2">`;
                 [1, 2, 3, 4, 5].forEach(num => {
                     const isSelected = surveyAnswers[q.id] === num;
                     h += `<div onclick="selectRating(${q.id}, ${num})" 
-                               style="width:50px; height:50px; cursor:pointer; background-color: ${isSelected ? '#ff8e71' : ''}"
+                               style="width:50px; height:50px; cursor:pointer; background-color: ${isSelected ? '#ff8e71' : ''}; flex: 1 0 auto;"
                                class="rounded-circle d-flex align-items-center justify-content-center fw-bold border-2 
                                ${isSelected ? 'text-white border-transparent shadow-sm' : 'bg-light text-muted border-transparent'}">
                             ${num}
                           </div>`;
                 });
-                h += `</div>
+                h += `  </div>
+                      </div>
                       <textarea class="form-control rounded-4 p-3 border-2" rows="3" placeholder="${q.subQ}"
                                 onchange="surveyAnswers['${q.id}_reason']=this.value">${surveyAnswers[q.id + '_reason'] || ''}</textarea>`;
             } else if (q.type === 'open') {
