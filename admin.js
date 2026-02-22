@@ -19,7 +19,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let calendarObj, editModal, barChart;
+let calendarObj, editModal, barChart, editAttendanceModalObj;
 let userProfileMap = {};
 window.allUserData = {};
 let usersByDeptModal;
@@ -589,9 +589,9 @@ window.changeMonth = (delta) => {
     renderCharts();
 };
 
-window.adjTime = (unit, delta) => {
-    const hhEl = document.getElementById('labelHH');
-    const mmEl = document.getElementById('labelMM');
+window.adjTime = (unit, delta, isEdit = false) => {
+    const hhEl = document.getElementById(isEdit ? 'editLabelHH' : 'labelHH');
+    const mmEl = document.getElementById(isEdit ? 'editLabelMM' : 'labelMM');
     if (!hhEl || !mmEl) return;
 
     let h = parseInt(hhEl.textContent);
@@ -699,6 +699,51 @@ window.submitManualEntry = async (e) => {
     }
 };
 
+window.openEditAttendance = (id) => {
+    const v = window.currentData.find(x => x.id === id);
+    if (!v) return;
+
+    if (!editAttendanceModalObj) {
+        editAttendanceModalObj = new bootstrap.Modal(document.getElementById('editAttendanceModal'));
+    }
+
+    document.getElementById('editAttendId').value = id;
+    document.getElementById('editAttendUserDisplay').innerText = v.name;
+
+    const typeDisplay = document.getElementById('editAttendTypeDisplay');
+    typeDisplay.innerText = v.type;
+    typeDisplay.className = `badge rounded-pill mt-1 ${v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger'}`;
+
+    const ts = v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp.seconds * 1000);
+    document.getElementById('editAttendDate').valueAsDate = ts;
+    document.getElementById('editLabelHH').textContent = String(ts.getHours()).padStart(2, '0');
+    document.getElementById('editLabelMM').textContent = String(ts.getMinutes()).padStart(2, '0');
+
+    editAttendanceModalObj.show();
+};
+
+window.submitEditAttendance = async () => {
+    const id = document.getElementById('editAttendId').value;
+    const dStr = document.getElementById('editAttendDate').value;
+    const hh = document.getElementById('editLabelHH').textContent;
+    const mm = document.getElementById('editLabelMM').textContent;
+
+    if (!id || !dStr) return;
+
+    const dt = new Date(`${dStr}T${hh}:${mm}`);
+
+    try {
+        await updateDoc(doc(db, "attendance", id), {
+            timestamp: dt
+        });
+        Toast.fire({ icon: 'success', title: 'แก้ไขเวลาเรียบร้อย' });
+        editAttendanceModalObj.hide();
+        loadData();
+    } catch (err) {
+        Swal.fire('Error', err.message, 'error');
+    }
+};
+
 window.changeDate = (offset) => {
     const d = document.getElementById('filterDate');
     if (!d || !d.value) return;
@@ -749,7 +794,9 @@ window.loadData = async () => {
         const isStillIn = (v.type === 'เข้างาน' && currentStatusMap[v.userId] === 'เข้างาน');
         const rowClass = isStillIn ? 'table-success shadow-sm' : '';
 
-        let actionBtns = `<button onclick="delAttendance('${v.id}')" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>`;
+        let actionBtns = `<button onclick="delAttendance('${v.id}')" class="btn btn-sm btn-outline-danger border-0" title="ลบข้อมูล"><i class="bi bi-trash"></i></button>`;
+        actionBtns = `<button onclick="openEditAttendance('${v.id}')" class="btn btn-sm btn-outline-primary border-0 me-1" title="แก้ไขเวลา"><i class="bi bi-pencil-square"></i></button>` + actionBtns;
+
         if (v.type === 'เข้างาน') {
             actionBtns = `<button onclick="openManualEntry('${v.userId}', '${v.name}', 'ออกงาน')" class="btn btn-sm btn-outline-warning me-1" title="ลงเวลาออกงาน"><i class="bi bi-box-arrow-right"></i></button>` + actionBtns;
         }
