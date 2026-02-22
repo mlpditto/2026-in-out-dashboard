@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLP Time Attendance</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>MLP Time Attendance v3.36</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -366,7 +369,10 @@
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div style="flex:1;">
-                    <h2 id="showName" class="text-truncate">User</h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <h2 id="showName" class="text-truncate">User</h2>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.36</span>
+                    </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
                 <img id="mainProfileImg" src="" class="profile-img" style="width: 55px; height: 55px; margin:0;">
@@ -405,7 +411,7 @@
                         style="background:none; border:none; font-size:1.5rem;">&times;</button>
                 </div>
                 <!-- MODERN FORM -->
-                <div id="leaveFormSection" class="p-3">
+                <div class="p-3">
                     <div class="mb-4">
                         <label
                             class="form-label small fw-bold text-muted mb-2 text-uppercase letter-spacing-1">ประเภทคำขอ
@@ -632,8 +638,11 @@
                 </div>
             </div>
 
-            <div class="text-center text-muted small mt-5 mb-2" style="opacity: 0.6;">
-                v3.32
+            <div class="text-center mt-5 mb-4">
+                <button onclick="location.reload(true)" class="btn btn-sm btn-outline-secondary border-0 opacity-50"
+                    style="font-size: 12px; width: auto; margin: 0 auto;">
+                    <i class="bi bi-arrow-clockwise"></i> Force Refresh
+                </button>
             </div>
         </div>
 
@@ -823,8 +832,8 @@
                 const profile = await liff.getProfile();
                 currentUser = {
                     lineUserId: profile.userId,
-                    pictureUrl: profile.pictureUrl,
-                    displayName: profile.displayName // LINE Display Name
+                    pictureUrl: profile.pictureUrl || "",
+                    displayName: profile.displayName || ""
                 };
                 window.log('สวัสดีคุณ ' + currentUser.displayName);
                 await checkUser();
@@ -849,7 +858,16 @@
 
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
-                    currentUser = { ...userData, ...currentUser };
+                    // Merge data but preserve existing values if new ones are undefined
+                    currentUser = {
+                        ...userData,
+                        lineUserId: currentUser.lineUserId,
+                        pictureUrl: currentUser.pictureUrl || userData.pictureUrl || "",
+                        displayName: currentUser.displayName || userData.displayName || "",
+                        name: userData.name || "",
+                        dept: userData.dept || "",
+                        empId: userData.empId || ""
+                    };
                     window.log('ยินดีต้อนรับกลับ ' + (userData.name || ''));
 
                     // Update profile info silently if changed
@@ -1008,8 +1026,8 @@
                 // Save user data with registration timestamp
                 await setDoc(doc(db, "users", currentUser.lineUserId), {
                     lineUserId: currentUser.lineUserId,
-                    pictureUrl: currentUser.pictureUrl,
-                    displayName: currentUser.displayName,
+                    pictureUrl: currentUser.pictureUrl || "",
+                    displayName: currentUser.displayName || "",
                     empId: empId,
                     name: fullName,
                     dept: department,
