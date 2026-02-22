@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.46</title>
+    <title>MLP Time Attendance v3.47</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -423,7 +423,7 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.46</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.47</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -1780,15 +1780,20 @@
                         <div class="text-center mb-3">
                              <div class="badge rounded-pill" style="background-color: #fcece8; color: #ff8e71; font-size: 0.85rem; padding: 6px 16px; border: 1px solid #ff8e71;">คะแนนที่เลือก: ${currentVal}</div>
                         </div>
-                        <div class="d-flex align-items-center gap-2 bg-light p-3 rounded-4 justify-content-between">
-                            <small class="text-muted fw-bold" style="font-size: 0.7rem; width: 60px; line-height: 1.2;">${q.labels[0]}</small>
-                            <div class="d-flex gap-1 justify-content-center flex-grow-1">`;
+                        <div class="bg-light p-3 rounded-4">
+                            <!-- Labels Row -->
+                            <div class="d-flex justify-content-between mb-2 px-1">
+                                <small class="text-muted fw-bold" style="font-size: 0.75rem;">${q.labels[0]}</small>
+                                <small class="text-muted fw-bold" style="font-size: 0.75rem;">${q.labels[1]}</small>
+                            </div>
+                            <!-- Buttons Grid (Forcing Horizontal) -->
+                            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;">`;
 
                 [1, 2, 3, 4, 5].forEach(num => {
                     const isActive = currentVal === num;
                     h += `<div onclick="selectRating(${q.id}, ${num})" 
                                class="d-flex align-items-center justify-content-center"
-                               style="width: 40px; height: 40px; cursor: pointer; border-radius: 10px; border: 2px solid ${isActive ? '#ff8e71' : '#e9ecef'}; 
+                               style="height: 45px; cursor: pointer; border-radius: 12px; border: 2px solid ${isActive ? '#ff8e71' : '#e9ecef'}; 
                                       background: ${isActive ? '#ff8e71' : 'white'}; color: ${isActive ? 'white' : '#636e72'}; 
                                       font-weight: 700; font-size: 1.1rem; transition: all 0.15s ease;">
                                ${num}
@@ -1796,11 +1801,10 @@
                 });
 
                 h += `      </div>
-                            <small class="text-muted text-end fw-bold" style="font-size: 0.7rem; width: 60px; line-height: 1.2;">${q.labels[1]}</small>
                         </div>
-                      </div>
-                      <textarea class="form-control rounded-4 p-3 border-2" rows="3" placeholder="${q.subQ}"
-                                onchange="surveyAnswers['${q.id}_reason']=this.value">${surveyAnswers[q.id + '_reason'] || ''}</textarea>`;
+                      </div>`;
+                h += `<textarea class="form-control rounded-4 p-3 border-2 mt-3" rows="3" placeholder="${q.subQ}"
+                                  onchange="surveyAnswers['${q.id}_reason']=this.value">${surveyAnswers[q.id + '_reason'] || ''}</textarea>`;
             } else if (q.type === 'open') {
                 h += `<textarea class="form-control rounded-4 p-3 border-2" rows="5" placeholder="คำตอบของคุณ..."
                                 onchange="surveyAnswers['${q.id}']=this.value">${surveyAnswers[q.id] || ''}</textarea>`;
