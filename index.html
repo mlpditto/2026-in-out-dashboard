@@ -632,38 +632,38 @@
                 </div>
             </div>
 
-            <!-- --- SURVEY PAGE --- -->
-            <div id="surveyPage" class="container hidden">
-                <div class="d-flex align-items-center gap-2 mb-4">
-                    <button class="btn btn-light rounded-circle p-2" onclick="showPage('mainPage')"
-                        style="width: 40px; height: 40px; border: 1px solid #ddd;">
-                        <i class="bi bi-chevron-left text-dark"></i>
-                    </button>
-                    <h4 class="mb-0">แบบสำรวจกะงาน</h4>
-                </div>
-
-                <div class="progress mb-4" style="height: 6px; border-radius: 10px; background-color: #fcece8;">
-                    <div id="surveyProgress" class="progress-bar" style="width: 10%; background-color: #ff8e71;"></div>
-                </div>
-
-                <form id="shiftSurveyForm" onsubmit="submitSurvey(event)">
-                    <!-- Questions will be injected here via JS -->
-                    <div id="surveyContent"></div>
-
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="button" id="prevQuestBtn" class="btn btn-outline flex-grow-1 hidden"
-                            onclick="changeQuestion(-1)" style="border-color: #ff8e71; color: #ff8e71;">กลับ</button>
-                        <button type="button" id="nextQuestBtn" class="btn flex-grow-1 text-white fw-bold"
-                            style="background-color: #ff8e71;" onclick="changeQuestion(1)">ถัดไป</button>
-                        <button type="submit" id="submitSurveyBtn"
-                            class="btn btn-success flex-grow-1 hidden">ส่งแบบสำรวจ</button>
-                    </div>
-                </form>
-            </div>
-
             <div class="text-center text-muted small mt-5 mb-2" style="opacity: 0.6;">
-                v3.31
+                v3.32
             </div>
+        </div>
+
+        <!-- --- SURVEY PAGE --- -->
+        <div id="surveyPage" class="hidden">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <button class="btn btn-light rounded-circle p-2" onclick="show('mainPage')"
+                    style="width: 40px; height: 40px; border: 1px solid #ddd;">
+                    <i class="bi bi-chevron-left text-dark"></i>
+                </button>
+                <h4 class="mb-0">แบบสำรวจกะงาน</h4>
+            </div>
+
+            <div class="progress mb-4" style="height: 6px; border-radius: 10px; background-color: #fcece8;">
+                <div id="surveyProgress" class="progress-bar" style="width: 10%; background-color: #ff8e71;"></div>
+            </div>
+
+            <form id="shiftSurveyForm" onsubmit="submitSurvey(event)">
+                <!-- Questions will be injected here via JS -->
+                <div id="surveyContent"></div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button" id="prevQuestBtn" class="btn btn-outline flex-grow-1 hidden"
+                        onclick="changeQuestion(-1)" style="border-color: #ff8e71; color: #ff8e71;">กลับ</button>
+                    <button type="button" id="nextQuestBtn" class="btn flex-grow-1 text-white fw-bold"
+                        style="background-color: #ff8e71;" onclick="changeQuestion(1)">ถัดไป</button>
+                    <button type="submit" id="submitSurveyBtn"
+                        class="btn btn-success flex-grow-1 hidden">ส่งแบบสำรวจ</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -895,10 +895,12 @@
 
 
         async function show(id, data) {
-            ['loadingPage', 'registerPage', 'pendingPage', 'mainPage'].forEach(p => {
+            ['loadingPage', 'registerPage', 'pendingPage', 'mainPage', 'surveyPage'].forEach(p => {
                 const el = document.getElementById(p);
-                el.classList.add('hidden'); // Ensure class is present
-                el.style.display = 'none';  // Double safety
+                if (el) {
+                    el.classList.add('hidden');
+                    el.style.display = 'none';
+                }
             });
 
             // Update department colors when showing main page
