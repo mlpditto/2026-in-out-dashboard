@@ -744,6 +744,57 @@
         </div>
     </div>
 
+    <!-- Edit Attendance Modal -->
+    <div class="modal fade" id="editAttendanceModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold">✏️ แก้ไขเวลาบันทึก</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editAttendId">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">พนักงาน</label>
+                        <div id="editAttendUserDisplay" class="fw-bold fs-5 text-primary"></div>
+                        <div id="editAttendTypeDisplay" class="badge rounded-pill mt-1"></div>
+                    </div>
+                    <div class="row g-2 mb-3 align-items-end">
+                        <div class="col-7">
+                            <label class="text-muted small">วันที่</label>
+                            <input type="date" id="editAttendDate" class="form-control" required>
+                        </div>
+                        <div class="col-5">
+                            <label class="text-muted small mb-2 d-block text-center">เวลา</label>
+                            <div class="time-stepper mx-auto">
+                                <div class="stepper-unit">
+                                    <button type="button" class="stepper-btn" onclick="adjTime('H', 1, true)"><i
+                                            class="bi bi-chevron-up"></i></button>
+                                    <span id="editLabelHH" class="stepper-val">08</span>
+                                    <button type="button" class="stepper-btn" onclick="adjTime('H', -1, true)"><i
+                                            class="bi bi-chevron-down"></i></button>
+                                </div>
+                                <span class="stepper-sep">:</span>
+                                <div class="stepper-unit">
+                                    <button type="button" class="stepper-btn" onclick="adjTime('M', 1, true)"><i
+                                            class="bi bi-chevron-up"></i></button>
+                                    <span id="editLabelMM" class="stepper-val">30</span>
+                                    <button type="button" class="stepper-btn" onclick="adjTime('M', -1, true)"><i
+                                            class="bi bi-chevron-down"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning py-2 mb-4" style="font-size: 0.75rem;">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> การแก้ไขเวลาจะส่งผลต่อการคำนวณชั่วโมงทำงาน
+                    </div>
+                    <button onclick="submitEditAttendance()"
+                        class="btn btn-primary w-100 py-2 fw-bold shadow-sm">บันทึกการแก้ไข</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="pendingUsersModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">

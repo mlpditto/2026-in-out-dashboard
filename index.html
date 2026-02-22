@@ -843,6 +843,8 @@
             window.log('กำลังตรวจสอบข้อมูลในระบบ...');
             try {
                 const userRef = doc(db, "users", currentUser.lineUserId);
+
+                // Get doc with default behavior (will try cache if offline)
                 const userDoc = await getDoc(userRef);
 
                 if (userDoc.exists()) {
@@ -850,7 +852,7 @@
                     currentUser = { ...userData, ...currentUser };
                     window.log('ยินดีต้อนรับกลับ ' + (userData.name || ''));
 
-                    // Update profile info silently if changed (both picture and name)
+                    // Update profile info silently if changed
                     const hasPicChanged = currentUser.pictureUrl && currentUser.pictureUrl !== userData.pictureUrl;
                     const hasNameChanged = currentUser.displayName && currentUser.displayName !== userData.displayName;
 
@@ -861,10 +863,6 @@
                         upd.lastProfileUpdate = serverTimestamp();
 
                         updateDoc(userRef, upd).catch(err => console.error("Silent sync error:", err));
-
-                        // Local update for immediate UI effect
-                        if (hasPicChanged) userData.pictureUrl = currentUser.pictureUrl;
-                        if (hasNameChanged) userData.displayName = currentUser.displayName;
                     }
 
                     if (userData.status === 'Pending') {
@@ -880,11 +878,16 @@
                 }
             } catch (e) {
                 window.log('DATABASE ERROR: ' + e.message);
+                const isOffline = e.message.includes('offline');
                 Swal.fire({
-                    icon: 'warning',
-                    title: 'การเชื่อมต่อขัดข้อง',
-                    text: 'ไม่สามารถดึงข้อมูลระบบได้: ' + e.message,
-                    confirmButtonText: 'ตกลง'
+                    icon: isOffline ? 'info' : 'warning',
+                    title: isOffline ? 'สัญญาณอินเทอร์เน็ตไม่เสถียร' : 'การเชื่อมต่อขัดข้อง',
+                    text: isOffline ? 'ระบบไม่สามารถติดต่อเซิร์ฟเวอร์ได้ในขณะนี้ กรุณาลองใหม่อีกครั้งเมือสัญญาณปกติ' : 'ไม่สามารถดึงข้อมูลระบบได้: ' + e.message,
+                    confirmButtonText: 'ลองใหม่อีกครั้ง',
+                    showCancelButton: true,
+                    cancelButtonText: 'ปิด'
+                }).then((result) => {
+                    if (result.isConfirmed) location.reload();
                 });
             }
         }
