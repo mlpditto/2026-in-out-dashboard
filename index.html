@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.44</title>
+    <title>MLP Time Attendance v3.46</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -423,7 +423,7 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.44</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.46</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -1735,7 +1735,7 @@
         // --- 📋 SATISFACTION SURVEY SYSTEM ---
         let currentQuestionIndex = 0;
         const surveyQuestions = [
-            { id: 1, type: 'single', q: '1. คุณชอบกะงานประเภทใดมากที่สุด?', options: ['กะเช้า (08:00-16:00)', 'กะบ่าย (12:00-20:00)', 'กะดึก (16:00-00:00)', 'ไม่มี preference ชัดเจน'], hasOther: true },
+            { id: 1, type: 'single', q: '1. คุณชอบกะงานประเภทใดมากที่สุด?', options: ['08:00 - 17:00', '09:00 - 18:00', '10:00 - 19:00', '11:00 - 20:00', '12:00 - 21:00 (กะปิดร้าน)', 'ไม่มี preference ชัดเจน'], hasOther: true },
             { id: 2, type: 'multiple', q: '2. คุณมีข้อจำกัดเกี่ยวกับเวลาเดินทางหรือไม่?', options: ['มีปัญหาการเดินทางในช่วงเช้ามืดหรือดึก', 'ต้องดูแลครอบครัวหรือภาระส่วนตัว', 'ไม่มีข้อจำกัดด้านการเดินทาง'], hasOther: true },
             { id: 3, type: 'rating', q: '3. คุณพึงพอใจกับการหมุนเวียนกะปัจจุบันแค่ไหน?', subQ: 'ระบุเหตุผลประกอบ (ถ้ามี):', labels: ['น้อยที่สุด', 'มากที่สุด'] },
             { id: 4, type: 'multiple', q: '4. คุณมีปัญหาสุขภาพที่เกี่ยวข้องกับกะงานหรือไม่?', options: ['ใช่ นอนไม่หลับ/รบกวนนาฬิกาชีวิต', 'ใช่ ความเครียดจากงานต่อเนื่อง', 'ไม่มีปัญหา'], hasOther: true },
@@ -1777,27 +1777,27 @@
             } else if (q.type === 'rating') {
                 const currentVal = surveyAnswers[q.id] || 3;
                 h += `<div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-                            <small class="text-muted" style="max-width: 70px; line-height: 1.1; font-size: 0.75rem;">${q.labels[0]}</small>
-                            <div class="d-flex gap-2">`;
+                        <div class="text-center mb-3">
+                             <div class="badge rounded-pill" style="background-color: #fcece8; color: #ff8e71; font-size: 0.85rem; padding: 6px 16px; border: 1px solid #ff8e71;">คะแนนที่เลือก: ${currentVal}</div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 bg-light p-3 rounded-4 justify-content-between">
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem; width: 60px; line-height: 1.2;">${q.labels[0]}</small>
+                            <div class="d-flex gap-1 justify-content-center flex-grow-1">`;
 
                 [1, 2, 3, 4, 5].forEach(num => {
                     const isActive = currentVal === num;
                     h += `<div onclick="selectRating(${q.id}, ${num})" 
-                               class="rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                               style="width: 46px; height: 46px; cursor: pointer; border: 2px solid ${isActive ? '#ff8e71' : '#f1f2f6'}; 
+                               class="d-flex align-items-center justify-content-center"
+                               style="width: 40px; height: 40px; cursor: pointer; border-radius: 10px; border: 2px solid ${isActive ? '#ff8e71' : '#e9ecef'}; 
                                       background: ${isActive ? '#ff8e71' : 'white'}; color: ${isActive ? 'white' : '#636e72'}; 
-                                      font-weight: 700; font-size: 1.2rem; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                                      font-weight: 700; font-size: 1.1rem; transition: all 0.15s ease;">
                                ${num}
                           </div>`;
                 });
 
                 h += `      </div>
-                            <small class="text-muted text-end" style="max-width: 70px; line-height: 1.1; font-size: 0.75rem;">${q.labels[1]}</small>
+                            <small class="text-muted text-end fw-bold" style="font-size: 0.7rem; width: 60px; line-height: 1.2;">${q.labels[1]}</small>
                         </div>
-                      </div>
-                      <div class="text-center mb-4">
-                        <span class="badge rounded-pill" style="background-color: #fcece8; color: #ff8e71; font-size: 0.85rem; padding: 6px 16px; border: 1px solid #ff8e71;">คะแนนที่เลือก: ${currentVal}</span>
                       </div>
                       <textarea class="form-control rounded-4 p-3 border-2" rows="3" placeholder="${q.subQ}"
                                 onchange="surveyAnswers['${q.id}_reason']=this.value">${surveyAnswers[q.id + '_reason'] || ''}</textarea>`;
