@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.42</title>
+    <title>MLP Time Attendance v3.44</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -423,7 +423,7 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.42</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.44</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -596,81 +596,104 @@
                 <!-- Collapsible Content -->
                 <div id="workingHoursContent" style="display: none;">
                     <div class="row g-2">
-                        <div class="col-12" id="totalHoursCard">
-                            <div class="card border-primary bg-light">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="card-title mb-1 text-primary fw-bold" id="hours1Title">
-                                                ชั่วโมงทำงานทั้งหมด</h6>
-                                            <small class="text-muted" id="hours1Desc">ตั้งแต่วันแรกที่สมัคร</small>
-                                        </div>
-                                        <div class="text-end">
-                                            <h3 class="mb-0 text-primary fw-bold" id="hours1Value">0.00</h3>
-                                            <small class="text-muted">ชั่วโมง</small>
+                        <!-- Total Hours -->
+                        <div class="col-6" id="totalHoursCard">
+                            <div class="card h-100 border-0 shadow-sm"
+                                style="border-radius: 12px; border-top: 3px solid #0d6efd !important;">
+                                <div class="card-body p-2 d-flex flex-column justify-content-center">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                                            style="width: 24px; height: 24px;">
+                                            <i class="bi bi-infinity text-primary" style="font-size: 0.75rem;"></i>
                                         </div>
                                     </div>
+                                    <h4 class="mb-0 fw-bold text-dark" id="hours1Value" style="font-size: 1.15rem;">0.00
+                                    </h4>
+                                    <div class="small fw-bold text-muted text-uppercase" id="hours1Title"
+                                        style="font-size: 0.6rem; letter-spacing: 0.3px;">ทั้งหมด</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12" id="monthlyHoursCard">
-                            <div class="card border-success bg-light">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="card-title mb-1 text-success fw-bold" id="hours2Title">
-                                                ชั่วโมงทำงานเดือนนี้</h6>
-                                            <small class="text-muted" id="hours2Desc">ตั้งแต่วันที่ 1
-                                                ถึงปัจจุบัน</small>
-                                        </div>
-                                        <div class="text-end">
-                                            <h3 class="mb-0 text-success fw-bold" id="hours2Value">0.00</h3>
-                                            <small class="text-muted">ชั่วโมง</small>
+                        <!-- Yearly Hours -->
+                        <div class="col-6" id="yearlyHoursCard">
+                            <div class="card h-100 border-0 shadow-sm"
+                                style="border-radius: 12px; border-top: 3px solid #0dcaf0 !important;">
+                                <div class="card-body p-2 d-flex flex-column justify-content-center">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center"
+                                            style="width: 24px; height: 24px;">
+                                            <i class="bi bi-calendar-check text-info" style="font-size: 0.75rem;"></i>
                                         </div>
                                     </div>
+                                    <h4 class="mb-0 fw-bold text-dark" id="hours3Value" style="font-size: 1.15rem;">0.00
+                                    </h4>
+                                    <div class="small fw-bold text-muted text-uppercase" id="hours3Title"
+                                        style="font-size: 0.6rem; letter-spacing: 0.3px;">ปีนี้</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12" id="yearlyHoursCard">
-                            <div class="card border-info bg-light">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="card-title mb-1 text-info fw-bold" id="hours3Title">
-                                                ชั่วโมงทำงานปีนี้
-                                            </h6>
-                                            <small class="text-muted" id="hours3Desc">ตั้งแต่วันที่ 1 มกราคม
-                                                ถึงปัจจุบัน</small>
-                                        </div>
-                                        <div class="text-end">
-                                            <h3 class="mb-0 text-info fw-bold" id="hours3Value">0.00</h3>
-                                            <small class="text-muted">ชั่วโมง</small>
+                        <!-- Monthly Hours -->
+                        <div class="col-6" id="monthlyHoursCard">
+                            <div class="card h-100 border-0 shadow-sm"
+                                style="border-radius: 12px; border-top: 3px solid #198754 !important;">
+                                <div class="card-body p-2 d-flex flex-column justify-content-center">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
+                                            style="width: 24px; height: 24px;">
+                                            <i class="bi bi-calendar-month text-success"
+                                                style="font-size: 0.75rem;"></i>
                                         </div>
                                     </div>
+                                    <h4 class="mb-0 fw-bold text-dark" id="hours2Value" style="font-size: 1.15rem;">0.00
+                                    </h4>
+                                    <div class="small fw-bold text-muted text-uppercase" id="hours2Title"
+                                        style="font-size: 0.6rem; letter-spacing: 0.3px;">เดือนนี้</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Leave Info / Metric 4 -->
+                        <div class="col-6">
+                            <div class="card h-100 border-0 shadow-sm"
+                                style="border-radius: 12px; border-top: 3px solid #ffc107 !important;">
+                                <div class="card-body p-2 d-flex flex-column justify-content-center"
+                                    onclick="toggleSection('leaveHistoryContent')" style="cursor: pointer;">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center"
+                                            style="width: 24px; height: 24px;">
+                                            <i class="bi bi-file-earmark-text text-warning"
+                                                style="font-size: 0.75rem;"></i>
+                                        </div>
+                                    </div>
+                                    <h4 class="mb-0 fw-bold text-dark" style="font-size: 1.15rem;">ดูประวัติ</h4>
+                                    <div class="small fw-bold text-muted text-uppercase"
+                                        style="font-size: 0.6rem; letter-spacing: 0.3px;">ข้อมูลการลา</div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- Satisfaction Survey Card (Premium Balanced) -->
+            <div id="surveyPrompt" class="mb-3"
+                style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #ff8e71; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
+                onclick="show('surveyPage')">
+                <div class="px-3 py-2 d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 36px; height: 36px; background: #fff5f2; color: #ff8e71; flex-shrink: 0;">
+                        <i class="bi bi-star-fill" style="font-size: 1.1rem;"></i>
+                    </div>
+                    <div style="flex-grow: 1; min-width: 0;">
+                        <div class="fw-bold text-dark text-truncate"
+                            style="font-size: 0.95rem; letter-spacing: -0.2px;">
+                            แบบสำรวจความพึงพอใจประจำกะ</div>
+                        <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
+                            ช่วยเราพัฒนาและปรับปรุงระบบให้ดียิ่งขึ้นครับ ✨</div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
                 </div>
             </div>
 
-            <!-- Satisfaction Survey Card (Ultra-Compact) -->
-            <div id="surveyPrompt" class="card shadow-sm border-0 mb-3"
-                style="background: linear-gradient(135deg, #ffbe94 0%, #ff8e71 100%); cursor: pointer; border-radius: 12px;"
-                onclick="show('surveyPage')">
-                <div class="card-body py-1 px-3 text-white d-flex align-items-center gap-2">
-                    <div class="rounded-circle bg-white bg-opacity-25"
-                        style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i class="bi bi-pencil-square mb-0" style="font-size: 0.9rem;"></i>
-                    </div>
-                    <div style="flex-grow: 1;">
-                        <h6 class="mb-0 text-truncate"
-                            style="font-weight: 900; letter-spacing: 0.5px; font-size: 0.85rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                            📝 Satisfaction Survey</h6>
-                    </div>
-                    <i class="bi bi-chevron-right opacity-75" style="font-size: 0.8rem;"></i>
-                </div>
-            </div>
+
 
             <!-- Schedule -->
             <div class="mt-4">
