@@ -4,10 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.38</title>
+    <title>MLP Time Attendance</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -62,56 +59,6 @@
         /* Components */
         .hidden {
             display: none !important;
-        }
-
-        .tiny-text {
-            font-size: 0.7rem !important;
-        }
-
-        .letter-spacing-1 {
-            letter-spacing: 1px;
-        }
-
-        .shift-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .shift-chip-compact {
-            transition: all 0.2s ease;
-            border-width: 1.5px !important;
-            padding: 8px 4px !important;
-            font-size: 0.8rem !important;
-            text-align: center;
-            width: 100%;
-        }
-
-        .shift-chip-compact.active {
-            transform: scale(1.02);
-            background-color: #198754 !important;
-            color: white !important;
-            border-color: #198754 !important;
-        }
-
-
-        .rounded-4 {
-            border-radius: 1rem !important;
-        }
-
-        .bg-light {
-            background-color: #f8f9fa !important;
-        }
-
-        .input-group-text {
-            border: none !important;
-        }
-
-        input[type="date"],
-        input[type="time"] {
-            -webkit-appearance: none;
-            appearance: none;
-            min-height: 24px;
         }
 
         .profile-section {
@@ -283,26 +230,6 @@
             margin-bottom: 20px;
         }
 
-        /* Custom Range Slider Styling */
-        .custom-range::-webkit-slider-runnable-track {
-            background: #fcece8 !important;
-            height: 10px !important;
-            border-radius: 10px;
-        }
-
-        .custom-range::-webkit-slider-thumb {
-            -webkit-appearance: none !important;
-            appearance: none !important;
-            width: 24px !important;
-            height: 24px !important;
-            background: #ff8e71 !important;
-            border-radius: 50% !important;
-            cursor: pointer;
-            margin-top: -7px !important;
-            border: 3px solid white !important;
-            box-shadow: 0 2px 8px rgba(255, 142, 113, 0.4) !important;
-        }
-
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
@@ -333,28 +260,27 @@
         <!-- Register -->
         <div id="registerPage" class="hidden text-center" style="padding-top: 20px;">
             <img src="https://via.placeholder.com/100" class="profile-img" id="regisProfileImg">
-            <h3>ลงทะเบียนพนักงาน</h3>
+            <h3 class="mb-3">ลงทะเบียนพนักงาน</h3>
             <p id="regisName" class="text-muted mb-4">ยินดีต้อนรับสมาชิกใหม่</p>
 
             <form onsubmit="handleRegister(event)" style="text-align: left;">
-                <label class="small text-muted fw-bold ms-1">เบอร์โทรศัพท์</label>
-                <input type="tel" id="userPhone" class="form-control" placeholder="08xxxxxxxx" pattern="[0-9]{9,10}"
-                    required>
+                <label class="small text-muted fw-bold ms-1">รหัสพนักงาน</label>
+                <input type="text" id="empId" class="form-control" placeholder="เช่น 66001" required>
 
                 <label class="small text-muted fw-bold ms-1">ชื่อ-นามสกุล (ภาษาไทย)</label>
-                <input type="text" id="fullName" class="form-control" placeholder="ไม่ต้องระบุคำนำหน้า (นาย/นาง/นางสาว)"
-                    required>
+                <input type="text" id="fullName" class="form-control" placeholder="นาย รักงาน ขยันยิ่ง" required>
 
                 <label class="small text-muted fw-bold ms-1">แผนก</label>
                 <input type="text" id="department" class="form-control" list="deptOptions"
                     placeholder="เลือกจากรายการหรือพิมพ์เพิ่ม" onchange="toggleInternshipFields()" required>
                 <datalist id="deptOptions">
-                    <option value="ทั่วไป (General)">
-                    <option value="💻 IT">
-                    <option value="🎓 Pharmacist Extern">
-                    <option value="🎓 Pharmacist Intern (ex)">
-                    <option value="💊 Pharmacy">
-                    <option value="💰 Sales">
+                    <option value="General">
+                    <option value="Pharmacy">
+                    <option value="IT">
+                    <option value="Admin">
+                    <option value="Sales">
+                    <option value="Pharmacist Extern">
+                    <option value="Pharmacist Intern (ex)">
                 </datalist>
 
                 <!-- Internship Period Fields (initially hidden) -->
@@ -390,10 +316,7 @@
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div style="flex:1;">
-                    <div class="d-flex align-items-center gap-2">
-                        <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.38</span>
-                    </div>
+                    <h2 id="showName" class="text-truncate">User</h2>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
                 <img id="mainProfileImg" src="" class="profile-img" style="width: 55px; height: 55px; margin:0;">
@@ -407,208 +330,103 @@
             </div>
 
             <div class="row g-2">
-                <button onclick="recordTime('เข้างาน')" class="btn btn-success hidden" id="btnCheckIn">
+                <button onclick="recordTime('เข้างาน')" class="btn btn-success" id="btnCheckIn">
                     <i class="bi bi-geo-alt-fill"></i> เข้างาน (Clock In)
                 </button>
-                <button onclick="recordTime('ออกงาน')" class="btn btn-danger hidden" id="btnCheckOut">
+                <button onclick="recordTime('ออกงาน')" class="btn btn-danger" id="btnCheckOut">
                     <i class="bi bi-box-arrow-right"></i> ออกงาน (Clock Out)
                 </button>
             </div>
 
-            <div id="clockInStatusMsg" class="text-center text-muted small mt-2 mb-3 hidden">
-                <i class="bi bi-info-circle"></i> คุณเพิ่งลงเวลาเข้างาน (ต้องทำงานอย่างน้อย 1 ชม.)
-            </div>
-
             <button onclick="toggleLeaveForm()" class="btn btn-warning py-3" style="font-size:1rem; opacity:0.9;">
-                <i class="bi bi-file-earmark-text"></i> แจ้งลา / แจ้งเวร / ตรวจสอบ
+                <i class="bi bi-file-earmark-text"></i> แจ้งลา / ตรวจสอบวันลา
             </button>
 
             <!-- Leave Form Modal-ish -->
             <div id="leaveFormSection" class="hidden"
                 style="background: white; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 5px 20px rgba(0,0,0,0.05); padding: 20px; margin-top: 15px; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; box-sizing: border-box;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>📝 ฟอร์ม</h3>
+                    <h3>📝 ฟอร์มใบลา</h3>
                     <button onclick="toggleLeaveForm()" class="btn-close"
                         style="background:none; border:none; font-size:1.5rem;">&times;</button>
                 </div>
-                <!-- MODERN FORM -->
-                <div class="p-3">
-                    <div class="mb-4">
-                        <label
-                            class="form-label small fw-bold text-muted mb-2 text-uppercase letter-spacing-1">ประเภทคำขอ
-                            / Request Type</label>
-                        <select id="leaveType"
-                            class="form-select border-0 bg-light rounded-4 py-3 shadow-sm font-weight-600"
-                            onchange="toggleTimeInputs()" style="height: 56px;">
-                            <option value="ลากิจ">📋 ลากิจ (Personal Leave)</option>
-                            <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
-                            <option value="ลาพักผ่อน">🌴 ลาพักผ่อน (Annual Leave)</option>
-                            <option value="ลาบวช">🙏 ลาบวช (Ordination Leave)</option>
-                            <option value="ลาคลอด">👶 ลาคลอด (Maternity Leave)</option>
-                            <option value="อื่น ๆ">🛑 อื่น ๆ (Others)</option>
-                            <option value="แจ้งเวลาปฏิบัติงาน">🕒 แจ้งเวลาปฏิบัติงาน (Work Schedule)</option>
-                        </select>
+
+                <label class="fw-bold mb-1 d-block">ประเภทการลา</label>
+                <select id="leaveType" class="form-control">
+                    <option value="ลาป่วย">🤒 ลาป่วย (Sick Leave)</option>
+                    <option value="ลากิจ">💼 ลากิจ (Business Leave)</option>
+                    <option value="ลาพักร้อน">🏖️ ลาพักร้อน (Vacation)</option>
+                </select>
+
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex:1;">
+                        <label class="fw-bold mb-1 d-block">ตั้งแต่วันที่</label>
+                        <input type="date" id="leaveStart" class="form-control">
                     </div>
-
-                    <!-- Date Range Section -->
-                    <div class="card border-0 rounded-4 bg-light shadow-none mb-3 overflow-hidden">
-                        <div class="card-body p-3">
-                            <label class="form-label small fw-bold text-muted mb-1 d-flex align-items-center">
-                                <i class="bi bi-calendar-event me-2 text-primary"></i> ช่วงวันปฏิบัติงาน / Date Range
-                            </label>
-                            <div class="small text-muted mb-3" style="font-size: 0.75rem; line-height: 1.2;">
-                                <i class="bi bi-patch-check"></i> ท่านสามารถเลือกแจ้งเวร "วันต่อวัน" หรือเลือก
-                                "เป็นช่วงวันที่" เพื่อส่งเวรครั้งเดียวทั้งสัปดาห์/เดือนได้เลยครับ
-                            </div>
-                            <div class="row g-2">
-                                <div class="col-6 text-center">
-                                    <div class="bg-white rounded-3 p-2 border">
-                                        <small class="text-muted d-block tiny-text mb-1">วันที่เริ่ม / From</small>
-                                        <input type="date" id="leaveStart"
-                                            class="form-control border-0 p-0 text-center fw-bold"
-                                            onchange="syncMinDate(); updateDaySummary();"
-                                            style="background: transparent;">
-                                    </div>
-                                </div>
-                                <div class="col-6 text-center">
-                                    <div class="bg-white rounded-3 p-2 border">
-                                        <small class="text-muted d-block tiny-text mb-1">ถึงวันที่ / To</small>
-                                        <input type="date" id="leaveEnd"
-                                            class="form-control border-0 p-0 text-center fw-bold"
-                                            onchange="updateDaySummary()" style="background: transparent;">
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="daySummary" class="text-center mt-2 small text-primary fw-bold hidden">
-                                <i class="bi bi-info-circle"></i> รวมทั้งสิ้น <span id="totalDays">0</span> วัน
-                            </div>
-                        </div>
+                    <div style="flex:1;">
+                        <label class="fw-bold mb-1 d-block">ถึงวันที่</label>
+                        <input type="date" id="leaveEnd" class="form-control">
                     </div>
-
-                    <!-- Work Shift Section (Visible only for Work Schedule) -->
-                    <div id="timeInputGroup"
-                        class="card border-0 rounded-4 bg-light shadow-none mb-3 overflow-hidden hidden"
-                        style="border-left: 4px solid #198754 !important;">
-                        <div class="card-body p-3">
-                            <label class="form-label small fw-bold text-muted mb-3 d-flex align-items-center">
-                                <i class="bi bi-clock me-2 text-success"></i> กะการทำงาน / Work Shift
-                            </label>
-
-                            <!-- Quick Shift Chips (Grid Layout) -->
-                            <div class="shift-grid mb-3">
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
-                                    onclick="setQuickShift('08:00','17:00', this)">08-17</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
-                                    onclick="setQuickShift('09:00','18:00', this)">09-18</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
-                                    onclick="setQuickShift('10:00','19:00', this)">10-19</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
-                                    onclick="setQuickShift('11:00','20:00', this)">11-20</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
-                                    onclick="setQuickShift('12:00','21:00', this)">12-21</button>
-                            </div>
-
-                            <div class="row g-2">
-                                <div class="col-6 text-center border-end">
-                                    <small class="text-muted d-block tiny-text mb-1">เริ่ม / In</small>
-                                    <input type="time" id="reqStartTime"
-                                        class="form-control border-0 bg-transparent text-center p-0 fw-bold"
-                                        value="10:00">
-                                </div>
-                                <div class="col-6 text-center">
-                                    <small class="text-muted d-block tiny-text mb-1">เลิกงาน / Out</small>
-                                    <input type="time" id="reqEndTime"
-                                        class="form-control border-0 bg-transparent text-center p-0 fw-bold"
-                                        value="19:00">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Reason & Link -->
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-muted mb-2">รายละเอียดเพิ่มเติม / Note</label>
-                        <textarea id="leaveReason" class="form-control border-0 bg-light rounded-4 p-3 mb-2" rows="3"
-                            placeholder="โปรดระบุรายละเอียดกะ หรือหมายเหตุเพิ่มเติม (ถ้ามี)..."></textarea>
-
-                        <label class="form-label small fw-bold text-muted mb-2 d-block">ลิงก์แนบรูปภาพ / Attachment
-                            Link</label>
-                        <div class="input-group">
-                            <span class="input-group-text border-0 bg-light rounded-start-4"><i
-                                    class="bi bi-link-45deg"></i></span>
-                            <input type="url" id="leaveLink" class="form-control border-0 bg-light rounded-end-4 py-2"
-                                placeholder="https://drive.google.com/...">
-                        </div>
-                    </div>
-
-                    <button onclick="submitLeaveRequest()"
-                        class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-lg mb-4" id="btnSubmitLeave">
-                        <i class="bi bi-send-fill me-2"></i> ส่งคำขอลงทะเบียน
-                    </button>
                 </div>
+
+                <label class="fw-bold mb-1 d-block">เหตุผล</label>
+                <textarea id="leaveReason" class="form-control" rows="3" placeholder="ระบุเหตุผล..."></textarea>
+
+                <button onclick="submitLeaveRequest()" class="btn btn-primary mt-2">ส่งใบลา</button>
+
+                <hr class="my-4">
+                <h4 class="mb-3">ประวัติการลาของคุณ</h4>
                 <ul id="myLeaveList" class="history-list" style="max-height: 200px; overflow-y: auto;"></ul>
             </div>
 
             <!-- Working Hours Summary -->
             <div class="mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-2"
-                    onclick="toggleSection('workingHoursContent')" style="cursor: pointer;">
-                    <h4 class="text-muted m-0"><i class="bi bi-clock-history"></i> สรุปชั่วโมงการทำงาน</h4>
-                    <i class="bi bi-chevron-down text-muted" id="icon-workingHoursContent"></i>
-                </div>
-                <!-- Collapsible Content -->
-                <div id="workingHoursContent" style="display: none;">
-                    <div class="row g-2">
-                        <div class="col-12" id="totalHoursCard">
-                            <div class="card border-primary bg-light">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="card-title mb-1 text-primary fw-bold" id="hours1Title">
-                                                ชั่วโมงทำงานทั้งหมด</h6>
-                                            <small class="text-muted" id="hours1Desc">ตั้งแต่วันแรกที่สมัคร</small>
-                                        </div>
-                                        <div class="text-end">
-                                            <h3 class="mb-0 text-primary fw-bold" id="hours1Value">0.00</h3>
-                                            <small class="text-muted">ชั่วโมง</small>
-                                        </div>
+                <h4 class="mb-3 text-muted"><i class="bi bi-clock-history"></i> สรุปชั่วโมงการทำงาน</h4>
+                <div id="workingHoursSummary" class="row g-2">
+                    <div class="col-12">
+                        <div class="card border-primary bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1 text-primary fw-bold" id="hours1Title">
+                                            ชั่วโมงทำงานทั้งหมด</h6>
+                                        <small class="text-muted" id="hours1Desc">ตั้งแต่วันแรกที่สมัคร</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-primary fw-bold" id="hours1Value">0.00</h3>
+                                        <small class="text-muted">ชั่วโมง</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12" id="monthlyHoursCard">
-                            <div class="card border-success bg-light">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="card-title mb-1 text-success fw-bold" id="hours2Title">
-                                                ชั่วโมงทำงานเดือนนี้</h6>
-                                            <small class="text-muted" id="hours2Desc">ตั้งแต่วันที่ 1
-                                                ถึงปัจจุบัน</small>
-                                        </div>
-                                        <div class="text-end">
-                                            <h3 class="mb-0 text-success fw-bold" id="hours2Value">0.00</h3>
-                                            <small class="text-muted">ชั่วโมง</small>
-                                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card border-success bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1 text-success fw-bold">ชั่วโมงทำงานเดือนนี้</h6>
+                                        <small class="text-muted">ตั้งแต่วันที่ 1 ถึงเมื่อวาน</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-success fw-bold" id="hours2Value">0.00</h3>
+                                        <small class="text-muted">ชั่วโมง</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12" id="yearlyHoursCard">
-                            <div class="card border-info bg-light">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="card-title mb-1 text-info fw-bold" id="hours3Title">
-                                                ชั่วโมงทำงานปีนี้
-                                            </h6>
-                                            <small class="text-muted" id="hours3Desc">ตั้งแต่วันที่ 1 มกราคม
-                                                ถึงปัจจุบัน</small>
-                                        </div>
-                                        <div class="text-end">
-                                            <h3 class="mb-0 text-info fw-bold" id="hours3Value">0.00</h3>
-                                            <small class="text-muted">ชั่วโมง</small>
-                                        </div>
+                    </div>
+                    <div class="col-12" id="yearlyHoursCard">
+                        <div class="card border-info bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1 text-info fw-bold">ชั่วโมงทำงานปีนี้</h6>
+                                        <small class="text-muted">ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-info fw-bold" id="hours3Value">0.00</h3>
+                                        <small class="text-muted">ชั่วโมง</small>
                                     </div>
                                 </div>
                             </div>
@@ -617,83 +435,16 @@
                 </div>
             </div>
 
-            <!-- Satisfaction Survey Card (Ultra-Compact) -->
-            <div id="surveyPrompt" class="card shadow-sm border-0 mb-3"
-                style="background: linear-gradient(135deg, #ffbe94 0%, #ff8e71 100%); cursor: pointer; border-radius: 12px;"
-                onclick="show('surveyPage')">
-                <div class="card-body py-1 px-3 text-white d-flex align-items-center gap-2">
-                    <div class="rounded-circle bg-white bg-opacity-25"
-                        style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i class="bi bi-pencil-square mb-0" style="font-size: 0.9rem;"></i>
-                    </div>
-                    <div style="flex-grow: 1;">
-                        <h6 class="mb-0 text-truncate"
-                            style="font-weight: 900; letter-spacing: 0.5px; font-size: 0.85rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                            📝 Satisfaction Survey</h6>
-                    </div>
-                    <i class="bi bi-chevron-right opacity-75" style="font-size: 0.8rem;"></i>
-                </div>
-            </div>
-
-            <!-- Schedule -->
+            <!-- Schedule & History -->
             <div class="mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-2"
-                    onclick="toggleSection('scheduleContent')" style="cursor: pointer;">
-                    <h4 class="text-muted m-0"><i class="bi bi-calendar-event"></i> ตารางเวรของฉัน</h4>
-                    <i class="bi bi-chevron-down text-muted" id="icon-scheduleContent"></i>
-                </div>
-                <div id="scheduleContent" style="display: none;">
-                    <div id="scheduleList">กำลังโหลด...</div>
-                </div>
+                <h4 class="mb-3 text-muted"><i class="bi bi-calendar-event"></i> ตารางเวรของฉัน</h4>
+                <div id="scheduleList">กำลังโหลด...</div>
             </div>
 
-            <!-- History -->
             <div class="mt-4 pb-4">
-                <div class="d-flex justify-content-between align-items-center mb-2"
-                    onclick="toggleSection('historyContent')" style="cursor: pointer;">
-                    <h4 class="text-muted m-0"><i class="bi bi-clock-history"></i> ประวัติวันนี้</h4>
-                    <i class="bi bi-chevron-down text-muted" id="icon-historyContent"></i>
-                </div>
-                <div id="historyContent" style="display: none;">
-                    <ul id="historyList" class="history-list"></ul>
-                </div>
+                <h4 class="mb-3 text-muted"><i class="bi bi-clock-history"></i> ประวัติวันนี้</h4>
+                <ul id="historyList" class="history-list"></ul>
             </div>
-
-            <div class="text-center mt-5 mb-4">
-                <button onclick="location.reload(true)" class="btn btn-sm btn-outline-secondary border-0 opacity-50"
-                    style="font-size: 12px; width: auto; margin: 0 auto;">
-                    <i class="bi bi-arrow-clockwise"></i> Force Refresh
-                </button>
-            </div>
-        </div>
-
-        <!-- --- SURVEY PAGE --- -->
-        <div id="surveyPage" class="hidden">
-            <div class="d-flex align-items-center gap-2 mb-4">
-                <button class="btn btn-light rounded-circle p-2" onclick="show('mainPage')"
-                    style="width: 40px; height: 40px; border: 1px solid #ddd;">
-                    <i class="bi bi-chevron-left text-dark"></i>
-                </button>
-                <h4 class="mb-0">แบบสำรวจกะงาน</h4>
-            </div>
-
-            <div class="progress mb-4" style="height: 6px; border-radius: 10px; background-color: #fcece8;">
-                <div id="surveyProgress" class="progress-bar" style="width: 10%; background-color: #ff8e71;"></div>
-            </div>
-
-            <form id="shiftSurveyForm" onsubmit="submitSurvey(event)">
-                <!-- Questions will be injected here via JS -->
-                <div id="surveyContent"></div>
-
-                <div class="d-flex gap-2 mt-4">
-                    <button type="button" id="prevQuestBtn" class="btn btn-outline flex-grow-1 hidden"
-                        onclick="changeQuestion(-1)" style="border-color: #ff8e71; color: #ff8e71;">กลับ</button>
-                    <button type="button" id="nextQuestBtn" class="btn flex-grow-1 text-white fw-bold"
-                        style="background-color: #ff8e71;" onclick="changeQuestion(1)">ถัดไป</button>
-                    <button type="submit" id="submitSurveyBtn"
-                        class="btn btn-success flex-grow-1 hidden">ส่งแบบสำรวจ</button>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -721,14 +472,14 @@
         });
     </script>
 
-
     <script type="module">
-        import { getDeptCategoryColor } from './colors.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
+        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- 🔴 CONFIG (Public) ---
+
+
+        // --- CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
             authDomain: "in-out-dashboard.firebaseapp.com",
@@ -746,97 +497,6 @@
 
         // MAIN
         async function main() {
-            // --- Preview Mode for Admin ---
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('preview') === 'true') {
-                window.log('📱 Preview Mode');
-                document.getElementById('loadingPage').classList.add('hidden');
-                document.getElementById('mainPage').classList.remove('hidden');
-
-                // Try to get real user data from admin parent window
-                let realUser = null;
-                try {
-                    const parentData = window.parent?.allUserData;
-                    if (parentData) {
-                        const users = Object.values(parentData).filter(u => u.status === 'Approved');
-                        if (users.length > 0) {
-                            // Pick a random approved user for preview
-                            realUser = users[Math.floor(Math.random() * users.length)];
-                        }
-                    }
-                } catch (e) { }
-
-                if (realUser) {
-                    document.getElementById('showName').textContent = realUser.name || 'ไม่ทราบชื่อ';
-                    document.getElementById('showEmpId').textContent = `${realUser.empId || '—'} | ${realUser.dept || 'General'}`;
-                    document.getElementById('mainProfileImg').src = realUser.pictureUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
-                } else {
-                    document.getElementById('showName').textContent = 'สมชาย ตัวอย่าง';
-                    document.getElementById('showEmpId').textContent = 'EMP-66001 | General';
-                    document.getElementById('mainProfileImg').src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
-                }
-
-                // Clock
-                function updatePreviewClock() {
-                    const now = new Date();
-                    const el = document.getElementById('clock');
-                    if (el) el.textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-                    const dateEl = document.getElementById('currentDate');
-                    if (dateEl) dateEl.textContent = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                }
-                updatePreviewClock();
-                setInterval(updatePreviewClock, 1000);
-
-                // Shift
-                const shiftEl = document.getElementById('shiftStatus');
-                if (shiftEl) shiftEl.innerHTML = '☀️ กะเช้า (08:00 - 17:00)';
-
-                // Hours
-                const h1 = document.getElementById('hours1Value');
-                const h2 = document.getElementById('hours2Value');
-                const h3 = document.getElementById('hours3Value');
-                if (h1) h1.textContent = '1,250.50';
-                if (h2) h2.textContent = '82.71';
-                if (h3) h3.textContent = '310.25';
-
-                // Schedule mock
-                const schedEl = document.getElementById('scheduleList');
-                if (schedEl) {
-                    const today = new Date();
-                    const mockSchedule = [];
-                    for (let i = 0; i < 5; i++) {
-                        const d = new Date(today);
-                        d.setDate(d.getDate() + i);
-                        const dayStr = d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
-                        const shifts = ['☀️ เช้า (08:00-17:00)', '☀️ เช้า (09:00-18:00)', '🚫 หยุด (Day Off)', '🕛 เที่ยง (11:00-20:00)', '☀️ เช้า (08:00-17:00)'];
-                        const colors = ['#e8f5e9', '#e8f5e9', '#fff3e0', '#e3f2fd', '#e8f5e9'];
-                        mockSchedule.push(`<div style="padding:10px 14px;background:${colors[i]};border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-weight:600;font-size:13px;">${dayStr}</span>
-                            <span style="font-size:12px;opacity:0.8;">${shifts[i]}</span>
-                        </div>`);
-                    }
-                    schedEl.innerHTML = mockSchedule.join('');
-                }
-
-                // History mock
-                const histEl = document.getElementById('historyList');
-                if (histEl) {
-                    histEl.innerHTML = `
-                        <li class="history-item" style="padding:10px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;">
-                            <div><span style="font-weight:600;">🟢 เข้างาน</span><br><small style="color:#888;">08:31 น.</small></div>
-                            <small style="color:#888;">วันนี้</small>
-                        </li>`;
-                }
-
-                // Disable actual buttons in preview
-                const btnIn = document.getElementById('btnCheckIn');
-                const btnOut = document.getElementById('btnCheckOut');
-                if (btnIn) { btnIn.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
-                if (btnOut) { btnOut.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
-
-                return; // Skip LIFF init
-            }
-
             window.log('กำลังตรวจสอบสถานะ LIFF...');
             try {
                 // Initialize LIFF
@@ -853,8 +513,8 @@
                 const profile = await liff.getProfile();
                 currentUser = {
                     lineUserId: profile.userId,
-                    pictureUrl: profile.pictureUrl || "",
-                    displayName: profile.displayName || ""
+                    pictureUrl: profile.pictureUrl,
+                    displayName: profile.displayName
                 };
                 window.log('สวัสดีคุณ ' + currentUser.displayName);
                 await checkUser();
@@ -873,35 +533,20 @@
             window.log('กำลังตรวจสอบข้อมูลในระบบ...');
             try {
                 const userRef = doc(db, "users", currentUser.lineUserId);
-
-                // Get doc with default behavior (will try cache if offline)
                 const userDoc = await getDoc(userRef);
 
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
-                    // Merge data but preserve existing values if new ones are undefined
-                    currentUser = {
-                        ...userData,
-                        lineUserId: currentUser.lineUserId,
-                        pictureUrl: currentUser.pictureUrl || userData.pictureUrl || "",
-                        displayName: currentUser.displayName || userData.displayName || "",
-                        name: userData.name || "",
-                        dept: userData.dept || "",
-                        empId: userData.empId || ""
-                    };
+                    currentUser = { ...userData, ...currentUser };
                     window.log('ยินดีต้อนรับกลับ ' + (userData.name || ''));
 
                     // Update profile info silently if changed
-                    const hasPicChanged = currentUser.pictureUrl && currentUser.pictureUrl !== userData.pictureUrl;
-                    const hasNameChanged = currentUser.displayName && currentUser.displayName !== userData.displayName;
-
-                    if (hasPicChanged || hasNameChanged) {
-                        const upd = {};
-                        if (hasPicChanged) upd.pictureUrl = currentUser.pictureUrl;
-                        if (hasNameChanged) upd.displayName = currentUser.displayName;
-                        upd.lastProfileUpdate = serverTimestamp();
-
-                        updateDoc(userRef, upd).catch(err => console.error("Silent sync error:", err));
+                    if (currentUser.pictureUrl && currentUser.pictureUrl !== userData.pictureUrl) {
+                        updateDoc(userRef, {
+                            pictureUrl: currentUser.pictureUrl,
+                            displayName: currentUser.displayName,
+                            lastProfileUpdate: serverTimestamp()
+                        }).catch(err => console.error("Silent sync error:", err));
                     }
 
                     if (userData.status === 'Pending') {
@@ -917,16 +562,11 @@
                 }
             } catch (e) {
                 window.log('DATABASE ERROR: ' + e.message);
-                const isOffline = e.message.includes('offline');
                 Swal.fire({
-                    icon: isOffline ? 'info' : 'warning',
-                    title: isOffline ? 'สัญญาณอินเทอร์เน็ตไม่เสถียร' : 'การเชื่อมต่อขัดข้อง',
-                    text: isOffline ? 'ระบบไม่สามารถติดต่อเซิร์ฟเวอร์ได้ในขณะนี้ กรุณาลองใหม่อีกครั้งเมือสัญญาณปกติ' : 'ไม่สามารถดึงข้อมูลระบบได้: ' + e.message,
-                    confirmButtonText: 'ลองใหม่อีกครั้ง',
-                    showCancelButton: true,
-                    cancelButtonText: 'ปิด'
-                }).then((result) => {
-                    if (result.isConfirmed) location.reload();
+                    icon: 'warning',
+                    title: 'การเชื่อมต่อขัดข้อง',
+                    text: 'ไม่สามารถดึงข้อมูลระบบได้: ' + e.message,
+                    confirmButtonText: 'ตกลง'
                 });
             }
         }
@@ -934,12 +574,10 @@
 
 
         async function show(id, data) {
-            ['loadingPage', 'registerPage', 'pendingPage', 'mainPage', 'surveyPage'].forEach(p => {
+            ['loadingPage', 'registerPage', 'pendingPage', 'mainPage'].forEach(p => {
                 const el = document.getElementById(p);
-                if (el) {
-                    el.classList.add('hidden');
-                    el.style.display = 'none';
-                }
+                el.classList.add('hidden'); // Ensure class is present
+                el.style.display = 'none';  // Double safety
             });
 
             // Update department colors when showing main page
@@ -958,36 +596,14 @@
                 document.getElementById('pendingImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
                 document.getElementById('pendingName').innerText = data.name;
             } else if (id === 'mainPage') {
-                const displayName = currentUser.name || currentUser.displayName || 'ผู้ใช้งาน';
-                const empId = currentUser.empId || 'N/A';
-                const dept = currentUser.dept || 'ทั่วไป';
-
-                const nameEl = document.getElementById('showName');
-                const empEl = document.getElementById('showEmpId');
-                if (nameEl) nameEl.innerText = displayName;
-                if (empEl) empEl.innerText = `${empId} | ${dept}`;
-
-                // Fallback for profile picture
-                const profileImg = document.getElementById('mainProfileImg');
-                const finalPic = currentUser.pictureUrl || `https://via.placeholder.com/60`;
-
-                if (profileImg) {
-                    profileImg.src = finalPic + (finalPic.includes('?') ? '&' : '?') + `v=${Date.now()}`;
-                    profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
-                }
-
-                const updateClock = () => {
+                document.getElementById('showName').innerText = currentUser.name;
+                document.getElementById('showEmpId').innerText = `${currentUser.empId} | ${currentUser.dept}`;
+                document.getElementById('mainProfileImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
+                setInterval(() => {
                     const now = new Date();
-                    const clockEl = document.getElementById('clock');
-                    const dateEl = document.getElementById('currentDate');
-                    if (clockEl) clockEl.innerText = now.toLocaleTimeString('th-TH', { hour12: false });
-                    if (dateEl) dateEl.innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                };
-                updateClock(); // Run immediately
-                // Clear any existing interval to prevent duplicates if show is called multiple times
-                if (window.clockInterval) clearInterval(window.clockInterval);
-                window.clockInterval = setInterval(updateClock, 1000);
-
+                    document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', { hour12: false });
+                    document.getElementById('currentDate').innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                }, 1000);
                 loadHistory();
                 loadSchedule();
                 loadWorkingHours();
@@ -1004,25 +620,11 @@
             }
         };
 
-        window.toggleSection = (id) => {
-            const el = document.getElementById(id);
-            const icon = document.getElementById('icon-' + id);
-            if (!el) return;
-
-            if (el.style.display === 'none') {
-                el.style.display = 'block';
-                if (icon) icon.className = 'bi bi-chevron-up text-muted';
-            } else {
-                el.style.display = 'none';
-                if (icon) icon.className = 'bi bi-chevron-down text-muted';
-            }
-        };
-
         // --- 🟢 REGISTRATION ---
         window.handleRegister = async (event) => {
             event.preventDefault();
 
-            const empId = document.getElementById('userPhone').value;
+            const empId = document.getElementById('empId').value;
             const fullName = document.getElementById('fullName').value;
             const department = document.getElementById('department').value;
 
@@ -1047,8 +649,8 @@
                 // Save user data with registration timestamp
                 await setDoc(doc(db, "users", currentUser.lineUserId), {
                     lineUserId: currentUser.lineUserId,
-                    pictureUrl: currentUser.pictureUrl || "",
-                    displayName: currentUser.displayName || "",
+                    pictureUrl: currentUser.pictureUrl,
+                    displayName: currentUser.displayName,
                     empId: empId,
                     name: fullName,
                     dept: department,
@@ -1107,79 +709,16 @@
             async function save(type, lat, lng, isAuto = false) {
                 try {
                     btn.innerHTML = '💾 บันทึก...';
-
-                    let lateReason = "";
-                    let isLate = false;
-                    let delayMin = 0;
-
-                    // 🕒 LATE DETECTION LOGIC (Only for Clock-In)
-                    if (type === 'เข้างาน' && !isAuto) {
-                        const todayStr = new Date().toLocaleDateString('sv');
-                        const schedSnap = await getDocs(query(collection(db, "schedules"),
-                            where("userId", "==", currentUser.lineUserId),
-                            where("date", "==", todayStr)));
-
-                        if (!schedSnap.empty) {
-                            const schedData = schedSnap.docs[0].data();
-                            const shiftDetail = schedData.shiftDetail || "";
-                            // Match HH:mm from shiftDetail (e.g., ⏰ 10:00 - 19:00)
-                            const timeMatch = shiftDetail.match(/(\d{1,2}):(\d{2})/);
-
-                            if (timeMatch) {
-                                const schedHour = parseInt(timeMatch[1]);
-                                const schedMin = parseInt(timeMatch[2]);
-
-                                const now = new Date();
-                                const schedTime = new Date(now);
-                                schedTime.setHours(schedHour, schedMin, 0, 0);
-
-                                // Grace period: 5 minutes
-                                if (now > new Date(schedTime.getTime() + 5 * 60000)) {
-                                    isLate = true;
-                                    delayMin = Math.round((now - schedTime) / 60000);
-
-                                    const { value: reason } = await Swal.fire({
-                                        title: 'คุณมาสายกว่ากำหนด',
-                                        text: `ตารางงานเริ่ม ${timeMatch[0]} น. (สาย ${delayMin} นาที)`,
-                                        input: 'textarea',
-                                        inputLabel: 'กรุณาระบุเหตุผลที่มาสาย',
-                                        inputPlaceholder: 'ติดฝน / รถติด / ธุระส่วนตัว...',
-                                        icon: 'warning',
-                                        allowOutsideClick: false,
-                                        inputValidator: (value) => {
-                                            if (!value) return 'จำเป็นต้องระบุเหตุผลครับ'
-                                        }
-                                    });
-                                    lateReason = reason || "ไม่ได้ระบุเหตุผล";
-                                }
-                            }
-                        }
-                    }
-
                     await addDoc(collection(db, "attendance"), {
                         userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
                         type: type, timestamp: serverTimestamp(),
-                        location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`, userAgent: navigator.userAgent,
-                        isLate: isLate,
-                        lateReason: lateReason,
-                        delayMin: delayMin
+                        location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`, userAgent: navigator.userAgent
                     });
 
                     if (liff.isInClient()) {
                         liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}` }]).catch(e => console.error(e));
                     }
-                    if (!isAuto) {
-                        if (type === 'ออกงาน') {
-                            Swal.fire({
-                                title: 'เลิกงานแล้ว!',
-                                html: '<div class="mb-2">พักผ่อนให้เต็มที่นะครับ</div><div style="font-size:1.8rem; font-weight:bold; color:#ff6b6b;">또 만나요</div><div class="text-muted small mt-1">(แล้วเจอกันใหม่ครับ)</div>',
-                                icon: 'success',
-                                confirmButtonText: 'ปิด'
-                            });
-                        } else {
-                            Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
-                        }
-                    }
+                    if (!isAuto) Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
                     loadHistory(); // Reload to toggle buttons
                     loadWorkingHours(); // Reload working hours
                 } catch (e) { Swal.fire('Error', e.message, 'error'); }
@@ -1188,17 +727,7 @@
         };
 
         async function loadHistory() {
-            const now = new Date();
-            const todayStr = now.toLocaleDateString('sv');
             const start = new Date(); start.setHours(0, 0, 0, 0);
-
-            // 1. Check for schedule today (Option 2: Hard Block)
-            const schedQuery = query(collection(db, "schedules"),
-                where("userId", "==", currentUser.lineUserId),
-                where("date", "==", todayStr));
-            const schedSnap = await getDocs(schedQuery);
-            const hasSchedule = !schedSnap.empty;
-
             const q = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", start), orderBy("timestamp"));
             const snap = await getDocs(q);
 
@@ -1206,58 +735,25 @@
             const logs = snap.docs.map(d => d.data());
             const btnIn = document.getElementById('btnCheckIn');
             const btnOut = document.getElementById('btnCheckOut');
-            const statusMsg = document.getElementById('clockInStatusMsg');
 
-            if (!hasSchedule) {
-                // BLOCK CLOCKING IF NO SCHEDULE
-                btnIn.classList.add('hidden');
-                btnOut.classList.add('hidden');
-                if (statusMsg) {
-                    statusMsg.classList.remove('hidden');
-                    statusMsg.innerHTML = `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 text-start mb-1">
-                        <div class="fw-bold text-warning-emphasis mb-1"><i class="bi bi-exclamation-triangle-fill"></i> ยังไม่ได้แจ้งเวรของวันนี้</div>
-                        <div class="small text-muted mb-2">กรุณาแจ้งเวลาปฏิบัติงานก่อนเริ่มลงเวลาครับ</div>
-                        <button onclick="toggleLeaveForm(); document.getElementById('leaveType').value='แจ้งเวลาปฏิบัติงาน'; toggleTimeInputs();" 
-                                class="btn btn-warning btn-sm w-100 py-2 fw-bold" style="font-size:0.85rem; border-radius:8px;">
-                            <i class="bi bi-calendar-plus"></i> แจ้งเวลาทำงาน (อนุมัติทันที)
-                        </button>
-                    </div>`;
+            let lastType = null;
+            if (logs.length > 0) lastType = logs[logs.length - 1].type;
+
+            if (lastType === 'เข้างาน') {
+                btnIn.classList.add('hidden'); // Hide In
+                btnOut.classList.remove('hidden'); // Show Out
+
+                // 🔴 AUTO CHECKOUT LOGIC (23:00 Rule)
+                const now = new Date();
+                if (now.getHours() >= 23) {
+                    await performAutoCheckout();
+                    return; // Stop here, reload will happen inside
                 }
+
             } else {
-                // PROCEED WITH NORMAL IN/OUT LOGIC
-                let lastType = null;
-                let lastTimestamp = null;
-                if (logs.length > 0) {
-                    const lastLog = logs[logs.length - 1];
-                    lastType = lastLog.type;
-                    lastTimestamp = lastLog.timestamp ? lastLog.timestamp.toDate() : new Date();
-                }
-
-                if (lastType === 'เข้างาน') {
-                    btnIn.classList.add('hidden');
-                    const diffMs = now - lastTimestamp;
-                    const diffHours = diffMs / (1000 * 60 * 60);
-
-                    if (diffHours >= 1) {
-                        btnOut.classList.remove('hidden');
-                        if (statusMsg) statusMsg.classList.add('hidden');
-                    } else {
-                        btnOut.classList.add('hidden');
-                        if (statusMsg) {
-                            statusMsg.classList.remove('hidden');
-                            statusMsg.innerHTML = `<i class="bi bi-hourglass-split"></i> คุณเพิ่งลงเวลา ${lastTimestamp.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} (รอ 1 ชม. เพื่อออกงาน)`;
-                        }
-                    }
-
-                    if (now.getHours() >= 23) {
-                        await performAutoCheckout();
-                        return;
-                    }
-                } else {
-                    btnIn.classList.remove('hidden');
-                    btnOut.classList.add('hidden');
-                    if (statusMsg) statusMsg.classList.add('hidden');
-                }
+                // No logs OR Last was 'ออกงาน' -> Show In, Hide Out
+                btnIn.classList.remove('hidden');
+                btnOut.classList.add('hidden');
             }
 
             // Render List
@@ -1311,47 +807,27 @@
             // ... (rest same) ...
             // โหลดตารางเวร (logic เดิม + UI ใหม่)
             const today = new Date().toISOString().split('T')[0];
-            const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today));
+            const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today), orderBy("date"));
             const snap = await getDocs(q);
             const div = document.getElementById('scheduleList');
-            const statusEl = document.getElementById('shiftStatus');
-
-            if (snap.empty) {
-                div.innerHTML = "<p class='text-muted text-center small'>ไม่มีตารางเร็วๆ นี้</p>";
-                if (statusEl) {
-                    statusEl.innerText = "ไม่ได้ระบุเวร";
-                    statusEl.className = "badge rounded-pill bg-light text-muted border px-3 py-1";
-                }
-                return;
-            }
-
-            const docs = snap.docs.map(doc => doc.data()).sort((a, b) => a.date.localeCompare(b.date));
+            if (snap.empty) { div.innerHTML = "<p class='text-muted text-center small'>ไม่มีตารางเร็วๆ นี้</p>"; return; }
             div.innerHTML = "";
-            docs.forEach(v => {
+            snap.forEach(d => {
+                const v = d.data();
                 const dThai = new Date(v.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
                 let badgeClass = "bg-primary-subtle text-primary";
                 if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) badgeClass = "bg-danger-subtle text-danger";
                 else if (v.shiftDetail.includes('ดึก')) badgeClass = "bg-dark-subtle text-dark";
 
-                // Clean emojis to prevent duplicates like 🤒🛑
-                const cleanDetail = v.shiftDetail.replace(/🤒|🌴|📋|👶|🙏|🛑|🚫|🏖️|💼|⏰|☀️|🕛|🕙|⚙️/g, '').trim();
-                let emoji = '';
-                const lLower = v.shiftDetail.toLowerCase();
-                if (lLower.includes('ป่วย')) emoji = '🤒';
-                else if (lLower.includes('พัก')) emoji = '🌴';
-                else if (lLower.includes('กิจ')) emoji = '📋';
-                else if (lLower.includes('หยุด')) emoji = '🛑';
-
-                const displayDetail = emoji ? `${emoji} ${cleanDetail}` : v.shiftDetail;
-
                 div.innerHTML += `<div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-white rounded border border-light shadow-sm">
                     <div class="fw-bold text-secondary"><i class="bi bi-calendar-day me-2"></i>${dThai}</div>
-                    <span class="badge ${badgeClass} border">${displayDetail}</span>
+                    <span class="badge ${badgeClass} border">${v.shiftDetail}</span>
                 </div>`;
             });
 
             // Update Shift Status Badge current day
             const todaySched = snap.docs.find(d => d.data().date === today);
+            const statusEl = document.getElementById('shiftStatus');
             if (todaySched) {
                 statusEl.innerText = todaySched.data().shiftDetail;
                 statusEl.className = "badge rounded-pill px-3 py-1 border " + (todaySched.data().shiftDetail.includes('หยุด') ? "bg-danger text-white" : "bg-success text-white");
@@ -1367,196 +843,109 @@
             if (!el.classList.contains('hidden')) loadMyLeaves();
         }
 
-        window.toggleTimeInputs = () => {
-            const type = document.getElementById('leaveType').value;
-            const group = document.getElementById('timeInputGroup');
-            if (type === 'แจ้งเวลาปฏิบัติงาน') group.classList.remove('hidden'); else group.classList.add('hidden');
-        };
-
-        window.setQuickShift = (start, end, btn) => {
-            document.getElementById('reqStartTime').value = start;
-            document.getElementById('reqEndTime').value = end;
-
-            // UI feedback for chips
-            document.querySelectorAll('.shift-chip-compact').forEach(c => {
-                c.classList.remove('active', 'btn-success');
-                c.classList.add('btn-outline-success');
-            });
-
-            btn.classList.remove('btn-outline-success');
-            btn.classList.add('btn-success', 'active');
-        };
-
-        window.syncMinDate = () => {
-            const start = document.getElementById('leaveStart').value;
-            const endInput = document.getElementById('leaveEnd');
-            endInput.min = start;
-            if (endInput.value && endInput.value < start) endInput.value = start;
-        };
-
-        window.updateDaySummary = () => {
-            const startStr = document.getElementById('leaveStart').value;
-            const endStr = document.getElementById('leaveEnd').value;
-            const summaryDiv = document.getElementById('daySummary');
-
-            if (startStr && endStr) {
-                const s = new Date(startStr);
-                const e = new Date(endStr);
-                const diffTime = Math.abs(e - s);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-                if (diffDays > 0) {
-                    document.getElementById('totalDays').innerText = diffDays;
-                    summaryDiv.classList.remove('hidden');
-                } else summaryDiv.classList.add('hidden');
-            } else summaryDiv.classList.add('hidden');
-        };
-
         window.submitLeaveRequest = async () => {
+            // ... logic เดิม ...
+            // (Copy logic from previous step but update UI calls if needed, skipping for brevity but assuming implemented in real flow, strict mode: include it)
             const type = document.getElementById('leaveType').value;
             const start = document.getElementById('leaveStart').value;
             const end = document.getElementById('leaveEnd').value;
             const reason = document.getElementById('leaveReason').value;
-            const attachLink = document.getElementById('leaveLink').value;
-
-            const startTime = document.getElementById('reqStartTime').value;
-            const endTime = document.getElementById('reqEndTime').value;
-
-            if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันเริ่มและวันสิ้นสุดให้ครบถ้วน', 'warning');
+            if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันให้ครบถ้วน', 'warning');
             if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
 
-            let finalReason = reason || "";
-            const isWorkSchedule = (type === 'แจ้งเวลาปฏิบัติงาน');
-            if (isWorkSchedule) {
-                if (!startTime || !endTime) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุเวลาเริ่มและสิ้นสุดงาน', 'warning');
-                if (startTime >= endTime) return Swal.fire('ข้อมูลผิดพลาด', 'เวลาเริ่มงานต้องมาก่อนเวลาเลิกงาน', 'warning');
-                finalReason = `[ลงเวร ${startTime} - ${endTime}] ${reason || '(ไม่มีเหตุผลเพิ่มเติม)'}`;
-            } else {
-                // For Leave requests, reason might be more important, but let's keep it optional if needed
-                if (!reason && type !== 'อื่น ๆ') finalReason = `ขออนุญาต${type}`;
-            }
-
             try {
-                // Auto-Approve logic for Work Schedule
-                const currentStatus = isWorkSchedule ? "Approved" : "Pending";
-
                 await addDoc(collection(db, "leave_requests"), {
                     userId: currentUser.lineUserId, name: currentUser.name, dept: currentUser.dept,
-                    type, startDate: start, endDate: end, reason: finalReason,
-                    attachLink, status: currentStatus, requestedAt: serverTimestamp(),
-                    ...(startTime && endTime ? { reqStartTime: startTime, reqEndTime: endTime } : {})
+                    type, startDate: start, endDate: end, reason, status: "Pending", requestedAt: serverTimestamp()
                 });
-
-                if (isWorkSchedule) {
-                    let c = new Date(start), finish = new Date(end);
-                    const shiftDetail = `⏰ ${startTime} - ${endTime}`;
-                    const batchPromises = [];
-
-                    while (c <= finish) {
-                        let ds = c.toLocaleDateString('sv');
-                        batchPromises.push(setDoc(doc(db, "schedules", `${currentUser.lineUserId}_${ds}`), {
-                            userId: currentUser.lineUserId, name: currentUser.name, date: ds, shiftDetail: shiftDetail,
-                            reason: finalReason, attachLink: attachLink || '', timestamp: serverTimestamp()
-                        }));
-                        c.setDate(c.getDate() + 1);
-                    }
-                    await Promise.all(batchPromises);
-                    Swal.fire('สำเร็จ', 'บันทึกเวลาปฏิบัติงานเรียบร้อย (อนุมัติอัตโนมัติ)', 'success');
-                } else {
-                    Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
-                }
-
+                Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
                 toggleLeaveForm();
-                loadSchedule();
-                loadHistory(); // Re-check buttons after shift is added
             } catch (e) { Swal.fire('Error', e.message, 'error'); }
         }
 
         async function loadMyLeaves() {
-            try {
-                const q = query(collection(db, "leave_requests"), where("userId", "==", currentUser.lineUserId));
-                const snap = await getDocs(q);
-                const list = document.getElementById('myLeaveList');
-                if (!list) return;
-                list.innerHTML = "";
-
-                if (snap.empty) {
-                    list.innerHTML = "<p class='text-muted text-center small'>ไม่มีประวัติการลา</p>";
-                    return;
-                }
-
-                const docs = snap.docs.map(doc => doc.data()).sort((a, b) => {
-                    const startA = a.startDate || "";
-                    const startB = b.startDate || "";
-                    return startB.localeCompare(startA);
-                });
-
-                docs.forEach(v => {
-                    let color = 'text-warning', icon = 'bi-hourglass-split';
-                    if (v.status === 'Approved') { color = 'text-success'; icon = 'bi-check-circle-fill'; }
-                    if (v.status === 'Rejected') { color = 'text-danger'; icon = 'bi-x-circle-fill'; }
-                    const dColor = getDeptCategoryColor(currentUser.dept);
-                    list.innerHTML += `<li class="history-item py-2 px-0 border-0 shadow-none d-flex justify-content-between mb-1">
-                    <div><span class="badge small border me-2" style="background:${dColor}20; color:${dColor}; border-color:${dColor}">${v.type}</span> <small class="text-muted">${v.startDate}</small></div>
+            // ... logic เดิม ...
+            const q = query(collection(db, "leave_requests"), where("userId", "==", currentUser.lineUserId), orderBy("startDate", "desc"));
+            const snap = await getDocs(q);
+            const list = document.getElementById('myLeaveList'); list.innerHTML = "";
+            snap.forEach(d => {
+                const v = d.data();
+                let color = 'text-warning', icon = 'bi-hourglass-split';
+                if (v.status === 'Approved') { color = 'text-success'; icon = 'bi-check-circle-fill'; }
+                if (v.status === 'Rejected') { color = 'text-danger'; icon = 'bi-x-circle-fill'; }
+                list.innerHTML += `<li class="history-item py-2 px-0 border-0 shadow-none d-flex justify-content-between mb-1">
+                    <div><span class="badg small border me-2">${v.type}</span> <small class="text-muted">${v.startDate}</small></div>
                     <div class="${color} fw-bold small"><i class="bi ${icon}"></i> ${v.status}</div>
                  </li>`
-                });
-            } catch (err) {
-                console.error("Error loading my leaves:", err);
-            }
+            });
         }
 
         // --- DEPARTMENT COLORS ---
-
+        function getDeptCategoryColor(dept) {
+            dept = dept || "";
+            if (dept.match(/Extern/i)) return 'bg-success';
+            if (dept.match(/Pharmacy|เภสัช/i)) return 'bg-info';
+            if (dept.match(/General|ทั่วไป/i)) return 'bg-secondary';
+            if (dept.match(/IT|ไอที/i)) return 'bg-dark text-white';
+            if (dept.match(/Admin|ธุรการ/i)) return 'bg-danger';
+            if (dept.match(/Sales|การตลาด/i)) return 'bg-warning';
+            return 'bg-light';
+        }
 
         function updateDeptUI() {
             if (!currentUser || !currentUser.dept) return;
-            const color = getDeptCategoryColor(currentUser.dept);
+            const colorClass = getDeptCategoryColor(currentUser.dept);
 
-            // Apply custom color to profile elements
-            const elements = ['showName', 'showEmpId'];
+            // Selective class application
+            const elements = ['showName', 'showEmpId', 'mainProfileImg'];
             elements.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    el.style.backgroundColor = color;
-                    el.style.color = 'white';
+                    el.classList.remove('bg-success', 'bg-info', 'bg-secondary', 'bg-dark', 'bg-danger', 'bg-warning', 'text-white');
+                    el.classList.add(colorClass);
                 }
             });
-
-            const profileImg = document.getElementById('mainProfileImg');
-            if (profileImg) {
-                profileImg.style.borderColor = color;
-            }
         }
 
 
         // --- WORKING HOURS CALCULATION ---
         async function loadWorkingHours() {
             try {
-                const dept = currentUser.dept || '';
-                const isPharmacistExtern = dept === 'Pharmacist Extern' || dept.includes('Intern');
+                const isPharmacistExtern = currentUser.dept === 'Pharmacist Extern';
 
                 const yearlyCard = document.getElementById('yearlyHoursCard');
                 const monthlyCard = document.getElementById('monthlyHoursCard');
+                const hours1Title = document.getElementById('hours1Title');
+                const hours1Desc = document.getElementById('hours1Desc');
+                const hours2Title = document.getElementById('hours2Title');
+                const hours2Desc = document.getElementById('hours2Desc');
 
-                // Always calculate all 3 if cards exist
-                await calculateInternshipHours();
-                await calculateHoursFromMonthStart();
-                await calculateHoursFromYearStart();
-
-                // Custom UI adjustments based on dept
                 if (isPharmacistExtern) {
-                    if (yearlyCard) yearlyCard.style.display = 'none';
-                    const h1Title = document.getElementById('hours1Title');
-                    const h1Desc = document.getElementById('hours1Desc');
-                    if (h1Title) h1Title.innerText = 'ชม.ทำงานทั้งหมด';
-                    if (h1Desc) h1Desc.innerText = 'ตลอดระยะเวลาฝึกงาน';
+                    // Pharmacist Extern:
+                    // 1) ระยะเวลาฝึกงานทั้งหมด
+                    // 2) เดือนนี้ (1 -> เมื่อวาน)
+                    yearlyCard.style.display = 'none';
+                    monthlyCard.style.display = 'block'; // Make sure monthly card is visible
+                    hours1Title.innerText = 'ชม.ทำงานทั้งหมด';
+                    hours1Desc.innerText = 'ตลอดระยะเวลาฝึกงาน';
+                    hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
+                    hours2Desc.innerText = 'ตั้งแต่วันที่ 1 ถึงเมื่อวาน';
+
+                    await calculateInternshipHours();
+                    await calculateHoursFromMonthStart();
                 } else {
-                    if (yearlyCard) yearlyCard.style.display = 'block';
-                    const h1Title = document.getElementById('hours1Title');
-                    const h1Desc = document.getElementById('hours1Desc');
-                    if (h1Title) h1Title.innerText = 'ชั่วโมงทำงานทั้งหมด';
-                    if (h1Desc) h1Desc.innerText = 'ตั้งแต่วันแรกที่สมัคร';
+                    // ทุกแผนก (ยกเว้น Extern):
+                    // 1) เดือนนี้ (1 -> เมื่อวาน)
+                    // 2) ปีนี้ (1 ม.ค. -> เมื่อวาน)
+                    yearlyCard.style.display = 'block';
+                    monthlyCard.style.display = 'block';
+                    hours1Title.innerText = 'ชม.ทำงานปีนี้';
+                    hours1Desc.innerText = 'ตั้งแต่วันที่ 1 มกราคม ถึงเมื่อวาน';
+                    hours2Title.innerText = 'ชม.ทำงานเดือนนี้';
+                    hours2Desc.innerText = 'ตั้งแต่วันที่ 1 ถึงเมื่อวาน';
+
+                    await calculateHoursFromMonthStart();
+                    await calculateHoursFromYearStart();
                 }
 
             } catch (error) {
@@ -1602,7 +991,9 @@
                     startDate = registrationDate.toDate ?
                         registrationDate.toDate() :
                         new Date(registrationDate);
-                    endDate = new Date(); // Include today
+                    endDate = new Date();
+                    endDate.setDate(endDate.getDate() - 1); // Yesterday
+                    endDate.setHours(23, 59, 59, 999);
                 }
 
                 const hours = await calculateWorkingHours(startDate, endDate);
@@ -1618,7 +1009,9 @@
             try {
                 const now = new Date();
                 const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of current month
-                const endDate = now; // Include today
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() - 1); // Yesterday
+                endDate.setHours(23, 59, 59, 999);
 
                 const hours = await calculateWorkingHours(startDate, endDate);
                 document.getElementById('hours2Value').innerText = hours.toFixed(2);
@@ -1633,7 +1026,9 @@
             try {
                 const now = new Date();
                 const startDate = new Date(now.getFullYear(), 0, 1); // 1st January
-                const endDate = now; // Include today
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() - 1); // Yesterday
+                endDate.setHours(23, 59, 59, 999);
 
                 const hours = await calculateWorkingHours(startDate, endDate);
                 document.getElementById('hours3Value').innerText = hours.toFixed(2);
@@ -1643,131 +1038,6 @@
                 document.getElementById('hours3Value').innerText = '0.00';
             }
         }
-
-        // --- 📋 SATISFACTION SURVEY SYSTEM ---
-        let currentQuestionIndex = 0;
-        const surveyQuestions = [
-            { id: 1, type: 'single', q: '1. คุณชอบกะงานประเภทใดมากที่สุด?', options: ['กะเช้า (08:00-16:00)', 'กะบ่าย (12:00-20:00)', 'กะดึก (16:00-00:00)', 'ไม่มี preference ชัดเจน'], hasOther: true },
-            { id: 2, type: 'multiple', q: '2. คุณมีข้อจำกัดเกี่ยวกับเวลาเดินทางหรือไม่?', options: ['มีปัญหาการเดินทางในช่วงเช้ามืดหรือดึก', 'ต้องดูแลครอบครัวหรือภาระส่วนตัว', 'ไม่มีข้อจำกัดด้านการเดินทาง'], hasOther: true },
-            { id: 3, type: 'rating', q: '3. คุณพึงพอใจกับการหมุนเวียนกะปัจจุบันแค่ไหน?', subQ: 'ระบุเหตุผลประกอบ (ถ้ามี):', labels: ['น้อยที่สุด', 'มากที่สุด'] },
-            { id: 4, type: 'multiple', q: '4. คุณมีปัญหาสุขภาพที่เกี่ยวข้องกับกะงานหรือไม่?', options: ['ใช่ นอนไม่หลับ/รบกวนนาฬิกาชีวิต', 'ใช่ ความเครียดจากงานต่อเนื่อง', 'ไม่มีปัญหา'], hasOther: true },
-            { id: 5, type: 'single', q: '5. คุณต้องการวันหยุดหรือพักเบรกในกะงานอย่างไร?', options: ['หยุด 2 วัน (สพ.-อา.)', 'หยุดหมุนเวียนตาม preference', 'ไม่มี preference แต่ขอพักเบรก 1 ชม.'], hasOther: true },
-            { id: 6, type: 'rating', q: '6. คุณคิดว่าการกระจายกะงานปัจจุบันยุติธรรมแค่ไหน?', subQ: 'ระบุเหตุผลประกอบ (ถ้ามี):', labels: ['ไม่ยุติธรรมเลย', 'ยุติธรรมมาก'] },
-            { id: 7, type: 'single', q: '7. ความพึงพอใจการทำงานร่วมกับ Extern (แบ่งเบาภาระ)?', options: ['ใช่ ชอบทำงานคู่เพื่อแลกเปลี่ยนความรู้', 'ไม่มี preference'], hasOther: true },
-            { id: 8, type: 'open', q: '8. ข้อจำกัดอื่นๆ ที่อาจกระทบการจัดกะ (เช่น การเรียน/กิจกรรม)?' },
-            { id: 9, type: 'open', q: '9. คุณมีข้อเสนอแนะเพื่อปรับปรุงระบบกะงานอย่างไร?' },
-            { id: 10, type: 'single', q: '10. ในการจัดตารางเวร คุณให้ความสำคัญกับ "ความต้องการส่วนตัว" (Preference) เมื่อเทียบกับ "ความสมดุลของทีม" ในสัดส่วนเท่าใด?', options: ['เน้นความต้องการส่วนตัวเป็นหลัก (สัดส่วน 80:20)', 'เน้นความเท่าเทียมและสลับกันรับผิดชอบ (สัดส่วน 50:50)', 'เน้นความสมดุลและความต้องการของทีมเป็นหลัก (สัดส่วน 20:80)'], hasOther: true }
-        ];
-        const surveyAnswers = {};
-
-        window.renderQuestion = () => {
-            const q = surveyQuestions[currentQuestionIndex];
-            const container = document.getElementById('surveyContent');
-            const progress = ((currentQuestionIndex + 1) / surveyQuestions.length) * 100;
-            document.getElementById('surveyProgress').style.width = progress + '%';
-
-            let h = `<div class="animate__animated animate__fadeInRight">
-                        <label class="h5 fw-bold mb-4 d-block" style="color:#2d3436;">${q.q}</label>`;
-
-            if (q.type === 'single' || q.type === 'multiple') {
-                h += `<div class="d-grid gap-2">`;
-                q.options.forEach((opt, idx) => {
-                    const isSelected = surveyAnswers[q.id]?.includes(opt);
-                    h += `<div class="survey-option p-3 rounded-4 border-2 mb-2 d-flex align-items-center" 
-                               onclick="selectOption(${q.id}, '${opt}', '${q.type}')"
-                               style="cursor:pointer; border: 2px solid ${isSelected ? '#ff8e71' : '#f1f2f6'}; background:${isSelected ? '#fff5f2' : 'white'};">
-                            <i class="bi ${isSelected ? (q.type === 'single' ? 'bi-record-circle-fill' : 'bi-check-square-fill') : (q.type === 'single' ? 'bi-circle' : 'bi-square')} me-3" style="color:${isSelected ? '#ff8e71' : '#ddd'}"></i>
-                            <span style="color:${isSelected ? '#2d3436' : '#636e72'}; font-weight:${isSelected ? '600' : '400'}">${opt}</span>
-                          </div>`;
-                });
-                if (q.hasOther) {
-                    const otherVal = surveyAnswers[q.id + '_other'] || '';
-                    h += `<input type="text" class="form-control rounded-4 py-3 border-2" placeholder="อื่นๆ (โปรดระบุ)..." 
-                                 onchange="surveyAnswers['${q.id}_other']=this.value" value="${otherVal}">`;
-                }
-                h += `</div>`;
-            } else if (q.type === 'rating') {
-                const currentVal = surveyAnswers[q.id] || 3;
-                h += `<div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-end mb-3">
-                            <small class="text-muted" style="max-width: 80px; line-height: 1.1;">${q.labels[0]}</small>
-                            <div class="text-center">
-                                <div class="badge rounded-pill mb-1" style="background-color: #ff8e71; font-size: 1rem; padding: 8px 16px;">${currentVal}</div>
-                                <div class="small text-muted" style="font-size: 0.7rem;">คะแนนความพึงพอใจ</div>
-                            </div>
-                            <small class="text-muted text-end" style="max-width: 80px; line-height: 1.1;">${q.labels[1]}</small>
-                        </div>
-                        <input type="range" class="form-range custom-range" min="1" max="5" step="1" 
-                               value="${currentVal}" 
-                               oninput="selectRating(${q.id}, parseInt(this.value)); this.parentElement.querySelector('.badge').innerText = this.value">
-                        <div class="d-flex justify-content-between mt-2 px-1 text-muted fw-bold" style="font-size: 0.8rem;">
-                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                        </div>
-                      </div>
-                      <textarea class="form-control rounded-4 p-3 border-2" rows="3" placeholder="${q.subQ}"
-                                onchange="surveyAnswers['${q.id}_reason']=this.value">${surveyAnswers[q.id + '_reason'] || ''}</textarea>`;
-            } else if (q.type === 'open') {
-                h += `<textarea class="form-control rounded-4 p-3 border-2" rows="5" placeholder="คำตอบของคุณ..."
-                                onchange="surveyAnswers['${q.id}']=this.value">${surveyAnswers[q.id] || ''}</textarea>`;
-            }
-            h += `</div>`;
-            container.innerHTML = h;
-
-            // Update Buttons
-            document.getElementById('prevQuestBtn').classList.toggle('hidden', currentQuestionIndex === 0);
-            const isLast = currentQuestionIndex === surveyQuestions.length - 1;
-            document.getElementById('nextQuestBtn').classList.toggle('hidden', isLast);
-            document.getElementById('submitSurveyBtn').classList.toggle('hidden', !isLast);
-        };
-
-        window.selectOption = (qId, opt, type) => {
-            if (type === 'single') {
-                surveyAnswers[qId] = [opt];
-            } else {
-                if (!surveyAnswers[qId]) surveyAnswers[qId] = [];
-                const idx = surveyAnswers[qId].indexOf(opt);
-                if (idx > -1) surveyAnswers[qId].splice(idx, 1);
-                else surveyAnswers[qId].push(opt);
-            }
-            renderQuestion();
-        };
-
-        window.selectRating = (qId, num) => {
-            surveyAnswers[qId] = num;
-            renderQuestion();
-        };
-
-        window.changeQuestion = (dir) => {
-            currentQuestionIndex += dir;
-            renderQuestion();
-        };
-
-        window.submitSurvey = async (e) => {
-            e.preventDefault();
-            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-            try {
-                await setDoc(doc(db, "survey_responses", currentUser.lineUserId), {
-                    userId: currentUser.lineUserId,
-                    name: currentUser.name,
-                    dept: currentUser.dept,
-                    answers: surveyAnswers,
-                    timestamp: serverTimestamp()
-                });
-                Swal.fire('สำเร็จ', 'ขอบคุณที่ร่วมตอบแบบสำรวจครับ', 'success');
-                show('mainPage');
-            } catch (err) { Swal.fire('Error', err.message, 'error'); }
-        };
-
-        // Initialize survey if page is shown
-        const originalShow = window.show || show;
-        window.show = (id, data) => {
-            if (typeof originalShow === 'function') originalShow(id, data);
-            if (id === 'surveyPage') {
-                currentQuestionIndex = 0;
-                renderQuestion();
-            }
-        };
-        window.showPage = window.show; // Alias for compatibility
 
         async function calculateWorkingHours(startDate, endDate) {
             try {
@@ -1816,15 +1086,13 @@
                         }
                     });
 
-                    // Handle case where clocked in but no clock out
+                    // Handle case where clocked in but no clock out (use 23:00 as default)
                     if (clockInTime) {
-                        const now = new Date();
-                        const isToday = clockInTime.toDateString() === now.toDateString();
-                        const endTime = isToday ? now : new Date(clockInTime).setHours(23, 0, 0, 0);
-
+                        const endTime = new Date(clockInTime);
+                        endTime.setHours(23, 0, 0, 0);
                         const diffMs = endTime - clockInTime;
                         const diffHours = diffMs / (1000 * 60 * 60);
-                        dayHours += Math.max(0, diffHours);
+                        dayHours += diffHours;
                     }
 
                     totalHours += dayHours;
