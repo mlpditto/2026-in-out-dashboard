@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.40</title>
+    <title>MLP Time Attendance v3.41</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -423,7 +423,7 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.40</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.41</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -1293,7 +1293,19 @@
                 } else {
                     btnIn.classList.remove('hidden');
                     btnOut.classList.add('hidden');
-                    if (statusMsg) statusMsg.classList.add('hidden');
+
+                    // Option 2: Show today's shift info even if they can clock in
+                    if (hasSchedule && statusMsg) {
+                        const sched = schedSnap.docs[0].data();
+                        const timeInfo = (sched.shiftDetail || "").replace("⏰", "").trim();
+                        statusMsg.classList.remove('hidden');
+                        statusMsg.innerHTML = `<div class="p-2 bg-success bg-opacity-10 border border-success-subtle rounded-3 text-center mb-1">
+                            <span class="text-success fw-bold" style="font-size:0.9rem;"><i class="bi bi-clock-history"></i> วันนี้คุณมีเวร: ${timeInfo}</span>
+                            <div class="small text-muted" style="font-size:0.75rem;">สามารถลงเวลาเข้างานได้ทันทีครับ</div>
+                        </div>`;
+                    } else if (statusMsg) {
+                        statusMsg.classList.add('hidden');
+                    }
                 }
             }
 
