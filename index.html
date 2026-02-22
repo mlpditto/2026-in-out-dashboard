@@ -592,7 +592,7 @@
 
             <!-- Satisfaction Survey Card -->
             <div id="surveyPrompt" class="card shadow-sm border-0 mb-4"
-                style="background: linear-gradient(135deg, #6610f2 0%, #892cdc 100%); cursor: pointer;"
+                style="background: linear-gradient(135deg, #ffbe94 0%, #ff8e71 100%); cursor: pointer;"
                 onclick="show('surveyPage')">
                 <div class="card-body p-3 text-white d-flex align-items-center gap-3">
                     <div class="rounded-circle bg-white bg-opacity-25 p-3"
@@ -642,8 +642,8 @@
                     <h4 class="mb-0">แบบสำรวจกะงาน</h4>
                 </div>
 
-                <div class="progress mb-4" style="height: 6px; border-radius: 10px;">
-                    <div id="surveyProgress" class="progress-bar bg-primary" style="width: 10%;"></div>
+                <div class="progress mb-4" style="height: 6px; border-radius: 10px; background-color: #fcece8;">
+                    <div id="surveyProgress" class="progress-bar" style="width: 10%; background-color: #ff8e71;"></div>
                 </div>
 
                 <form id="shiftSurveyForm" onsubmit="submitSurvey(event)">
@@ -652,9 +652,9 @@
 
                     <div class="d-flex gap-2 mt-4">
                         <button type="button" id="prevQuestBtn" class="btn btn-outline flex-grow-1 hidden"
-                            onclick="changeQuestion(-1)">กลับ</button>
-                        <button type="button" id="nextQuestBtn" class="btn btn-primary flex-grow-1"
-                            onclick="changeQuestion(1)">ถัดไป</button>
+                            onclick="changeQuestion(-1)" style="border-color: #ff8e71; color: #ff8e71;">กลับ</button>
+                        <button type="button" id="nextQuestBtn" class="btn flex-grow-1 text-white fw-bold"
+                            style="background-color: #ff8e71;" onclick="changeQuestion(1)">ถัดไป</button>
                         <button type="submit" id="submitSurveyBtn"
                             class="btn btn-success flex-grow-1 hidden">ส่งแบบสำรวจ</button>
                     </div>
@@ -1634,8 +1634,8 @@
                     const isSelected = surveyAnswers[q.id]?.includes(opt);
                     h += `<div class="survey-option p-3 rounded-4 border-2 mb-2 d-flex align-items-center" 
                                onclick="selectOption(${q.id}, '${opt}', '${q.type}')"
-                               style="cursor:pointer; border: 2px solid ${isSelected ? '#6c5ce7' : '#f1f2f6'}; background:${isSelected ? '#6c5ce710' : 'white'};">
-                            <i class="bi ${isSelected ? (q.type === 'single' ? 'bi-record-circle-fill' : 'bi-check-square-fill') : (q.type === 'single' ? 'bi-circle' : 'bi-square')} me-3" style="color:${isSelected ? '#6c5ce7' : '#ddd'}"></i>
+                               style="cursor:pointer; border: 2px solid ${isSelected ? '#ff8e71' : '#f1f2f6'}; background:${isSelected ? '#fff5f2' : 'white'};">
+                            <i class="bi ${isSelected ? (q.type === 'single' ? 'bi-record-circle-fill' : 'bi-check-square-fill') : (q.type === 'single' ? 'bi-circle' : 'bi-square')} me-3" style="color:${isSelected ? '#ff8e71' : '#ddd'}"></i>
                             <span style="color:${isSelected ? '#2d3436' : '#636e72'}; font-weight:${isSelected ? '600' : '400'}">${opt}</span>
                           </div>`;
                 });
@@ -1650,9 +1650,9 @@
                 [1, 2, 3, 4, 5].forEach(num => {
                     const isSelected = surveyAnswers[q.id] === num;
                     h += `<div onclick="selectRating(${q.id}, ${num})" 
-                               style="width:50px; height:50px; cursor:pointer;"
+                               style="width:50px; height:50px; cursor:pointer; background-color: ${isSelected ? '#ff8e71' : ''}"
                                class="rounded-circle d-flex align-items-center justify-content-center fw-bold border-2 
-                               ${isSelected ? 'bg-primary text-white border-primary shadow-sm' : 'bg-light text-muted border-transparent'}">
+                               ${isSelected ? 'text-white border-transparent shadow-sm' : 'bg-light text-muted border-transparent'}">
                             ${num}
                           </div>`;
                 });
