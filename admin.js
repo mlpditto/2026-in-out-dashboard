@@ -1450,7 +1450,9 @@ window.openEditUser = (id) => {
     document.getElementById('editUserStatus').value = u.status || 'Approved';
     document.getElementById('editStartDate').value = u.startDate || '';
     document.getElementById('editEndDate').value = u.endDate || '';
+    const picUrlEl = document.getElementById('editUserPicUrl');
     const imgEl = document.getElementById('editUserImg');
+    if (picUrlEl) picUrlEl.value = u.pictureUrl || '';
     if (imgEl) imgEl.src = u.pictureUrl || "https://via.placeholder.com/80";
     editModal.show();
 };
@@ -1464,7 +1466,8 @@ window.saveEditUser = async () => {
             dept: document.getElementById('editUserDept').value,
             status: document.getElementById('editUserStatus').value,
             startDate: document.getElementById('editStartDate').value,
-            endDate: document.getElementById('editEndDate').value
+            endDate: document.getElementById('editEndDate').value,
+            pictureUrl: document.getElementById('editUserPicUrl').value
         });
         Toast.fire({ icon: 'success', title: 'แก้ไขสำเร็จ' });
         editModal.hide();

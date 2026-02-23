@@ -636,6 +636,22 @@
                 </div>
                 <div class="modal-body p-4 pt-0">
                     <input type="hidden" id="editUserId">
+
+                    <!-- Profile Picture Section -->
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <img id="editUserImg" src="https://via.placeholder.com/80"
+                                class="rounded-circle border shadow-sm"
+                                style="width: 80px; height: 80px; object-fit: cover;">
+                        </div>
+                        <div class="mt-2 text-center">
+                            <label class="small text-muted d-block mb-1">รูปโปรไฟล์ (URL)</label>
+                            <input type="text" id="editUserPicUrl" class="form-control form-control-sm text-center"
+                                placeholder="https://example.com/photo.jpg"
+                                oninput="document.getElementById('editUserImg').src = this.value || 'https://via.placeholder.com/80'">
+                        </div>
+                    </div>
+
                     <div class="form-floating mb-3"><input type="text" id="editEmpId" class="form-control"
                             placeholder="รหัส"><label>รหัสพนักงาน</label></div>
                     <div class="form-floating mb-3"><input type="text" id="editUserName" class="form-control"
@@ -891,7 +907,7 @@
         }
     </script>
 
-    <script type="module" src="admin.js?v=3.32"></script>
+    <script type="module" src="admin.js?v=3.33"></script>
 </body>
 
 </html>
