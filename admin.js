@@ -1652,7 +1652,11 @@ window.renderCharts = async () => {
 
 
 function initCalendar() {
-    if (calendarObj) { calendarObj.render(); return }
+    if (calendarObj) {
+        calendarObj.refetchEvents();
+        calendarObj.render();
+        return;
+    }
     calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'), {
         initialView: 'dayGridMonth',
         locale: 'th',
@@ -1946,7 +1950,8 @@ window.openEditSchedModal = async (id) => {
             Toast.fire({ icon: 'success', title: 'แก้ไขเรียบร้อย' });
             // Refresh all views
             loadSchedules();
-            if (typeof initCalendar === 'function') initCalendar();
+            loadLeaveRequests(); // Also refresh the leave/schedule tables
+            if (calendarObj) calendarObj.refetchEvents();
         } catch (err) {
             Swal.fire('Error', err.message, 'error');
         }
