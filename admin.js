@@ -1396,7 +1396,6 @@ window.loadAllUsers = async () => {
     loadPendingUsers();
 };
 
-window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadAllUsers(); };
 
 window.approveUser = async (id) => {
     const result = await Swal.fire({
@@ -1862,7 +1861,11 @@ window.renderDetailModal = (title, color, schedId, rawObj) => {
     });
 };
 
-window.loginWithGoogle = loginWithGoogle; window.logout = logout; window.loadData = loadData; window.exportCSV = exportCSV; window.switchTab = switchTab; window.loadSchedules = loadSchedules; window.createSchedule = createSchedule; window.saveSchedule = createSchedule; window.delSched = delSched; window.loadLeaveRequests = loadLeaveRequests; window.updLeave = updLeave; window.renderCharts = renderCharts; window.loadPendingUsers = loadPendingUsers; window.loadAllUsers = loadAllUsers; window.appUser = appUser; window.delUser = delUser; window.openEditUser = openEditUser; window.saveEditUser = saveEditUser; window.toggleCustomTime = toggleCustomTime; window.changeSchedMonth = changeSchedMonth; window.schedChangePage = schedChangePage; window.openManualEntry = openManualEntry; window.submitManualEntry = submitManualEntry; window.adjTime = adjTime;
+
+// Helper function to export leftover functions to global if needed
+// (Most are already assigned to window where defined)
+window.logout = async () => { try { await signOut(auth); } catch (e) { Swal.fire('Error', e.message, 'error'); } };
+
 window.loadFairnessReport = async () => {
     const dept = document.getElementById('fairnessDept').value;
     const kw = (document.getElementById('fairnessKeyword')?.value || "").toLowerCase();
