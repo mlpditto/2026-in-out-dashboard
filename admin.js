@@ -1688,13 +1688,14 @@ function initCalendar() {
             }
 
             const safeObj = JSON.stringify({
+                id: p.id || info.event.id,
                 name: p.name,
                 startDate: p.startDate,
                 endDate: p.endDate,
                 reason: p.reason || p.detail,
                 attachLink: p.link
             });
-            renderDetailModal(p.detail || 'รายละเอียด', '#6c757d', null, safeObj);
+            renderDetailModal(p.detail || 'รายละเอียด', '#6c757d', p.id || info.event.id, safeObj);
         },
         eventContent: function (arg) {
             const props = arg.event.extendedProps;
@@ -1743,10 +1744,12 @@ function initCalendar() {
                         else if (detail.includes('หยุด') || detail.includes('ลา')) c = 'var(--color-leave)';
 
                         ev.push({
+                            id: d.id,
                             title: v.name,
                             start: v.date,
                             backgroundColor: c,
                             extendedProps: {
+                                id: d.id,
                                 type: 'schedule',
                                 name: v.name,
                                 detail: v.shiftDetail,
@@ -1818,7 +1821,7 @@ function initCalendar() {
 // Explicit export to window object to ensure availability
 window.initCalendar = initCalendar;
 
-window.renderDetailModal = (title, color, schedId, rawObj) => {
+window.renderDetailModal = async (title, color, schedId, rawObj) => {
     let v;
     if (rawObj) {
         if (typeof rawObj === 'string') {
@@ -1831,19 +1834,16 @@ window.renderDetailModal = (title, color, schedId, rawObj) => {
     }
 
     // Fallback to searching in schedAllData if not provided directly
-    if (!v && schedId) {
-        v = schedAllData.find(x => x.id === schedId);
-    }
+    const found = schedAllData.find(x => x.id === (v?.id || schedId));
+    if (found) v = { ...v, ...found }; // Merge found data into v for ID and full fields
 
     if (!v) return;
 
     const safeName = (v.name || '').replace(/'/g, "\\'");
-    // Always show range A ถึง B even if same day, to match Image 2
-    const start = v.startDate || v.date;
-    const end = v.endDate || v.date;
-    const safeDateRange = `${start} ถึง ${end}`.replace(/'/g, "\\'");
+    const start = v.startDate || v.date || 'ไม่ระบุ';
+    const end = v.endDate || v.date || 'ไม่ระบุ';
+    const safeDateRange = (start === end) ? start : `${start} ถึง ${end}`;
 
-    // If it's a leave type and reason is missing/contains emoji, use the cleaner version or fallback
     let displayReason = v.reason || v.shiftDetail || 'ระบุผ่านตารางเวร';
     const safeReason = displayReason.replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
@@ -1853,12 +1853,78 @@ window.renderDetailModal = (title, color, schedId, rawObj) => {
         linkHtml = `<p><b>🔗 ลิงก์แนบ:</b> <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info py-0">เปิดดูเอกสาร</a></p>`;
     }
 
-    Swal.fire({
+    const res = await Swal.fire({
         title: title,
         html: `<div class='text-start'><p><b>👤 พนักงาน:</b> ${safeName}</p><p><b>📅 วันที่:</b> ${safeDateRange}</p><p><b>📝 เหตุผล:</b> ${safeReason}</p>${linkHtml}</div>`,
+        showDenyButton: true,
+        denyButtonText: 'แก้ไข',
+        denyButtonColor: '#ffc107',
         confirmButtonText: 'ปิด',
         confirmButtonColor: color || '#6c757d'
     });
+
+    if (res.isDenied) {
+        openEditSchedModal(v.id);
+    }
+};
+
+window.openEditSchedModal = async (id) => {
+    // Try to find the document in schedules collection
+    const docRef = doc(db, "schedules", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return Swal.fire('Error', 'ไม่พบข้อมูลเวร', 'error');
+
+    const data = docSnap.data();
+    const { value: formValues } = await Swal.fire({
+        title: '📝 แก้ไขข้อมูลเวร',
+        html: `
+            <div class="text-start">
+                <label class="small text-muted mb-1">กะ / รายละเอียด</label>
+                <input id="swal-shift" class="form-control mb-2" value="${data.shiftDetail || ''}">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="small text-muted mb-1">เริ่มวันที่</label>
+                        <input type="date" id="swal-start" class="form-control" value="${data.startDate || data.date || ''}">
+                    </div>
+                    <div class="col-6">
+                        <label class="small text-muted mb-1">ถึงวันที่</label>
+                        <input type="date" id="swal-end" class="form-control" value="${data.endDate || data.date || ''}">
+                    </div>
+                </div>
+                <label class="small text-muted mb-1">เหตุผล / หมายเหตุ</label>
+                <textarea id="swal-reason" class="form-control" rows="2">${data.reason || ''}</textarea>
+            </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ยกเลิก',
+        preConfirm: () => {
+            return {
+                shiftDetail: document.getElementById('swal-shift').value,
+                startDate: document.getElementById('swal-start').value,
+                endDate: document.getElementById('swal-end').value,
+                reason: document.getElementById('swal-reason').value
+            }
+        }
+    });
+
+    if (formValues) {
+        try {
+            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+            await updateDoc(docRef, {
+                ...formValues,
+                // Update the single 'date' field to keep consistency if it's a single day
+                date: formValues.startDate
+            });
+            Toast.fire({ icon: 'success', title: 'แก้ไขเรียบร้อย' });
+            // Refresh all views
+            loadSchedules();
+            if (typeof initCalendar === 'function') initCalendar();
+        } catch (err) {
+            Swal.fire('Error', err.message, 'error');
+        }
+    }
 };
 
 
