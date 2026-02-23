@@ -1883,7 +1883,18 @@ window.openEditSchedModal = async (id) => {
         html: `
             <div class="text-start">
                 <label class="small text-muted mb-1">กะ / รายละเอียด</label>
-                <input id="swal-shift" class="form-control mb-2" value="${data.shiftDetail || ''}">
+                <input id="swal-shift" class="form-control mb-2" value="${data.shiftDetail || ''}" list="swal-shift-options">
+                <datalist id="swal-shift-options">
+                    <option value="☀️ เช้า (08:00 - 17:00)">
+                    <option value="☀️ เช้า (09:00 - 18:00)">
+                    <option value="🕛 เที่ยง (11:00 - 20:00)">
+                    <option value="🕛 เที่ยง (12:00 - 21:00)">
+                    <option value="🕙 สาย (10:00 - 19:00)">
+                    <option value="🚫 หยุด (Day Off)">
+                    <option value="🤒 ลาป่วย">
+                    <option value="🌴 ลาพักร้อน">
+                    <option value="📋 ลากิจ">
+                </datalist>
                 <div class="row g-2 mb-2">
                     <div class="col-6">
                         <label class="small text-muted mb-1">เริ่มวันที่</label>
