@@ -1397,6 +1397,48 @@ window.loadAllUsers = async () => {
 };
 
 window.appUser = async (id) => { await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true }); Toast.fire({ icon: 'success', title: 'อนุมัติแล้ว' }); loadAllUsers(); };
+
+window.approveUser = async (id) => {
+    const result = await Swal.fire({
+        title: 'อนุมัติสมาชิกใหม่?',
+        text: 'ต้องการรับเข้าสมาชิกคนนี้หรือไม่?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'รับเข้า',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#198754'
+    });
+    if (result.isConfirmed) {
+        try {
+            await setDoc(doc(db, "users", id), { status: "Approved" }, { merge: true });
+            Toast.fire({ icon: 'success', title: 'อนุมัติสมาชิกเรียบร้อย' });
+            loadAllUsers();
+        } catch (err) {
+            Swal.fire('Error', err.message, 'error');
+        }
+    }
+};
+
+window.rejectUser = async (id) => {
+    const result = await Swal.fire({
+        title: 'ปฏิเสธสมาชิก?',
+        text: 'ต้องการปฏิเสธสมาชิกคนนี้หรือไม่? ข้อมูลจะถูกลบ',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'ปฏิเสธ',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#dc3545'
+    });
+    if (result.isConfirmed) {
+        try {
+            await deleteDoc(doc(db, "users", id));
+            Toast.fire({ icon: 'success', title: 'ปฏิเสธสมาชิกเรียบร้อย' });
+            loadAllUsers();
+        } catch (err) {
+            Swal.fire('Error', err.message, 'error');
+        }
+    }
+};
 window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
 window.openEditUser = (id) => {
     const u = window.allUserData[id]; if (!u) { console.warn('User not found:', id); return; }
@@ -2371,6 +2413,10 @@ window.viewUserStats = async (uid) => {
         snapLeave.forEach(doc => {
             const data = doc.data();
             const type = data.type || data.leaveType || 'อื่นๆ';
+
+            // Skip work schedule entries - they are NOT leave
+            if (type === 'แจ้งเวลาปฏิบัติงาน') return;
+
             const s = new Date(data.startDate);
             const e = new Date(data.endDate);
             const days = Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
