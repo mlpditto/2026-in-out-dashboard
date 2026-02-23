@@ -313,9 +313,11 @@ window.delSched = async (id) => {
 window.loadLeaveRequests = async () => {
     const tPending = document.getElementById('leavePendingTableBody');
     const tApproved = document.getElementById('leaveApprovedTableBody');
+    const tSchedApproved = document.getElementById('scheduleApprovedTableBody');
 
     if (tPending) tPending.innerHTML = '<tr><td colspan="5" class="text-center py-3">กำลังโหลด...</td></tr>';
     if (tApproved) tApproved.innerHTML = '<tr><td colspan="4" class="text-center py-3">กำลังโหลด...</td></tr>';
+    if (tSchedApproved) tSchedApproved.innerHTML = '<tr><td colspan="4" class="text-center py-3">กำลังโหลด...</td></tr>';
 
     try {
         const q = query(collection(db, "leave_requests"));
@@ -334,6 +336,7 @@ window.loadLeaveRequests = async () => {
 
         let hPending = "";
         let hApproved = "";
+        let hSchedApproved = "";
         let pendingCount = 0;
         let yCount = 0;
         let mCount = 0;
@@ -366,19 +369,23 @@ window.loadLeaveRequests = async () => {
             let leaveEmoji = '📋';
             let leaveColor = '#495057';
             const lt = displayType.toLowerCase();
+            let isSchedule = false;
+
             if (lt.includes('ป่วย')) { leaveEmoji = '🤒'; leaveColor = '#dc3545'; }
-            else if (lt.includes('พักผ่อน')) { leaveEmoji = '🌴'; leaveColor = '#0d9488'; }
+            else if (lt.includes('พักผ่อน') || lt.includes('พักร้อน')) { leaveEmoji = '🌴'; leaveColor = '#0d9488'; }
             else if (lt.includes('กิจ')) { leaveEmoji = '📋'; leaveColor = '#0d6efd'; }
             else if (lt.includes('คลอด')) { leaveEmoji = '👶'; leaveColor = '#e91e8c'; }
             else if (lt.includes('บวช')) { leaveEmoji = '🙏'; leaveColor = '#f59e0b'; }
-            else if (lt.includes('เวร') || lt.includes('schedule')) { leaveEmoji = '🕒'; leaveColor = '#0d6efd'; }
+            else if (lt.includes('เวร') || lt.includes('schedule') || lt.includes('ปฏิบัติงาน')) {
+                leaveEmoji = '🕒';
+                leaveColor = '#343a40'; // Darker for schedule
+                isSchedule = true;
+            }
 
             let timeBadge = "";
             if (v.reqStartTime && v.reqEndTime) {
                 timeBadge = `<div class="mt-1"><span class="badge bg-light text-primary border border-primary-subtle" style="font-size:0.7rem;"><i class="bi bi-clock"></i> ${v.reqStartTime} - ${v.reqEndTime}</span></div>`;
             }
-            const safeReason = (v.reason || 'ไม่ได้ระบุเหตุผล').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeObj = JSON.stringify({
                 name: v.name,
                 startDate: v.startDate,
@@ -403,7 +410,7 @@ window.loadLeaveRequests = async () => {
             if (v.status === 'Pending') {
                 const acts = `
                              <button onclick="openEditLeaveModal('${v.id}')" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil"></i></button>
-                             <button onclick="updLeave('${v.id}','Approved','${v.userId}','${sName}','${v.startDate}','${v.endDate}','${sType}','${sReason}','${sLink}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
+                             <button onclick="updLeave('${v.id}','Approved')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
                              <button onclick="updLeave('${v.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
 
                 hPending += `<tr class="table-warning">
@@ -418,17 +425,24 @@ window.loadLeaveRequests = async () => {
                 if (v.status === 'Approved') statusBadge = `<span class="badge bg-success">อนุมัติแล้ว</span>`;
                 if (v.status === 'Rejected') statusBadge = `<span class="badge bg-danger">ไม่อนุมัติ</span>`;
 
-                hApproved += `<tr>
+                const rowHtml = `<tr>
                      <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${subInfo}</small></td>
                      <td>${leaveBadge}${timeBadge}</td>
                      <td>${v.startDate} ถึง ${v.endDate}</td>
                      <td>${statusBadge}</td>
                  </tr>`;
+
+                if (isSchedule) {
+                    hSchedApproved += rowHtml;
+                } else {
+                    hApproved += rowHtml;
+                }
             }
         });
 
         if (tPending) tPending.innerHTML = hPending || '<tr><td colspan="5" class="text-center text-muted py-3">ไม่มีคำขอที่รออนุมัติ</td></tr>';
         if (tApproved) tApproved.innerHTML = hApproved || '<tr><td colspan="4" class="text-center text-muted py-3">ไม่มีประวัติการลา</td></tr>';
+        if (tSchedApproved) tSchedApproved.innerHTML = hSchedApproved || '<tr><td colspan="4" class="text-center text-muted py-3">ไม่มีรายการแจ้งเวร</td></tr>';
 
         const sl = document.getElementById('statLeave'); if (sl) sl.innerText = pendingCount;
         const sm = document.getElementById('statLeaveMonth'); if (sm) sm.innerText = mCount;
@@ -443,10 +457,76 @@ window.loadLeaveRequests = async () => {
             lp.innerHTML = uList.slice(0, 5).map(u => `<img src="${u.pictureUrl || 'https://via.placeholder.com/20'}" title="${u.name}" style="width:20px;height:20px;border-radius:50%;margin-right:-5px;border:1px solid #fff;">`).join('') + (uList.length > 5 ? `<span class="small ms-2 text-muted">+${uList.length - 5}</span>` : '');
         }
 
+        // Store docs globally for edit access
+        window.allLeaveRequests = docs;
+
     } catch (err) {
         console.error("Error loading leave requests:", err);
         if (tPending) tPending.innerHTML = '<tr><td colspan="5" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
         if (tApproved) tApproved.innerHTML = '<tr><td colspan="4" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+        if (tSchedApproved) tSchedApproved.innerHTML = '<tr><td colspan="4" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+    }
+};
+
+window.openEditLeaveModal = (id) => {
+    const v = window.allLeaveRequests.find(x => x.id === id);
+    if (!v) return;
+
+    document.getElementById('editLeaveId').value = id;
+
+    // Attempt to match the select value (remove emojis for matching if needed, but our options have them)
+    // Actually our options in HTML have emojis, so we should clean the input or match carefully.
+    const cleanType = (v.type || v.leaveType || '').replace(/🤒|🌴|📋|👶|🙏|🕒|🚫/g, '').trim();
+    const typeSelect = document.getElementById('editLeaveType');
+
+    // Find matching option
+    for (let opt of typeSelect.options) {
+        if (opt.value.includes(cleanType)) {
+            typeSelect.value = opt.value;
+            break;
+        }
+    }
+
+    document.getElementById('editLeaveStart').value = v.startDate || '';
+    document.getElementById('editLeaveEnd').value = v.endDate || '';
+    document.getElementById('editLeaveStartTime').value = v.reqStartTime || '';
+    document.getElementById('editLeaveEndTime').value = v.reqEndTime || '';
+    document.getElementById('editLeaveReason').value = v.reason || '';
+    document.getElementById('editLeaveLink').value = v.attachLink || v.medicalCertUrl || '';
+
+    new bootstrap.Modal(document.getElementById('editLeaveModal')).show();
+};
+
+window.submitEditLeave = async () => {
+    const id = document.getElementById('editLeaveId').value;
+    const type = document.getElementById('editLeaveType').value;
+    const start = document.getElementById('editLeaveStart').value;
+    const end = document.getElementById('editLeaveEnd').value;
+    const startTime = document.getElementById('editLeaveStartTime').value;
+    const endTime = document.getElementById('editLeaveEndTime').value;
+    const reason = document.getElementById('editLeaveReason').value;
+    const link = document.getElementById('editLeaveLink').value;
+
+    if (!id || !start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุวันที่ให้ครบถ้วน', 'warning');
+
+    try {
+        await updateDoc(doc(db, "leave_requests", id), {
+            type: type,
+            leaveType: type,
+            startDate: start,
+            endDate: end,
+            reqStartTime: startTime,
+            reqEndTime: endTime,
+            reason: reason,
+            attachLink: link,
+            updatedAt: new Date()
+        });
+
+        Toast.fire({ icon: 'success', title: 'แก้ไขข้อมูลสำเร็จ' });
+        bootstrap.Modal.getInstance(document.getElementById('editLeaveModal')).hide();
+        loadLeaveRequests();
+    } catch (err) {
+        Swal.fire('Error', err.message, 'error');
     }
 };
 
@@ -959,32 +1039,51 @@ function loadInitialData() {
     loadPendingUsers();
 }
 
-window.updLeave = async (id, st, uid, nm, s, e, tp, rs, ln) => {
-    await setDoc(doc(db, "leave_requests", id), { status: st }, { merge: true });
-    if (st === 'Approved') {
-        let c = new Date(s), end = new Date(e);
-        const lt = (tp || "").toLowerCase();
-        let emoji = '🛑';
-        if (lt.includes('ป่วย')) emoji = '🤒';
-        else if (lt.includes('พักผ่อน') || lt.includes('พักร้อน')) emoji = '🌴';
-        else if (lt.includes('กิจ')) emoji = '📋';
-        else if (lt.includes('คลอด')) emoji = '👶';
-        else if (lt.includes('บวช')) emoji = '🙏';
+window.updLeave = async (id, st) => {
+    try {
+        await updateDoc(doc(db, "leave_requests", id), { status: st });
 
-        const cleanType = tp.replace(/🤒|🌴|📋|👶|🙏|🛑|🚫|🏖️|💼|⏰|☀️|🕛|🕙|⚙️/g, '').trim();
-        const finalShiftDetail = `${emoji} ${cleanType}`;
+        if (st === 'Approved') {
+            const leaveDoc = await getDoc(doc(db, "leave_requests", id));
+            if (!leaveDoc.exists()) return;
+            const v = leaveDoc.data();
 
-        while (c <= end) {
-            let ds = c.toLocaleDateString('sv');
-            await setDoc(doc(db, "schedules", `${uid}_${ds}`), {
-                userId: uid, name: nm, date: ds, shiftDetail: finalShiftDetail,
-                reason: rs || cleanType, attachLink: ln || '', startDate: s, endDate: e
-            });
-            c.setDate(c.getDate() + 1);
+            const uid = v.userId;
+            const nm = v.name;
+            const s = v.startDate;
+            const e = v.endDate;
+            const tp = v.type || v.leaveType || '';
+            const rs = v.reason || '';
+            const ln = v.attachLink || '';
+
+            let c = new Date(s), end = new Date(e);
+            const lt = tp.toLowerCase();
+            let emoji = '🛑';
+            if (lt.includes('ป่วย')) emoji = '🤒';
+            else if (lt.includes('พักผ่อน') || lt.includes('พักร้อน')) emoji = '🌴';
+            else if (lt.includes('กิจ')) emoji = '📋';
+            else if (lt.includes('คลอด')) emoji = '👶';
+            else if (lt.includes('บวช')) emoji = '🙏';
+            else if (lt.includes('เวร') || lt.includes('ปฏิบัติงาน') || lt.includes('schedule')) emoji = '🕒';
+
+            const cleanType = tp.replace(/🤒|🌴|📋|👶|🙏|🕒|🛑|🚫|🏖️|💼|⏰|☀️|🕛|🕙|⚙️/g, '').trim();
+            const finalShiftDetail = `${emoji} ${cleanType}`;
+
+            while (c <= end) {
+                let ds = c.toLocaleDateString('sv');
+                await setDoc(doc(db, "schedules", `${uid}_${ds}`), {
+                    userId: uid, name: nm, date: ds, shiftDetail: finalShiftDetail,
+                    reason: rs || cleanType, attachLink: ln || '', startDate: s, endDate: e
+                });
+                c.setDate(c.getDate() + 1);
+            }
         }
+
+        Toast.fire({ icon: 'success', title: 'เรียบร้อย' });
+        loadLeaveRequests();
+    } catch (err) {
+        Swal.fire('Error', err.message, 'error');
     }
-    Toast.fire({ icon: 'success', title: 'เรียบร้อย' });
-    loadLeaveRequests();
 };
 
 window.loadPendingUsers = async () => {
