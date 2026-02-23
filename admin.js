@@ -401,7 +401,9 @@ window.loadLeaveRequests = async () => {
             const sLink = safeString(v.attachLink);
 
             if (v.status === 'Pending') {
-                const acts = `<button onclick="updLeave('${v.id}','Approved','${v.userId}','${sName}','${v.startDate}','${v.endDate}','${sType}','${sReason}','${sLink}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
+                const acts = `
+                             <button onclick="openEditLeaveModal('${v.id}')" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil"></i></button>
+                             <button onclick="updLeave('${v.id}','Approved','${v.userId}','${sName}','${v.startDate}','${v.endDate}','${sType}','${sReason}','${sLink}')" class="btn btn-sm btn-success me-1"><i class="bi bi-check-lg"></i></button>
                              <button onclick="updLeave('${v.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
 
                 hPending += `<tr class="table-warning">
@@ -1875,6 +1877,7 @@ window.renderDetailModal = async (title, color, schedId, rawObj) => {
     }
 };
 
+
 window.openEditSchedModal = async (id) => {
     // Try to find the document in schedules collection
     const docRef = doc(db, "schedules", id);
@@ -1944,19 +1947,107 @@ window.openEditSchedModal = async (id) => {
             Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
             await updateDoc(docRef, {
                 ...formValues,
-                // Update the single 'date' field to keep consistency if it's a single day
                 date: formValues.startDate
             });
             Toast.fire({ icon: 'success', title: 'แก้ไขเรียบร้อย' });
-            // Refresh all views
             loadSchedules();
-            loadLeaveRequests(); // Also refresh the leave/schedule tables
+            loadLeaveRequests();
             if (calendarObj) calendarObj.refetchEvents();
         } catch (err) {
             Swal.fire('Error', err.message, 'error');
         }
     }
 };
+
+window.openEditLeaveModal = async (id) => {
+    const docRef = doc(db, "leave_requests", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return Swal.fire('Error', 'ไม่พบข้อมูลคำขอลา', 'error');
+
+    const data = docSnap.data();
+    const shifts = [
+        { label: "08:00-17:00", s: "08:00", e: "17:00" },
+        { label: "09:00-18:00", s: "09:00", e: "18:00" },
+        { label: "10:00-19:00", s: "10:00", e: "19:00" },
+        { label: "11:00-20:00", s: "11:00", e: "20:00" },
+        { label: "12:00-21:00", s: "12:00", e: "21:00" }
+    ];
+
+    const { value: formValues } = await Swal.fire({
+        title: '✏️ แก้ไขคำขอลา / แจ้งเวร',
+        html: `
+            <div class="text-start">
+                <label class="small text-muted mb-1">ประเภทคำขอ</label>
+                <select id="swal-leave-type" class="form-select mb-2">
+                    <option value="ลากิจ" ${data.type?.includes('ลากิจ') || data.leaveType?.includes('ลากิจ') ? 'selected' : ''}>📋 ลากิจ</option>
+                    <option value="ลาป่วย" ${data.type?.includes('ลาป่วย') || data.leaveType?.includes('ลาป่วย') ? 'selected' : ''}>🤒 ลาป่วย</option>
+                    <option value="ลาพักร้อน" ${data.type?.includes('พัก') || data.leaveType?.includes('พัก') ? 'selected' : ''}>🌴 ลาพักร้อน</option>
+                    <option value="ลาคลอด" ${data.type?.includes('คลอด') || data.leaveType?.includes('คลอด') ? 'selected' : ''}>👶 ลาคลอด</option>
+                    <option value="ลาบวช" ${data.type?.includes('บวช') || data.leaveType?.includes('บวช') ? 'selected' : ''}>🙏 ลาบวช</option>
+                    <option value="แจ้งเวลาปฏิบัติงาน" ${data.type?.includes('เวร') || data.type?.includes('ปฏิบัติงาน') ? 'selected' : ''}>🕒 แจ้งเวลาปฏิบัติงาน</option>
+                </select>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="small text-muted mb-1">วันที่เริ่ม</label>
+                        <input type="date" id="swal-start" class="form-control" value="${data.startDate || ''}">
+                    </div>
+                    <div class="col-6">
+                        <label class="small text-muted mb-1">ถึงวันที่</label>
+                        <input type="date" id="swal-end" class="form-control" value="${data.endDate || ''}">
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="small text-muted mb-1 d-block">ด่วน (กะมาตรฐาน)</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        ${shifts.map(s => `<button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.65rem;" onclick="document.getElementById('swal-time-start').value='${s.s}';document.getElementById('swal-time-end').value='${s.e}'">${s.label}</button>`).join('')}
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="small text-muted mb-1">เวลาเริ่ม</label>
+                        <input type="time" id="swal-time-start" class="form-control" value="${data.reqStartTime || ''}">
+                    </div>
+                    <div class="col-6">
+                        <label class="small text-muted mb-1">เวลาสิ้นสุด</label>
+                        <input type="time" id="swal-time-end" class="form-control" value="${data.reqEndTime || ''}">
+                    </div>
+                </div>
+
+                <label class="small text-muted mb-1">เหตุผล / หมายเหตุ</label>
+                <textarea id="swal-reason" class="form-control" rows="2">${data.reason || ''}</textarea>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ยกเลิก',
+        preConfirm: () => {
+            return {
+                type: document.getElementById('swal-leave-type').value,
+                leaveType: document.getElementById('swal-leave-type').value,
+                startDate: document.getElementById('swal-start').value,
+                endDate: document.getElementById('swal-end').value,
+                reqStartTime: document.getElementById('swal-time-start').value,
+                reqEndTime: document.getElementById('swal-time-end').value,
+                reason: document.getElementById('swal-reason').value
+            }
+        }
+    });
+
+    if (formValues) {
+        try {
+            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+            await updateDoc(docRef, formValues);
+            Toast.fire({ icon: 'success', title: 'แก้ไขคำขอลาเรียบร้อย' });
+            loadLeaveRequests();
+        } catch (err) {
+            Swal.fire('Error', err.message, 'error');
+        }
+    }
+};
+
 
 
 // Helper function to export leftover functions to global if needed
@@ -2140,16 +2231,16 @@ window.loadFairnessReport = async () => {
                     }).join('<br>');
                     const escapedDates = dateList.replace(/'/g, "\\'");
                     const shLabel = sh.replace(/ - /g, '-').replace(/:00/g, '');
-                    return `<span class="badge bg-light text-dark border-0 fw-normal" style="font-size:0.65rem; cursor:pointer;" onclick="Swal.fire({ title:'${shLabel}', html:'${escapedDates}', confirmButtonText:'ปิด', width:'320px' })">${shLabel} (${count})</span>`;
+                    return `< span class="badge bg-light text-dark border-0 fw-normal" style = "font-size:0.65rem; cursor:pointer;" onclick = "Swal.fire({ title:'${shLabel}', html:'${escapedDates}', confirmButtonText:'ปิด', width:'320px' })" > ${shLabel} (${count})</span > `;
                 })
                 .join(' ');
 
             let flags = '';
-            if (r.anomaliesCount > 0) flags += `<i class="bi bi-exclamation-triangle-fill text-danger me-1" title="ชั่วโมงทำงานผิดปกติ ${r.anomaliesCount} วัน"></i>`;
-            if (r.outOfRangeCount > 0) flags += `<i class="bi bi-geo-alt-fill text-warning" title="ลงเวลานอกสถานที่ ${r.outOfRangeCount} ครั้ง"></i>`;
+            if (r.anomaliesCount > 0) flags += `< i class="bi bi-exclamation-triangle-fill text-danger me-1" title = "ชั่วโมงทำงานผิดปกติ ${r.anomaliesCount} วัน" ></i > `;
+            if (r.outOfRangeCount > 0) flags += `< i class="bi bi-geo-alt-fill text-warning" title = "ลงเวลานอกสถานที่ ${r.outOfRangeCount} ครั้ง" ></i > `;
 
             h += `
-            <tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}">
+    < tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}" >
                 <td class="ps-3">
                     <div class="user-cell">
                         <img src="${safePic}" class="profile-thumb" style="width:32px; height:32px;" onerror="this.src='https://via.placeholder.com/32'">
@@ -2172,7 +2263,7 @@ window.loadFairnessReport = async () => {
                 <td class="text-end pe-3">
                     <div class="fw-bold ${scoreColor}">${r.score.toFixed(1)}</div>
                 </td>
-            </tr>`;
+            </tr > `;
         });
         tbody.innerHTML = h || '<tr><td colspan="7" class="text-center py-5">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>';
 
@@ -2183,12 +2274,12 @@ window.loadFairnessReport = async () => {
         const sumEl = document.getElementById('fairnessSummary');
         sumEl.classList.remove('hidden');
         sumEl.innerHTML = `
-            <div class="col-md-3">
-                <div class="p-3 bg-white border rounded shadow-sm text-center">
-                    <div class="small text-muted mb-1">จำนวนบุคลากร</div>
-                    <div class="h4 fw-bold mb-0">${totalEmployees} ท่าน</div>
-                </div>
-            </div>
+    < div class="col-md-3" >
+        <div class="p-3 bg-white border rounded shadow-sm text-center">
+            <div class="small text-muted mb-1">จำนวนบุคลากร</div>
+            <div class="h4 fw-bold mb-0">${totalEmployees} ท่าน</div>
+        </div>
+            </div >
             <div class="col-md-3">
                 <div class="p-3 bg-white border rounded shadow-sm text-center">
                     <div class="small text-muted mb-1">รวมเวลาทำงาน</div>
@@ -2362,7 +2453,7 @@ window.copyAttendanceSummaryByDate = async (dateStr) => {
         const d = new Date(dateStr);
         const formattedDate = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
 
-        let text = `📊 สรุปเวลาเข้า-ออกงาน วันที่ ${formattedDate}\n`;
+        let text = `📊 สรุปเวลาเข้า - ออกงาน วันที่ ${formattedDate} \n`;
 
         const depts = Object.keys(grouped).sort();
         depts.forEach(dept => {
@@ -2371,9 +2462,9 @@ window.copyAttendanceSummaryByDate = async (dateStr) => {
             // Let's sort by Name for consistency
             // users.sort((a, b) => a.name.localeCompare(b.name)); 
 
-            text += `\n📍 แผนก: ${dept} (${users.length} ท่าน)\n`;
+            text += `\n📍 แผนก: ${dept} (${users.length} ท่าน) \n`;
             users.forEach((p, idx) => {
-                text += `${idx + 1}. ${p.name}\n   ⏰ ${p.in} - ${p.out} | ⏳ ${p.hrs} ชม.\n`;
+                text += `${idx + 1}. ${p.name} \n   ⏰ ${p.in} - ${p.out} | ⏳ ${p.hrs} ชม.\n`;
             });
         });
 
@@ -2435,7 +2526,7 @@ async function showDayAttendanceDetail(dateStr) {
             return;
         }
 
-        let html = `<div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">`;
+        let html = `< div style = "max-height: 400px; overflow-y: auto; padding-right: 5px;" > `;
 
         const maxHrs = 12; // Baseline for full width
 
@@ -2448,10 +2539,10 @@ async function showDayAttendanceDetail(dateStr) {
             const percentWidth = Math.min((u.hrs / maxHrs) * 100, 100);
 
             html += `
-            <div class="d-flex align-items-center mb-2 p-2 position-relative shadow-sm" 
-                 style="background: #fff; border-radius: 12px; border-left: 5px solid ${borderCol}; overflow: hidden; min-height: 65px;">
+    < div class="d-flex align-items-center mb-2 p-2 position-relative shadow-sm"
+style = "background: #fff; border-radius: 12px; border-left: 5px solid ${borderCol}; overflow: hidden; min-height: 65px;" >
                  
-                <!-- Progress Bar Background -->
+                < !--Progress Bar Background-- >
                 <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${percentWidth}%; background: ${pastel}40; z-index: 0;"></div>
                 
                 <div class="d-flex align-items-center gap-3 w-100" style="position: relative; z-index: 1;">
@@ -2465,7 +2556,7 @@ async function showDayAttendanceDetail(dateStr) {
                         <div class="fw-bold" style="color: ${borderCol}; font-size: 0.9rem;">${u.hrs.toFixed(2)} ชม.</div>
                     </div>
                 </div>
-            </div>`;
+            </div > `;
         });
 
         html += '</div>';
@@ -2542,7 +2633,7 @@ window.viewUserStats = async (uid) => {
 
         let leaveHtml = '';
         if (totalLeaveDays > 0) {
-            leaveHtml = `<div class="mt-3"><h6 class="fw-bold border-bottom pb-1">รายละเอียดวันลา</h6><div class="row g-2">`;
+            leaveHtml = `< div class="mt-3" ><h6 class="fw-bold border-bottom pb-1">รายละเอียดวันลา</h6><div class="row g-2">`;
             Object.entries(leaveSummary).forEach(([type, stat]) => {
                 leaveHtml += `
                 <div class="col-6">
@@ -2552,15 +2643,15 @@ window.viewUserStats = async (uid) => {
                     </div>
                 </div>`;
             });
-            leaveHtml += `</div></div>`;
+            leaveHtml += `</div></div > `;
         } else {
-            leaveHtml = `<div class="mt-3 p-3 bg-light rounded text-muted small">ไม่มีประวัติการลาที่อนุมัติ</div>`;
+            leaveHtml = `< div class="mt-3 p-3 bg-light rounded text-muted small" > ไม่มีประวัติการลาที่อนุมัติ</div > `;
         }
 
         Swal.fire({
-            title: `<div class="d-flex align-items-center gap-2 text-start"><img src="${window.getSafeProfileSrc(u.pictureUrl, 40)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"> <div><div style="font-size:1.1rem;">${u.name}</div><div class="text-muted" style="font-size:0.8rem;">${uid}</div></div></div>`,
+            title: `< div class="d-flex align-items-center gap-2 text-start" > <img src="${window.getSafeProfileSrc(u.pictureUrl, 40)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"> <div><div style="font-size:1.1rem;">${u.name}</div><div class="text-muted" style="font-size:0.8rem;">${uid}</div></div></div>`,
             html: `
-            <div class="text-start mt-3">
+    < div class="text-start mt-3" >
                 <h6 class="fw-bold border-bottom pb-1">สถิติการทำงาน</h6>
                 <div class="row g-2 mb-3">
                     <div class="col-4">
@@ -2593,7 +2684,7 @@ window.viewUserStats = async (uid) => {
                 </div>
 
                 ${leaveHtml}
-            </div>`,
+            </div > `,
             showCloseButton: true,
             confirmButtonText: 'ปิด',
             confirmButtonColor: '#6c757d',
@@ -2616,7 +2707,7 @@ window.loadSurveyResults = async () => {
     try {
         const snap = await getDocs(query(collection(db, "survey_responses"), orderBy("timestamp", "desc")));
         if (snap.empty) {
-            emptyState.innerHTML = `<i class="bi bi-chat-dots text-muted" style="font-size: 3rem;"></i><p class="mt-3 text-muted">ยังไม่มีผู้ตอบแบบสำรวจ</p>`;
+            emptyState.innerHTML = `< i class="bi bi-chat-dots text-muted" style = "font-size: 3rem;" ></i > <p class="mt-3 text-muted">ยังไม่มีผู้ตอบแบบสำรวจ</p>`;
             return;
         }
 
@@ -2636,12 +2727,12 @@ function processSurveyData(responses) {
     const total = responses.length;
     const statsRow = document.getElementById('surveyStatsRow');
     statsRow.innerHTML = `
-        <div class="col-md-3">
-            <div class="p-3 bg-white border rounded shadow-sm text-center">
-                <small class="text-muted d-block">จำนวนผู้ตอบทั้งหมด</small>
-                <h3 class="fw-bold mb-0 text-primary">${total} <small class="fs-6 fw-normal">คน</small></h3>
-            </div>
+    < div class="col-md-3" >
+        <div class="p-3 bg-white border rounded shadow-sm text-center">
+            <small class="text-muted d-block">จำนวนผู้ตอบทั้งหมด</small>
+            <h3 class="fw-bold mb-0 text-primary">${total} <small class="fs-6 fw-normal">คน</small></h3>
         </div>
+        </div >
         <div class="col-md-3">
             <div class="p-3 bg-white border rounded shadow-sm text-center">
                 <small class="text-muted d-block">เฉลี่ยความพอใจ (วนกะ)</small>
@@ -2660,7 +2751,7 @@ function processSurveyData(responses) {
                 <h3 class="fw-bold mb-0 text-warning">${calculatePrefWeight(responses)}%</h3>
             </div>
         </div>
-    `;
+`;
 
     // 2. Favorite Shifts Chart
     const shiftCounts = {};
@@ -2680,7 +2771,7 @@ function processSurveyData(responses) {
         const comment = r.answers['9'] || r.answers['8'] || r.answers['3_reason'] || r.answers['6_reason'];
         if (comment) {
             fbHtml += `
-            <div class="p-3 border-bottom">
+    < div class="p-3 border-bottom" >
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div class="fw-bold text-primary small d-flex align-items-center gap-2">
                         <img src="${window.getSafeProfileSrc(userProfileMap[r.userId]?.pictureUrl, 24)}" class="rounded-circle" width="24" height="24">
@@ -2693,7 +2784,7 @@ function processSurveyData(responses) {
                     ${r.answers['3_reason'] ? `<small class="badge bg-light text-muted fw-normal" title="เหตุผลความพอใจ">💡 ${r.answers['3_reason']}</small>` : ''}
                     ${r.answers['6_reason'] ? `<small class="badge bg-light text-muted fw-normal" title="เหตุผลความยุติธรรม">⚖️ ${r.answers['6_reason']}</small>` : ''}
                 </div>
-            </div>`;
+            </div > `;
         }
     });
     feedbackList.innerHTML = fbHtml || '<p class="text-muted text-center p-3">ไม่มีข้อเสนอแนะเพิ่มเติม</p>';
@@ -2701,7 +2792,7 @@ function processSurveyData(responses) {
     // 5. Full Table
     const tableBody = document.getElementById('surveyFullTableBody');
     tableBody.innerHTML = responses.map(r => `
-        <tr>
+    < tr >
             <td>${r.timestamp?.toDate().toLocaleDateString('th-TH')}</td>
             <td>
                 <div class="fw-bold">${r.name}</div>
@@ -2715,7 +2806,7 @@ function processSurveyData(responses) {
             <td class="text-end">
                 <button class="btn btn-sm btn-light" onclick="viewFullSurvey('${r.id}')"><i class="bi bi-eye"></i></button>
             </td>
-        </tr>
+        </tr >
     `).join('');
 
     // 6. Health & Constraints Summary
@@ -2725,12 +2816,12 @@ function processSurveyData(responses) {
         (r.answers['4'] || []).forEach(h => { healthCounts[h] = (healthCounts[h] || 0) + 1; });
     });
     healthSummary.innerHTML = Object.entries(healthCounts).map(([h, count]) => `
-        <div class="col-md-6">
-            <div class="p-2 border rounded bg-white d-flex justify-content-between align-items-center">
-                <small>${h}</small>
-                <span class="badge bg-danger rounded-pill">${count}</span>
-            </div>
+    < div class="col-md-6" >
+        <div class="p-2 border rounded bg-white d-flex justify-content-between align-items-center">
+            <small>${h}</small>
+            <span class="badge bg-danger rounded-pill">${count}</span>
         </div>
+        </div >
     `).join('') || '<div class="col-12 text-center text-muted">ไม่มีรายงานปัญหาสุขภาพ</div>';
 }
 
@@ -2801,7 +2892,7 @@ window.viewFullSurvey = async (id) => {
     if (!docSnap.exists()) return;
     const r = docSnap.data();
 
-    let html = `<div class="text-start small" style="max-height: 400px; overflow-y: auto;">`;
+    let html = `< div class="text-start small" style = "max-height: 400px; overflow-y: auto;" > `;
     const questions = [
         "1. กะที่ชอบ", "2. การเดินทาง", "3. ความพอใจ", "4. สุขภาพ",
         "5. วันหยุด", "6. ความเป็นธรรม", "7. Extern", "8. ข้อจำกัดอื่น",
@@ -2813,16 +2904,16 @@ window.viewFullSurvey = async (id) => {
         const ans = r.answers[idx];
         const reason = r.answers[idx + '_reason'] || r.answers[idx + '_other'] || '';
         html += `
-        <div class="mb-3 border-bottom pb-2">
+    < div class="mb-3 border-bottom pb-2" >
             <div class="fw-bold text-muted mb-1">${q}</div>
             <div class="text-dark">${Array.isArray(ans) ? ans.join(', ') : (ans || '-')}</div>
             ${reason ? `<div class="mt-1 p-2 bg-light rounded text-muted italic">"${reason}"</div>` : ''}
-        </div>`;
+        </div > `;
     });
-    html += `</div>`;
+    html += `</div > `;
 
     Swal.fire({
-        title: `ผลแบบสำรวจ: ${r.name}`,
+        title: `ผลแบบสำรวจ: ${r.name} `,
         html: html,
         width: '500px',
         confirmButtonText: 'ปิด'
