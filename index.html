@@ -85,13 +85,58 @@
             font-size: 0.8rem !important;
             text-align: center;
             width: 100%;
+            background-color: white !important;
         }
 
-        .shift-chip-compact.active {
-            transform: scale(1.02);
-            background-color: #198754 !important;
+        /* Individual Shift Colors */
+        .sc-0817 {
+            border-color: #0d6efd !important;
+            color: #0d6efd !important;
+        }
+
+        .sc-0817.active {
+            background-color: #0d6efd !important;
             color: white !important;
-            border-color: #198754 !important;
+        }
+
+        .sc-0918 {
+            border-color: #6610f2 !important;
+            color: #6610f2 !important;
+        }
+
+        .sc-0918.active {
+            background-color: #6610f2 !important;
+            color: white !important;
+        }
+
+        .sc-1019 {
+            border-color: #fd7e14 !important;
+            color: #fd7e14 !important;
+        }
+
+        .sc-1019.active {
+            background-color: #fd7e14 !important;
+            color: white !important;
+        }
+
+        .sc-1120 {
+            border-color: #0dcaf0 !important;
+            color: #0dcaf0 !important;
+        }
+
+        .sc-1120.active {
+            background-color: #0dcaf0 !important;
+            color: white !important;
+        }
+
+        .sc-1221 {
+            border-color: #20c997 !important;
+            color: #20c997 !important;
+        }
+
+        .sc-1221.active {
+            background-color: #20c997 !important;
+            color: white !important;
         }
 
 
@@ -423,7 +468,7 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.47</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.48</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -533,15 +578,15 @@
 
                             <!-- Quick Shift Chips (Grid Layout) -->
                             <div class="shift-grid mb-3">
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                <button class="btn btn-sm rounded-pill fw-bold shift-chip-compact sc-0817"
                                     onclick="setQuickShift('08:00','17:00', this)">08-17</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                <button class="btn btn-sm rounded-pill fw-bold shift-chip-compact sc-0918"
                                     onclick="setQuickShift('09:00','18:00', this)">09-18</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                <button class="btn btn-sm rounded-pill fw-bold shift-chip-compact sc-1019"
                                     onclick="setQuickShift('10:00','19:00', this)">10-19</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                <button class="btn btn-sm rounded-pill fw-bold shift-chip-compact sc-1120"
                                     onclick="setQuickShift('11:00','20:00', this)">11-20</button>
-                                <button class="btn btn-outline-success btn-sm rounded-pill fw-bold shift-chip-compact"
+                                <button class="btn btn-sm rounded-pill fw-bold shift-chip-compact sc-1221"
                                     onclick="setQuickShift('12:00','21:00', this)">12-21</button>
                             </div>
 
@@ -1467,12 +1512,10 @@
 
             // UI feedback for chips
             document.querySelectorAll('.shift-chip-compact').forEach(c => {
-                c.classList.remove('active', 'btn-success');
-                c.classList.add('btn-outline-success');
+                c.classList.remove('active');
             });
 
-            btn.classList.remove('btn-outline-success');
-            btn.classList.add('btn-success', 'active');
+            btn.classList.add('active');
         };
 
         window.syncMinDate = () => {
