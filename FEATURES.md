@@ -1,9 +1,13 @@
-# 🚀 Features - MLP Time Attendance Dashboard (v3.48)
+# 🚀 Features - MLP Time Attendance Dashboard (v3.49)
 
-### 🌟 New in v3.48: Edit Leave Requests & Admin Flexibility
-*   ✏️ **Edit Leave Requests:** Administrators can now edit pending leave requests (type, dates, times, and reasons) to correct errors before approval.
-*   🕙 **Closing Shift (12:00 - 21:00):** Integrated throughout the system (Daily Shift, Survey Preferences, and Admin Analysis).
-*   📱 **Mobile Survey Optimization:** Forced horizontal layout for rating buttons (1-5) using CSS Grid, preventing vertical stacking on narrow screens.
+### 🌟 New in v3.49: Separate History & Edit Before Approval
+*   📑 **Separate History Tabs:** Divides approved requests into distinct tabs: "Leave History" (Sick/Vacation) and "Work Schedule Notification" (Shifts/Notifications) for better organization.
+*   ✏️ **Edit Before Approval:** Admins can now modify any pending request (Type, Dates, Times, Reasons, Links) directly before final approval to ensure data accuracy.
+*   🕒 **Enhanced Work Notification (ปฏิบัติงาน):** Dedicated icons and specialized handling for work-related reporting.
+
+### 🌟 Previous Updates
+*   🕙 **Closing Shift (12:00 - 21:00):** Integrated throughout the system.
+*   📱 **Mobile Survey Optimization:** Forced horizontal layout for rating buttons (1-5).
 *   🛡️ **Fairness Score (Refined):** Added Hours Capping, GPS Weighting, and Anomaly Detection.
 *   📊 **Satisfaction Survey:** Full-cycle survey for staff shift preferences with Admin Analytics dash.
 

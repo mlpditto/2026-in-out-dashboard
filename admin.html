@@ -50,7 +50,7 @@
                     title="LIFF Preview">
                     <i class="bi bi-phone"></i><span class="d-none d-sm-inline">Preview LIFF</span>
                 </button>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.48</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.49</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -215,6 +215,11 @@
                                 <button class="nav-link text-muted" id="approved-tab" data-bs-toggle="tab"
                                     data-bs-target="#leaveApproved" type="button" role="tab">ประวัติการลา</button>
                             </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link text-muted" id="schedule-tab" data-bs-toggle="tab"
+                                    data-bs-target="#scheduleApproved" type="button"
+                                    role="tab">แจ้งเวลาปฏิบัติงาน</button>
+                            </li>
                         </ul>
                     </div>
                     <div class="card-body p-0">
@@ -247,6 +252,21 @@
                                             </tr>
                                         </thead>
                                         <tbody id="leaveApprovedTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="scheduleApproved" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="ps-3">พนักงาน</th>
+                                                <th>กะงาน</th>
+                                                <th>วันที่</th>
+                                                <th>สถานะ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="scheduleApprovedTableBody"></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -811,6 +831,62 @@
         </div>
     </div>
 
+    <div class="modal fade" id="editLeaveModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold">✏️ แก้ไขรายละเอียดคำขอ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editLeaveId">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">ประเภทการลา / งาน</label>
+                        <select id="editLeaveType" class="form-select">
+                            <option value="ลาป่วย">🤒 ลาป่วย</option>
+                            <option value="ลากิจ">📋 ลากิจ</option>
+                            <option value="ลาพักร้อน">🌴 ลาพักร้อน</option>
+                            <option value="ลาคลอด">👶 ลาคลอด</option>
+                            <option value="ลาบวช">🙏 ลาบวช</option>
+                            <option value="แจ้งเวลาปฏิบัติงาน">🕒 แจ้งเวลาปฏิบัติงาน</option>
+                            <option value="หยุด (Day Off)">🚫 หยุด (Day Off)</option>
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small">วันที่เริ่ม</label>
+                            <input type="date" id="editLeaveStart" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small">วันที่สิ้นสุด</label>
+                            <input type="date" id="editLeaveEnd" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small">เวลาเริ่ม</label>
+                            <input type="time" id="editLeaveStartTime" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small">เวลาสิ้นสุด</label>
+                            <input type="time" id="editLeaveEndTime" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">เหตุผล / รายละเอียด</label>
+                        <textarea id="editLeaveReason" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small">ลิงก์แนบ (ถ้ามี)</label>
+                        <input type="url" id="editLeaveLink" class="form-control" placeholder="https://...">
+                    </div>
+                    <button onclick="submitEditLeave()"
+                        class="btn btn-primary w-100 py-2 fw-bold shadow-sm">บันทึกการแก้ไข</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="pendingUsersModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
@@ -907,7 +983,7 @@
         }
     </script>
 
-    <script type="module" src="admin.js?v=3.35"></script>
+    <script type="module" src="admin.js?v=3.49"></script>
 </body>
 
 </html>
