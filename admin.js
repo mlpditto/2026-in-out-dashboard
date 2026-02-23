@@ -1943,6 +1943,7 @@ window.loadFairnessReport = async () => {
 
             // Analyze shift distribution & metrics
             const shiftCounts = {};
+            const shiftDates = {};
             const byDay = {};
             uLogs.forEach(l => {
                 const k = l.ts.toLocaleDateString('sv');
@@ -1954,7 +1955,7 @@ window.loadFairnessReport = async () => {
             let anomaliesCount = 0;
             let outOfRangeCount = 0;
 
-            Object.values(byDay).forEach(list => {
+            Object.entries(byDay).forEach(([dateKey, list]) => {
                 list.sort((a, b) => a.ts - b.ts);
                 let dailyHrs = 0, lastIn = null;
 
@@ -1963,6 +1964,8 @@ window.loadFairnessReport = async () => {
                 if (firstIn && lastOut) {
                     const matchedShift = getClosestShift(firstIn.ts, lastOut.ts);
                     shiftCounts[matchedShift] = (shiftCounts[matchedShift] || 0) + 1;
+                    if (!shiftDates[matchedShift]) shiftDates[matchedShift] = [];
+                    shiftDates[matchedShift].push(dateKey);
                 }
 
                 list.forEach(l => {
@@ -2003,6 +2006,7 @@ window.loadFairnessReport = async () => {
                 lateCount,
                 lateMins,
                 shiftCounts,
+                shiftDates,
                 anomaliesCount,
                 outOfRangeCount
             });
@@ -2028,7 +2032,16 @@ window.loadFairnessReport = async () => {
                     const getVal = (s) => parseInt(s.split(':')[0]) || 999;
                     return getVal(a[0]) - getVal(b[0]);
                 })
-                .map(([sh, count]) => `<span class="badge bg-light text-dark border-0 fw-normal" style="font-size:0.65rem;">${sh.replace(/ - /g, '-').replace(/:00/g, '')} (${count})</span>`)
+                .map(([sh, count]) => {
+                    const dates = (r.shiftDates[sh] || []).sort();
+                    const dateList = dates.map(d => {
+                        const dt = new Date(d);
+                        return dt.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
+                    }).join('<br>');
+                    const escapedDates = dateList.replace(/'/g, "\\'");
+                    const shLabel = sh.replace(/ - /g, '-').replace(/:00/g, '');
+                    return `<span class="badge bg-light text-dark border-0 fw-normal" style="font-size:0.65rem; cursor:pointer;" onclick="Swal.fire({ title:'${shLabel}', html:'${escapedDates}', confirmButtonText:'ปิด', width:'320px' })">${shLabel} (${count})</span>`;
+                })
                 .join(' ');
 
             let flags = '';
