@@ -1878,23 +1878,33 @@ window.openEditSchedModal = async (id) => {
     if (!docSnap.exists()) return Swal.fire('Error', 'ไม่พบข้อมูลเวร', 'error');
 
     const data = docSnap.data();
+    const shifts = [
+        { v: "⏰ 08:00 - 17:00", t: "☀️ เช้า (08:00 - 17:00)" },
+        { v: "⏰ 09:00 - 18:00", t: "☀️ เช้า (09:00 - 18:00)" },
+        { v: "⏰ 10:00 - 19:00", t: "🕙 สาย (10:00 - 19:00)" },
+        { v: "⏰ 11:00 - 20:00", t: "🕛 เที่ยง (11:00 - 20:00)" },
+        { v: "⏰ 12:00 - 21:00", t: "🕛 เที่ยง (12:00 - 21:00)" },
+        { v: "🛑 หยุด (Day Off)", t: "🚫 หยุด (Day Off)" },
+        { v: "🤒 ลาป่วย", t: "🤒 ลาป่วย" },
+        { v: "🌴 ลาพักร้อน", t: "🌴 ลาพักร้อน" },
+        { v: "📋 ลากิจ", t: "📋 ลากิจ" }
+    ];
+
+    const currentShift = data.shiftDetail || "";
+    const isStandard = shifts.some(s => s.v === currentShift);
+
     const { value: formValues } = await Swal.fire({
         title: '📝 แก้ไขข้อมูลเวร',
         html: `
             <div class="text-start">
                 <label class="small text-muted mb-1">กะ / รายละเอียด</label>
-                <input id="swal-shift" class="form-control mb-2" value="${data.shiftDetail || ''}" list="swal-shift-options">
-                <datalist id="swal-shift-options">
-                    <option value="☀️ เช้า (08:00 - 17:00)">
-                    <option value="☀️ เช้า (09:00 - 18:00)">
-                    <option value="🕛 เที่ยง (11:00 - 20:00)">
-                    <option value="🕛 เที่ยง (12:00 - 21:00)">
-                    <option value="🕙 สาย (10:00 - 19:00)">
-                    <option value="🚫 หยุด (Day Off)">
-                    <option value="🤒 ลาป่วย">
-                    <option value="🌴 ลาพักร้อน">
-                    <option value="📋 ลากิจ">
-                </datalist>
+                <select id="swal-shift" class="form-select mb-2" onchange="document.getElementById('swal-shift-custom').classList.toggle('d-none', this.value !== 'custom')">
+                    <option value="">-- เลือกกะการทำงาน --</option>
+                    ${shifts.map(s => `<option value="${s.v}" ${s.v === currentShift ? 'selected' : ''}>${s.t}</option>`).join('')}
+                    <option value="custom" ${!isStandard && currentShift ? 'selected' : ''}>-- อื่นๆ (ระบุเอง) --</option>
+                </select>
+                <input id="swal-shift-custom" class="form-control mb-2 ${isStandard || !currentShift ? 'd-none' : ''}" value="${!isStandard ? currentShift : ''}" placeholder="ระบุกะเอง เช่น 07:00 - 16:00">
+                
                 <div class="row g-2 mb-2">
                     <div class="col-6">
                         <label class="small text-muted mb-1">เริ่มวันที่</label>
@@ -1914,8 +1924,10 @@ window.openEditSchedModal = async (id) => {
         confirmButtonText: 'บันทึก',
         cancelButtonText: 'ยกเลิก',
         preConfirm: () => {
+            const shiftSelect = document.getElementById('swal-shift').value;
+            const shiftCustom = document.getElementById('swal-shift-custom').value;
             return {
-                shiftDetail: document.getElementById('swal-shift').value,
+                shiftDetail: shiftSelect === 'custom' ? shiftCustom : shiftSelect,
                 startDate: document.getElementById('swal-start').value,
                 endDate: document.getElementById('swal-end').value,
                 reason: document.getElementById('swal-reason').value
