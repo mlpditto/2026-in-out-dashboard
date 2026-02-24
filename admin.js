@@ -2426,8 +2426,7 @@ window.loadFairnessReport = async () => {
 
         const sumEl = document.getElementById('fairnessSummary');
         sumEl.classList.remove('hidden');
-        sumEl.innerHTML = `
-            <div class="col-md-3">
+        sumEl.innerHTML = `<div class="col-md-3">
                 <div class="p-3 bg-white border rounded shadow-sm text-center">
                     <div class="small text-muted mb-1">จำนวนบุคลากร</div>
                     <div class="h4 fw-bold mb-0">${totalEmployees} ท่าน</div>
