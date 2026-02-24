@@ -1,4 +1,4 @@
-# 🚀 Features - MLP Time Attendance Dashboard (v3.51)
+# 🚀 Features - MLP Time Attendance Dashboard (v3.52)
 
 ### 🌟 New in v3.51: Hover Details & Quick Inspection
 *   🖱️ **Hover Details (Tooltips):** Mouse over any "Card" in the calendar or "Badge" in management tables to instantly see the full name, shift details, or reasons. No more repetitive clicking!

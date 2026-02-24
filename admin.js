@@ -2385,16 +2385,16 @@ window.loadFairnessReport = async () => {
                     }).join('<br>');
                     const escapedDates = dateList.replace(/'/g, "\\'");
                     const shLabel = sh.replace(/ - /g, '-').replace(/:00/g, '');
-                    return `< span class="badge bg-light text-dark border-0 fw-normal" style = "font-size:0.65rem; cursor:pointer;" onclick = "Swal.fire({ title:'${shLabel}', html:'${escapedDates}', confirmButtonText:'ปิด', width:'320px' })" > ${shLabel} (${count})</span > `;
+                    return `<span class="badge bg-light text-dark border-0 fw-normal" style="font-size:0.65rem; cursor:pointer;" onclick="Swal.fire({ title:'${shLabel}', html:'${escapedDates}', confirmButtonText:'ปิด', width:'320px' })">${shLabel} (${count})</span>`;
                 })
                 .join(' ');
 
             let flags = '';
-            if (r.anomaliesCount > 0) flags += `< i class="bi bi-exclamation-triangle-fill text-danger me-1" title = "ชั่วโมงทำงานผิดปกติ ${r.anomaliesCount} วัน" ></i > `;
-            if (r.outOfRangeCount > 0) flags += `< i class="bi bi-geo-alt-fill text-warning" title = "ลงเวลานอกสถานที่ ${r.outOfRangeCount} ครั้ง" ></i > `;
+            if (r.anomaliesCount > 0) flags += `<i class="bi bi-exclamation-triangle-fill text-danger me-1" title="ชั่วโมงทำงานผิดปกติ ${r.anomaliesCount} วัน"></i>`;
+            if (r.outOfRangeCount > 0) flags += `<i class="bi bi-geo-alt-fill text-warning" title="ลงเวลานอกสถานที่ ${r.outOfRangeCount} ครั้ง"></i>`;
 
             h += `
-    < tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}" >
+            <tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}">
                 <td class="ps-3">
                     <div class="user-cell">
                         <img src="${safePic}" class="profile-thumb" style="width:32px; height:32px;" onerror="this.src='https://via.placeholder.com/32'">
@@ -2417,7 +2417,7 @@ window.loadFairnessReport = async () => {
                 <td class="text-end pe-3">
                     <div class="fw-bold ${scoreColor}">${r.score.toFixed(1)}</div>
                 </td>
-            </tr > `;
+            </tr>`;
         });
         tbody.innerHTML = h || '<tr><td colspan="7" class="text-center py-5">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>';
 
@@ -2428,12 +2428,12 @@ window.loadFairnessReport = async () => {
         const sumEl = document.getElementById('fairnessSummary');
         sumEl.classList.remove('hidden');
         sumEl.innerHTML = `
-    < div class="col-md-3" >
-        <div class="p-3 bg-white border rounded shadow-sm text-center">
-            <div class="small text-muted mb-1">จำนวนบุคลากร</div>
-            <div class="h4 fw-bold mb-0">${totalEmployees} ท่าน</div>
-        </div>
-            </div >
+            <div class="col-md-3">
+                <div class="p-3 bg-white border rounded shadow-sm text-center">
+                    <div class="small text-muted mb-1">จำนวนบุคลากร</div>
+                    <div class="h4 fw-bold mb-0">${totalEmployees} ท่าน</div>
+                </div>
+            </div>
             <div class="col-md-3">
                 <div class="p-3 bg-white border rounded shadow-sm text-center">
                     <div class="small text-muted mb-1">รวมเวลาทำงาน</div>

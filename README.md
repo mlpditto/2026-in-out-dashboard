@@ -2,7 +2,7 @@
 
 ระบบลงเวลาพนักงานผ่าน LINE LIFF + Firebase Firestore พร้อมหน้า Admin สำหรับดูรายงาน/จัดการข้อมูล
 
-**Current Version**: `v3.51 - Hover Details & Tooltips` | **Last Updated**: 2026-02-24
+**Current Version**: `v3.52 - Fairness Logic Fix` | **Last Updated**: 2026-02-24
 
 ---
 
@@ -355,6 +355,9 @@
 ---
 
 ## 📝 Changelog
+
+### v3.52 — 2026-02-24
+- 🛠️ **Fairness Logic Fix**: แก้ไขข้อผิดพลาดในการแสดงผลหน้า Fairness ที่มี Code หลุดออกมา (Fix HTML Tag spacing issue)
 
 ### v3.51 — 2026-02-24
 - 🖱️ **Hover Details & Tooltips**: เพิ่มการแสดงรายละเอียด (เหตุผล/หมายเหตุ) เมื่อวางเมาส์เหนือ Card ในปฏิทิน และ Badge ในตารางจัดการเวร/ลา ช่วยให้ตรวจสอบข้อมูลได้รวดเร็วขึ้น
