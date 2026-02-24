@@ -276,26 +276,27 @@ function renderSchedPage() {
             return `${emoji} ${clean}`;
         };
 
+        const tooltip = (v.reason || v.shiftDetail || '').replace(/"/g, '&quot;');
         if (sd.includes('ลาป่วย')) {
             const displayShift = getDisplayShift(v.shiftDetail, '🤒');
-            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🤒 ลาป่วย', '#dc3545', '${v.id}')">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🤒 ลาป่วย', '#dc3545', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
         } else if (sd.includes('ลาพักร้อน') || sd.includes('ลาพักผ่อน')) {
             const displayShift = getDisplayShift(v.shiftDetail, '🌴');
-            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🌴 ลาพักร้อน', '#0d9488', '${v.id}')">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🌴 ลาพักร้อน', '#0d9488', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
         } else if (sd.includes('ลากิจ')) {
             const displayShift = getDisplayShift(v.shiftDetail, '📋');
-            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('📋 ลากิจ', '#0d6efd', '${v.id}')">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('📋 ลากิจ', '#0d6efd', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
         } else if (sd.includes('ลาคลอด')) {
             const displayShift = getDisplayShift(v.shiftDetail, '👶');
-            detailHtml = `<span class="badge" style="background:#e91e8c;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('👶 ลาคลอด', '#e91e8c', '${v.id}')">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#e91e8c;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('👶 ลาคลอด', '#e91e8c', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
         } else if (sd.includes('ลาบวช')) {
             const displayShift = getDisplayShift(v.shiftDetail, '🙏');
-            detailHtml = `<span class="badge" style="background:#f59e0b;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🙏 ลาบวช', '#f59e0b', '${v.id}')">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#f59e0b;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🙏 ลาบวช', '#f59e0b', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
         } else if (sd.includes('หยุด') || sd.includes('day off')) {
             const displayShift = getDisplayShift(v.shiftDetail, '🚫');
-            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🚫 หยุด', '#6c757d', '${v.id}')">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🚫 หยุด', '#6c757d', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
         } else {
-            detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('⏰ เวรทำงาน', '#e9ecef', '${v.id}')">${v.shiftDetail}</span>`;
+            detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('⏰ เวรทำงาน', '#e9ecef', '${v.id}')" title="${tooltip}">${v.shiftDetail}</span>`;
         }
         const safeReason = (v.reason || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
         const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
@@ -446,7 +447,7 @@ window.loadLeaveRequests = async () => {
                 attachLink: v.attachLink
             }).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
-            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem; cursor:pointer;" onclick="renderDetailModal('${leaveEmoji} ${displayType}', '${leaveColor}', null, '${safeObj}')">${leaveEmoji} ${displayType}</span>`;
+            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem; cursor:pointer;" onclick="renderDetailModal('${leaveEmoji} ${displayType}', '${leaveColor}', null, '${safeObj}')" title="เหตุผล: ${v.reason || displayType}">${leaveEmoji} ${displayType}</span>`;
 
             // Get user info for display (empId instead of raw userId)
             const uData = window.allUserData?.[v.userId] || {};
@@ -1480,8 +1481,8 @@ window.renderMainUserList = async () => {
             }
 
             return `<tr class="${op}" style="${rowStyle}">
-                <td class="ps-3"><div class="user-cell"><img src="${window.getSafeProfileSrc(img, 45)}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.displayName && u.displayName !== u.name ? `<small class="text-muted d-block" style="font-size:0.7rem;">(${u.displayName})</small>` : ''}${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
-                <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;">${dept}</span></td>
+                <td class="ps-3"><div class="user-cell" title="${u.name}${u.displayName ? ' (' + u.displayName + ')' : ''}"><img src="${window.getSafeProfileSrc(img, 45)}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.displayName && u.displayName !== u.name ? `<small class="text-muted d-block" style="font-size:0.7rem;">(${u.displayName})</small>` : ''}${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
+                <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;" title="แผนก: ${dept}">${dept}</span></td>
                 <td class="text-end pe-3">
                     <button onclick="viewUserStats('${u.id}')" class="btn btn-sm btn-light border me-1" title="สถิติ"><i class="bi bi-bar-chart"></i></button>
                     <button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button>
@@ -1874,9 +1875,11 @@ function initCalendar() {
             else if (detail.includes('เช้า')) statusClass = 'status-soft-primary';
             else if (detail.includes('เที่ยง') || detail.includes('บ่าย')) statusClass = 'status-soft-warning';
 
+            const tooltip = `${name}${detail ? '\n' + detail : ''}${props.reason && props.reason !== detail ? '\nหมายเหตุ: ' + props.reason : ''}`;
+
             return {
                 html: `
-                <div class="calendar-event-card ${statusClass}" style="${customStyle}">
+                <div class="calendar-event-card ${statusClass}" style="${customStyle}" title="${tooltip.replace(/"/g, '&quot;')}">
                     <div class="calendar-event-header">
                         <img src="${img}" onerror="this.src='https://via.placeholder.com/20'">
                         <div class="calendar-event-title" style="${type === 'attendance' ? 'color: #333;' : ''}">${name}</div>
