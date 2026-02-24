@@ -50,7 +50,7 @@
                     title="LIFF Preview">
                     <i class="bi bi-phone"></i><span class="d-none d-sm-inline">Preview LIFF</span>
                 </button>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.49</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.50</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -659,11 +659,27 @@
 
                     <!-- Profile Picture Section -->
                     <div class="text-center mb-4">
-                        <div class="position-relative d-inline-block">
+                        <div class="position-relative d-inline-block cursor-pointer"
+                            onclick="document.getElementById('profileUploadInput').click()"
+                            title="คลิกเพื่ออัพโหลดรูปใหม่">
                             <img id="editUserImg" src="https://via.placeholder.com/80"
                                 class="rounded-circle border shadow-sm"
                                 style="width: 80px; height: 80px; object-fit: cover;">
+                            <div class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                style="width:28px; height:28px; border: 2px solid #fff;">
+                                <i class="bi bi-camera-fill" style="font-size: 0.85rem;"></i>
+                            </div>
                         </div>
+                        <input type="file" id="profileUploadInput" class="d-none" accept="image/*">
+
+                        <div id="profileUploadProgress" class="mx-auto mt-2 d-none" style="max-width: 150px;">
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                    role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.65rem;">กำลังอัพโหลด...</small>
+                        </div>
+
                         <div class="mt-2 text-center">
                             <label class="small text-muted d-block mb-1">รูปโปรไฟล์ (URL)</label>
                             <input type="text" id="editUserPicUrl" class="form-control form-control-sm text-center"
@@ -983,7 +999,7 @@
         }
     </script>
 
-    <script type="module" src="admin.js?v=3.49"></script>
+    <script type="module" src="admin.js?v=3.50"></script>
 </body>
 
 </html>

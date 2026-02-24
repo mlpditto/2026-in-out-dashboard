@@ -2,6 +2,7 @@ import { getDeptCategoryColor, getDeptPastelColor } from './colors.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // --- 🔴 CONFIG (Public) ---
 const firebaseConfig = {
@@ -18,6 +19,7 @@ const FALLBACK_ADMIN = "medlifeplus@gmail.com";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 let calendarObj, editModal, barChart, editAttendanceModalObj;
 let userProfileMap = {};
@@ -68,6 +70,56 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         document.getElementById('loginPage').classList.remove('hidden');
         document.getElementById('dashboardPage').classList.add('hidden');
+    }
+});
+
+// --- 📸 PROFILE UPLOAD ---
+document.addEventListener('change', async (e) => {
+    if (e.target && e.target.id === 'profileUploadInput') {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const userId = document.getElementById('editUserId').value;
+        if (!userId) return Swal.fire('Error', 'ไม่พบรหัสผู้ใช้', 'error');
+
+        // Show progress UI
+        const progressContainer = document.getElementById('profileUploadProgress');
+        const progressBar = progressContainer.querySelector('.progress-bar');
+        progressContainer.classList.remove('d-none');
+        progressBar.style.width = '0%';
+
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `profiles/${userId}_${Date.now()}.${fileExt}`;
+            const storageRef = ref(storage, fileName);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    progressBar.style.width = progress + '%';
+                },
+                (error) => {
+                    console.error("Upload failed:", error);
+                    progressContainer.classList.add('d-none');
+                    Swal.fire('Upload Error', error.message, 'error');
+                },
+                async () => {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+                    // Update UI
+                    document.getElementById('editUserPicUrl').value = downloadURL;
+                    document.getElementById('editUserImg').src = downloadURL;
+
+                    progressContainer.classList.add('d-none');
+                    Toast.fire({ icon: 'success', title: 'อัพโหลดรูปสำเร็จ (อย่าลืมกดบันทึก)' });
+                }
+            );
+        } catch (err) {
+            console.error("Upload error:", err);
+            progressContainer.classList.add('d-none');
+            Swal.fire('Error', err.message, 'error');
+        }
     }
 });
 

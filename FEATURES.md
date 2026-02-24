@@ -1,9 +1,10 @@
-# 🚀 Features - MLP Time Attendance Dashboard (v3.49)
+# 🚀 Features - MLP Time Attendance Dashboard (v3.50)
 
-### 🌟 New in v3.49: Separate History & Edit Before Approval
-*   📑 **Separate History Tabs:** Divides approved requests into distinct tabs: "Leave History" (Sick/Vacation) and "Work Schedule Notification" (Shifts/Notifications) for better organization.
-*   ✏️ **Edit Before Approval:** Admins can now modify any pending request (Type, Dates, Times, Reasons, Links) directly before final approval to ensure data accuracy.
-*   🕒 **Enhanced Work Notification (ปฏิบัติงาน):** Dedicated icons and specialized handling for work-related reporting.
+### 🌟 New in v3.50: Admin Profile Upload & UI Enhancements
+*   📸 **Admin Profile Upload:** Administrators can now directly upload profile pictures for any employee via the "Edit User" modal. Images are safely stored in Firebase Storage.
+*   ⏳ **Visual Progress Tracking:** Real-time progress bar for file uploads to ensure a smooth administrative experience.
+*   📑 **Separate History Tabs (v3.49):** Organized "Leave History" and "Work Schedule" notification sections.
+*   ✏️ **Edit Before Approval (v3.49):** Correct mistakes in staff requests before they become official.
 
 ### 🌟 Previous Updates
 *   🕙 **Closing Shift (12:00 - 21:00):** Integrated throughout the system.
