@@ -2393,8 +2393,7 @@ window.loadFairnessReport = async () => {
             if (r.anomaliesCount > 0) flags += `<i class="bi bi-exclamation-triangle-fill text-danger me-1" title="ชั่วโมงทำงานผิดปกติ ${r.anomaliesCount} วัน"></i>`;
             if (r.outOfRangeCount > 0) flags += `<i class="bi bi-geo-alt-fill text-warning" title="ลงเวลานอกสถานที่ ${r.outOfRangeCount} ครั้ง"></i>`;
 
-            h += `
-            <tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}">
+            h += `<tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}">
                 <td class="ps-3">
                     <div class="user-cell">
                         <img src="${safePic}" class="profile-thumb" style="width:32px; height:32px;" onerror="this.src='https://via.placeholder.com/32'">
@@ -2419,7 +2418,7 @@ window.loadFairnessReport = async () => {
                 </td>
             </tr>`;
         });
-        tbody.innerHTML = h || '<tr><td colspan="7" class="text-center py-5">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>';
+        tbody.innerHTML = h.trim() || '<tr><td colspan="7" class="text-center py-5">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>';
 
         // 6. Summary Statistics & Chart
         const totalEmployees = report.length;
