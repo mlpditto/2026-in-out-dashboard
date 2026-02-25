@@ -2393,30 +2393,7 @@ window.loadFairnessReport = async () => {
             if (r.anomaliesCount > 0) flags += `<i class="bi bi-exclamation-triangle-fill text-danger me-1" title="ชั่วโมงทำงานผิดปกติ ${r.anomaliesCount} วัน"></i>`;
             if (r.outOfRangeCount > 0) flags += `<i class="bi bi-geo-alt-fill text-warning" title="ลงเวลานอกสถานที่ ${r.outOfRangeCount} ครั้ง"></i>`;
 
-            h += `<tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}">
-                <td class="ps-3">
-                    <div class="user-cell">
-                        <img src="${safePic}" class="profile-thumb" style="width:32px; height:32px;" onerror="this.src='https://via.placeholder.com/32'">
-                        <div>
-                            <div class="fw-bold" style="font-size:0.85rem;">${flags}${r.name}</div>
-                            <small class="text-muted" style="font-size:0.7rem;">${r.dept}</small>
-                        </div>
-                    </div>
-                </td>
-                <td class="text-center">
-                    <div class="fw-bold">${r.days} วัน</div>
-                    <div class="d-flex flex-wrap justify-content-center gap-1 mt-1">
-                        ${shiftDetails || '<small class="text-muted" style="font-size:0.6rem;">ไม่มีข้อมูลกะ</small>'}
-                    </div>
-                </td>
-                <td class="text-center text-primary fw-bold" title="ชั่วโมงถ่วงน้ำหนักและจำกัดเพดาน">${r.hours.toFixed(2)}</td>
-                <td class="text-center"><span class="badge ${avgBadgeCol}">${r.avg.toFixed(2)}</span></td>
-                <td class="text-center ${r.lateCount > 0 ? 'text-danger fw-bold' : 'text-muted'}">${r.lateCount} ครั้ง</td>
-                <td class="text-center text-muted">${r.lateMins} น.</td>
-                <td class="text-end pe-3">
-                    <div class="fw-bold ${scoreColor}">${r.score.toFixed(1)}</div>
-                </td>
-            </tr>`;
+            h += `<tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}"><td class="ps-3"><div class="user-cell"><img src="${safePic}" class="profile-thumb" style="width:32px; height:32px;" onerror="this.src='https://via.placeholder.com/32'"><div><div class="fw-bold" style="font-size:0.85rem;">${flags}${r.name}</div><small class="text-muted" style="font-size:0.7rem;">${r.dept}</small></div></div></td><td class="text-center"><div class="fw-bold">${r.days} วัน</div><div class="d-flex flex-wrap justify-content-center gap-1 mt-1">${shiftDetails || '<small class="text-muted" style="font-size:0.6rem;">ไม่มีข้อมูลกะ</small>'}</div></td><td class="text-center text-primary fw-bold" title="ชั่วโมงถ่วงน้ำหนักและจำกัดเพดาน">${r.hours.toFixed(2)}</td><td class="text-center"><span class="badge ${avgBadgeCol}">${r.avg.toFixed(2)}</span></td><td class="text-center ${r.lateCount > 0 ? 'text-danger fw-bold' : 'text-muted'}">${r.lateCount} ครั้ง</td><td class="text-center text-muted">${r.lateMins} น.</td><td class="text-end pe-3"><div class="fw-bold ${scoreColor}">${r.score.toFixed(1)}</div></td></tr>`;
         });
         tbody.innerHTML = h.trim() || '<tr><td colspan="7" class="text-center py-5">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>';
 
@@ -2426,30 +2403,7 @@ window.loadFairnessReport = async () => {
 
         const sumEl = document.getElementById('fairnessSummary');
         sumEl.classList.remove('hidden');
-        sumEl.innerHTML = `<div class="col-md-3">
-                <div class="p-3 bg-white border rounded shadow-sm text-center">
-                    <div class="small text-muted mb-1">จำนวนบุคลากร</div>
-                    <div class="h4 fw-bold mb-0">${totalEmployees} ท่าน</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-3 bg-white border rounded shadow-sm text-center">
-                    <div class="small text-muted mb-1">รวมเวลาทำงาน</div>
-                    <div class="h4 fw-bold mb-0 text-primary">${totalHrsSum.toFixed(1)} ชม.</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-3 bg-white border rounded shadow-sm text-center">
-                    <div class="small text-muted mb-1">เฉลี่ยต่อคน</div>
-                    <div class="h4 fw-bold mb-0">${avgHrs.toFixed(1)} ชม.</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-3 bg-white border rounded shadow-sm text-center">
-                    <div class="small text-muted mb-1">รวมเวลามาสาย</div>
-                    <div class="h4 fw-bold mb-0 text-danger">${totalLateMins} นาที</div>
-                </div>
-            </div>`;
+        sumEl.innerHTML = `<div class="col-md-3"><div class="p-3 bg-white border rounded shadow-sm text-center"><div class="small text-muted mb-1">จำนวนบุคลากร</div><div class="h4 fw-bold mb-0">${totalEmployees} ท่าน</div></div></div><div class="col-md-3"><div class="p-3 bg-white border rounded shadow-sm text-center"><div class="small text-muted mb-1">รวมเวลาทำงาน</div><div class="h4 fw-bold mb-0 text-primary">${totalHrsSum.toFixed(1)} ชม.</div></div></div><div class="col-md-3"><div class="p-3 bg-white border rounded shadow-sm text-center"><div class="small text-muted mb-1">เฉลี่ยต่อคน</div><div class="h4 fw-bold mb-0">${avgHrs.toFixed(1)} ชม.</div></div></div><div class="col-md-3"><div class="p-3 bg-white border rounded shadow-sm text-center"><div class="small text-muted mb-1">รวมเวลามาสาย</div><div class="h4 fw-bold mb-0 text-danger">${totalLateMins} นาที</div></div></div>`;
 
         renderFairnessChart(report);
         Swal.close();
