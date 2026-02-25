@@ -2,7 +2,7 @@
 
 ระบบลงเวลาพนักงานผ่าน LINE LIFF + Firebase Firestore พร้อมหน้า Admin สำหรับดูรายงาน/จัดการข้อมูล
 
-**Current Version**: `v3.52 - Fairness Logic Fix` | **Last Updated**: 2026-02-24
+**Current Version**: `v3.54 - Fairness Logic & UI Fix` | **Last Updated**: 2026-02-25
 
 ---
 
@@ -355,6 +355,13 @@
 ---
 
 ## 📝 Changelog
+
+### v3.54 — 2026-02-25
+- 🛠️ **Fairness HTML Rendering Fix**: แก้ไข Bug ป้าย HTML หลุดออกมาเป็นข้อความ (Literal Text) โดยการทำความสะอาด White-space ใน Template Literals และใช้ `.trim()`
+- 🎨 **UI Polish**: ปรับหัวตารางคะแนนความยุติธรรมเป็นตัวพิมพ์ใหญ่ "**FAIRNESS SCORE**" เพื่อความสวยงาม
+
+### v3.53 — 2026-02-25
+- 🛠️ **Initial Fairness Fix**: ปรับปรุงประสิทธิภาพการประมวลผลหน้า Fairness และเพิ่มระบบ Cache Busting (v3.53)
 
 ### v3.52 — 2026-02-24
 - 🛠️ **Fairness Logic Fix**: แก้ไขข้อผิดพลาดในการแสดงผลหน้า Fairness ที่มี Code หลุดออกมา (Fix HTML Tag spacing issue)
