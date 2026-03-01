@@ -669,42 +669,66 @@
                     <input type="hidden" id="editUserId">
 
                     <!-- Profile Picture Section -->
-                    <div class="text-center mb-4">
-                        <div class="position-relative d-inline-block cursor-pointer"
-                            onclick="document.getElementById('profileUploadInput').click()"
-                            title="คลิกเพื่ออัพโหลดรูปใหม่">
-                            <img id="editUserImg" src="https://via.placeholder.com/80"
-                                class="rounded-circle border shadow-sm"
-                                style="width: 80px; height: 80px; object-fit: cover;">
-                            <div class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                                style="width:28px; height:28px; border: 2px solid #fff;">
-                                <i class="bi bi-camera-fill" style="font-size: 0.85rem;"></i>
+                    <div class="mb-4 d-flex align-items-center justify-content-center gap-4">
+                        <div class="text-center">
+                            <div class="position-relative d-inline-block cursor-pointer"
+                                onclick="document.getElementById('profileUploadInput').click()"
+                                title="คลิกเพื่ออัพโหลดรูปใหม่">
+                                <img id="editUserImg" src="https://via.placeholder.com/80"
+                                    class="rounded-circle border shadow-sm"
+                                    style="width: 80px; height: 80px; object-fit: cover;">
+                                <div class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                    style="width:28px; height:28px; border: 2px solid #fff;">
+                                    <i class="bi bi-camera-fill" style="font-size: 0.85rem;"></i>
+                                </div>
+                            </div>
+                            <input type="file" id="profileUploadInput" class="d-none" accept="image/*">
+
+                            <div id="profileUploadProgress" class="mx-auto mt-2 d-none" style="max-width: 150px;">
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                        role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.65rem;">กำลังอัพโหลด...</small>
+                            </div>
+
+                            <div class="mt-2 text-center" style="max-width: 150px;">
+                                <label class="small text-muted d-block mb-1">รูปโปรไฟล์ (URL)</label>
+                                <input type="text" id="editUserPicUrl" class="form-control form-control-sm text-center"
+                                    placeholder="https://example.com/photo.jpg"
+                                    oninput="document.getElementById('editUserImg').src = this.value || 'https://via.placeholder.com/80'">
                             </div>
                         </div>
-                        <input type="file" id="profileUploadInput" class="d-none" accept="image/*">
 
-                        <div id="profileUploadProgress" class="mx-auto mt-2 d-none" style="max-width: 150px;">
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                                    role="progressbar" style="width: 0%"></div>
+                        <!-- Status Switch -->
+                        <div class="d-flex flex-column align-items-center">
+                            <label class="small text-muted mb-2 fw-bold">สถานะพนักงาน</label>
+                            <div class="form-check form-switch fs-4 mb-0 d-flex align-items-center justify-content-center"
+                                style="margin-left: -5px;">
+                                <input class="form-check-input m-0" type="checkbox" role="switch"
+                                    id="editUserStatusToggle" style="cursor: pointer;" onchange="
+                                    const txt = document.getElementById('editUserStatusText');
+                                    txt.innerText = this.checked ? 'Active' : 'Inactive';
+                                    txt.className = this.checked ? 'badge bg-success mt-1' : 'badge bg-danger mt-1';
+                                ">
                             </div>
-                            <small class="text-muted" style="font-size: 0.65rem;">กำลังอัพโหลด...</small>
-                        </div>
-
-                        <div class="mt-2 text-center">
-                            <label class="small text-muted d-block mb-1">รูปโปรไฟล์ (URL)</label>
-                            <input type="text" id="editUserPicUrl" class="form-control form-control-sm text-center"
-                                placeholder="https://example.com/photo.jpg"
-                                oninput="document.getElementById('editUserImg').src = this.value || 'https://via.placeholder.com/80'">
+                            <span id="editUserStatusText" class="badge bg-success mt-1"
+                                style="font-size: 0.7rem;">Active</span>
                         </div>
                     </div>
 
-                    <div class="form-floating mb-3"><input type="text" id="editEmpId" class="form-control"
-                            placeholder="รหัส"><label>รหัสพนักงาน</label></div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="form-floating"><input type="text" id="editEmpId" class="form-control"
+                                    placeholder="รหัส"><label>รหัสพนักงาน</label></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating"><input type="tel" id="editUserPhone" class="form-control"
+                                    placeholder="เบอร์โทร"><label>เบอร์โทร</label></div>
+                        </div>
+                    </div>
                     <div class="form-floating mb-3"><input type="text" id="editUserName" class="form-control"
                             placeholder="ชื่อ"><label>ชื่อ-นามสกุล</label></div>
-                    <div class="form-floating mb-3"><input type="tel" id="editUserPhone" class="form-control"
-                            placeholder="เบอร์โทร"><label>เบอร์โทร</label></div>
                     <div class="form-floating mb-3">
                         <input type="text" id="editUserDept" class="form-control" list="deptOptions"
                             placeholder="ระบุแผนก">
@@ -718,23 +742,12 @@
                         </datalist>
                         <label>แผนก</label>
                     </div>
-                    <div class="form-floating mb-3">
-                        <select id="editUserStatus" class="form-select">
-                            <option value="Approved">ใช้งานปกติ (Active)</option>
-                            <option value="Inactive">ปิดการใช้งาน (Inactive)</option>
-                        </select>
-                        <label>สถานะพนักงาน</label>
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <div class="form-floating"><input type="text" id="editTaskClockIn" class="form-control"
-                                    placeholder="ข้อความ"><label>แจ้งเตือนเมื่อเข้างาน</label></div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-floating"><input type="text" id="editTaskClockOut" class="form-control"
-                                    placeholder="ข้อความ"><label>แจ้งเตือนเมื่อออกงาน</label></div>
-                        </div>
-                    </div>
+
+                    <div class="form-floating mb-3"><input type="text" id="editTaskClockIn" class="form-control"
+                            placeholder="ข้อความ"><label>แจ้งเตือนเมื่อเข้างาน</label></div>
+
+                    <div class="form-floating mb-3"><input type="text" id="editTaskClockOut" class="form-control"
+                            placeholder="ข้อความ"><label>แจ้งเตือนเมื่อออกงาน</label></div>
                     <div class="mb-3 px-1">
                         <div class="form-check form-switch border p-2 rounded-3 text-start bg-light shadow-sm">
                             <input class="form-check-input ms-2 me-2 focus-ring" type="checkbox" role="switch"
