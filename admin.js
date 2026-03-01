@@ -76,49 +76,51 @@ onAuthStateChanged(auth, async (user) => {
 // --- 📸 PROFILE UPLOAD ---
 document.addEventListener('change', async (e) => {
     if (e.target && e.target.id === 'profileUploadInput') {
-        const file = e.target.files[0];
+        const inputElement = e.target;
+        const file = inputElement.files[0];
         if (!file) return;
 
         const userId = document.getElementById('editUserId').value;
-        if (!userId) return Swal.fire('Error', 'ไม่พบรหัสผู้ใช้', 'error');
+        if (!userId) {
+            inputElement.value = '';
+            return Swal.fire('Error', 'ไม่พบรหัสผู้ใช้', 'error');
+        }
 
         // Show progress UI
         const progressContainer = document.getElementById('profileUploadProgress');
         const progressBar = progressContainer.querySelector('.progress-bar');
         progressContainer.classList.remove('d-none');
-        progressBar.style.width = '0%';
+        progressBar.style.width = '10%'; // initial width
 
         try {
             const fileExt = file.name.split('.').pop();
             const fileName = `profiles/${userId}_${Date.now()}.${fileExt}`;
             const storageRef = ref(storage, fileName);
+
+            // Using await instead of observers for better error handling
             const uploadTask = uploadBytesResumable(storageRef, file);
+            await uploadTask;
+            progressBar.style.width = '100%';
 
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    progressBar.style.width = progress + '%';
-                },
-                (error) => {
-                    console.error("Upload failed:", error);
-                    progressContainer.classList.add('d-none');
-                    Swal.fire('Upload Error', error.message, 'error');
-                },
-                async () => {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            const downloadURL = await getDownloadURL(storageRef);
 
-                    // Update UI
-                    document.getElementById('editUserPicUrl').value = downloadURL;
-                    document.getElementById('editUserImg').src = downloadURL;
+            // Update UI
+            document.getElementById('editUserPicUrl').value = downloadURL;
+            document.getElementById('editUserImg').src = downloadURL;
 
-                    progressContainer.classList.add('d-none');
-                    Toast.fire({ icon: 'success', title: 'อัพโหลดรูปสำเร็จ (อย่าลืมกดบันทึก)' });
-                }
-            );
+            progressContainer.classList.add('d-none');
+            Toast.fire({ icon: 'success', title: 'อัพโหลดรูปสำเร็จ (อย่าลืมกดบันทึก)' });
         } catch (err) {
             console.error("Upload error:", err);
             progressContainer.classList.add('d-none');
-            Swal.fire('Error', err.message, 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'อัพโหลดไม่สำเร็จ',
+                text: 'กรุณาตรวจสอบการตั้งค่า Firebase Storage (หรือ CORS)',
+                footer: err.message
+            });
+        } finally {
+            inputElement.value = ''; // Reset input to allow re-upload
         }
     }
 });
