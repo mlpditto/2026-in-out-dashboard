@@ -641,52 +641,64 @@
                 <!-- Collapsible Content -->
                 <div id="workingHoursContent" style="display: none;">
 
-                    <!-- New Stacked Layout resembling the design -->
-                    <div class="card border-0 shadow-sm"
-                        style="border-radius: 16px; overflow: hidden; background: white;">
-
-                        <!-- Today (or Total for Externs) -->
-                        <div id="totalHoursCard" class="px-3 py-3" style="border-top: 3px solid #0d6efd;">
-                            <div class="d-flex align-items-center mb-1 text-muted" style="opacity: 0.7;">
-                                <i class="bi bi-infinity me-2" style="font-size: 1.2rem;"></i>
-                            </div>
-                            <h3 class="mb-0 fw-bold text-dark" id="hours1Value"
-                                style="color: #2c3e50 !important; font-size: 1.5rem;">0.00</h3>
-                            <div class="small text-muted" id="hours1Title" style="font-size: 0.8rem;">วันนี้ (เสร็จสิ้น)
+                    <!-- New 2x2 Grid Layout -->
+                    <div class="row g-2 mb-3">
+                        <!-- Today -->
+                        <div class="col-6">
+                            <div class="p-3 h-100 position-relative shadow-sm"
+                                style="background-color: #f1f1ee; border-radius: 12px; border: 1px solid #dcdcdc;">
+                                <div class="text-muted mb-2 text-truncate" style="font-size: 0.85rem;" id="hours1Title">
+                                    Today</div>
+                                <div class="d-flex align-items-end justify-content-end mt-3">
+                                    <div class="me-auto text-muted small position-absolute"
+                                        style="left: 12px; bottom: 12px; font-size: 0.65rem; line-height: 1.2;"
+                                        id="todayInOutText">
+                                    </div>
+                                    <div>
+                                        <span class="fs-1 fw-bold" id="hours1Value"
+                                            style="color: #636363; line-height: 1;">0.00</span>
+                                        <span style="color: #636363; font-size: 0.9rem; margin-left: 2px;">hr</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Week -->
-                        <div id="monthlyHoursCard" class="px-3 py-3" style="border-top: 3px solid #ffc107;">
-                            <div class="d-flex align-items-center mb-1 text-muted" style="opacity: 0.7;">
-                                <i class="bi bi-file-earmark-text me-2" style="font-size: 1.1rem;"></i>
+                        <div class="col-6">
+                            <div class="p-3 h-100 shadow-sm"
+                                style="background-color: #c6d8f6; border-radius: 12px; border: 1px solid #aebce3;">
+                                <div class="text-muted mb-2 text-truncate" style="font-size: 0.85rem;" id="hours2Title">
+                                    This week</div>
+                                <div class="text-end mt-3" style="line-height: 1;">
+                                    <span class="fs-1 fw-bold" id="hours2Value" style="color: #555;">0.00</span>
+                                    <span style="color: #555; font-size: 0.9rem; margin-left: 2px;">hr</span>
+                                </div>
                             </div>
-                            <h3 class="mb-0 fw-bold text-dark" id="hours2Value"
-                                style="color: #2c3e50 !important; font-size: 1.5rem;">0.00</h3>
-                            <div class="small text-muted" id="hours2Title" style="font-size: 0.8rem;">สัปดาห์นี้</div>
                         </div>
 
                         <!-- Month -->
-                        <div id="yearlyHoursCard" class="px-3 py-3" style="border-top: 3px solid #198754;">
-                            <div class="d-flex align-items-center mb-1 text-muted" style="opacity: 0.7;">
-                                <i class="bi bi-calendar-month me-2" style="font-size: 1.1rem;"></i>
-                                <span style="font-size: 0.7rem;" class="fw-bold opacity-75">Aug</span>
+                        <div class="col-6">
+                            <div class="p-3 h-100 shadow-sm"
+                                style="background-color: #d4e5ce; border-radius: 12px; border: 1px solid #c2d3c0;">
+                                <div class="text-muted mb-2 text-truncate" style="font-size: 0.85rem;" id="hours3Title">
+                                    This month</div>
+                                <div class="text-end mt-3" style="line-height: 1;">
+                                    <span class="fs-1 fw-bold" id="hours3Value" style="color: #555;">0.00</span>
+                                </div>
                             </div>
-                            <h3 class="mb-0 fw-bold text-dark" id="hours3Value"
-                                style="color: #2c3e50 !important; font-size: 1.5rem;">0.00</h3>
-                            <div class="small text-muted" id="hours3Title" style="font-size: 0.8rem;">เดือนนี้</div>
                         </div>
 
                         <!-- Year -->
-                        <div class="px-3 py-3" style="border-top: 3px solid #0dcaf0;">
-                            <div class="d-flex align-items-center mb-1 text-muted" style="opacity: 0.7;">
-                                <i class="bi bi-calendar-check me-2" style="font-size: 1.1rem;"></i>
+                        <div class="col-6">
+                            <div class="p-3 h-100 shadow-sm"
+                                style="background-color: #fde2c5; border-radius: 12px; border: 1px solid #e1cbb3;">
+                                <div class="text-muted mb-2 text-truncate" style="font-size: 0.85rem;" id="hours4Title">
+                                    This year</div>
+                                <div class="text-end mt-3" style="line-height: 1;">
+                                    <span class="fs-1 fw-bold" id="hours4Value" style="color: #555;">0.00</span>
+                                </div>
                             </div>
-                            <h3 class="mb-0 fw-bold text-dark" id="hours4Value"
-                                style="color: #2c3e50 !important; font-size: 1.5rem;">0.00</h3>
-                            <div class="small text-muted" style="font-size: 0.8rem;">ปีนี้ / ชั้่วโมงรวมทั้งหมด</div>
                         </div>
-
                     </div>
 
                     <!-- History inside Working Hours -->
@@ -699,753 +711,754 @@
                     </div>
 
                 </div>
+            </div>
 
-                <!-- Cash Submission Prompt -->
-                <div id="cashPrompt" class="mb-3 hidden"
-                    style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #20c997; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
-                    onclick="show('cashPage')">
-                    <div class="px-3 py-2 d-flex align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                            style="width: 36px; height: 36px; background: #e0f8f1; color: #20c997; flex-shrink: 0;">
-                            <i class="bi bi-cash-stack" style="font-size: 1.1rem;"></i>
-                        </div>
-                        <div style="flex-grow: 1; min-width: 0;">
-                            <div class="fw-bold text-dark text-truncate"
-                                style="font-size: 0.95rem; letter-spacing: -0.2px;">
-                                นำส่งยอดเงินประจำกะ</div>
-                            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
-                                บันทึกการส่งมอบเหรียญและธนบัตร 💰</div>
-                        </div>
-                        <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
+            <!-- Cash Submission Prompt -->
+            <div id="cashPrompt" class="mb-3 hidden"
+                style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #20c997; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
+                onclick="show('cashPage')">
+                <div class="px-3 py-2 d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 36px; height: 36px; background: #e0f8f1; color: #20c997; flex-shrink: 0;">
+                        <i class="bi bi-cash-stack" style="font-size: 1.1rem;"></i>
                     </div>
-                </div>
-
-                <!-- Schedule -->
-                <div class="mt-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2"
-                        onclick="toggleSection('scheduleContent')" style="cursor: pointer;">
-                        <h4 class="text-muted m-0"><i class="bi bi-calendar-event"></i> ตารางเวรของฉัน</h4>
-                        <i class="bi bi-chevron-down text-muted" id="icon-scheduleContent"></i>
+                    <div style="flex-grow: 1; min-width: 0;">
+                        <div class="fw-bold text-dark text-truncate"
+                            style="font-size: 0.95rem; letter-spacing: -0.2px;">
+                            นำส่งยอดเงินประจำกะ</div>
+                        <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
+                            บันทึกการส่งมอบเหรียญและธนบัตร 💰</div>
                     </div>
-                    <div id="scheduleContent" style="display: none;">
-                        <div id="scheduleList">กำลังโหลด...</div>
-                    </div>
-                </div>
-
-                <!-- History Moved Inside Working Hours Summary -->
-                <!-- Satisfaction Survey Card (Premium Balanced) - Moved to bottom -->
-                <div id="surveyPrompt" class="mb-3 mt-4"
-                    style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #ff8e71; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
-                    onclick="show('surveyPage')">
-                    <div class="px-3 py-2 d-flex align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                            style="width: 36px; height: 36px; background: #fff5f2; color: #ff8e71; flex-shrink: 0;">
-                            <i class="bi bi-star-fill" style="font-size: 1.1rem;"></i>
-                        </div>
-                        <div style="flex-grow: 1; min-width: 0;">
-                            <div class="fw-bold text-dark text-truncate"
-                                style="font-size: 0.95rem; letter-spacing: -0.2px;">
-                                แบบสำรวจความพึงพอใจประจำกะ</div>
-                            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
-                                ช่วยเราพัฒนาและปรับปรุงระบบให้ดียิ่งขึ้นครับ ✨</div>
-                        </div>
-                        <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
-                    </div>
-                </div>
-
-                <div class="text-center mt-5 mb-4">
-                    <button onclick="location.reload(true)" class="btn btn-sm btn-outline-secondary border-0 opacity-50"
-                        style="font-size: 12px; width: auto; margin: 0 auto;">
-                        <i class="bi bi-arrow-clockwise"></i> Force Refresh
-                    </button>
+                    <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
                 </div>
             </div>
 
-            <!-- --- CASH SUBMISSION PAGE --- -->
-            <div id="cashPage" class="hidden pb-5">
-                <div class="d-flex align-items-center gap-2 mb-4">
-                    <button class="btn btn-light rounded-circle p-2" onclick="show('mainPage')"
-                        style="width: 40px; height: 40px; border: 1px solid #ddd;">
-                        <i class="bi bi-chevron-left text-dark"></i>
-                    </button>
-                    <h4 class="mb-0 fw-bold">ส่งยอดเงินประจำกะ</h4>
+            <!-- Schedule -->
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2"
+                    onclick="toggleSection('scheduleContent')" style="cursor: pointer;">
+                    <h4 class="text-muted m-0"><i class="bi bi-calendar-event"></i> ตารางเวรของฉัน</h4>
+                    <i class="bi bi-chevron-down text-muted" id="icon-scheduleContent"></i>
                 </div>
-
-                <form id="cashForm" onsubmit="submitCash(event)">
-                    <div class="mb-3">
-                        <label class="form-label text-dark fw-bold small">เลือกประเภทลิ้นชัก</label>
-                        <select id="drawerSelect"
-                            class="form-select bg-white text-dark shadow-sm border-0 py-3 rounded-4"
-                            onchange="calcCash()">
-                            <option value="top">ลิ้นชักบน (เป้าหมายยอดรวม: 5,000)</option>
-                            <option value="bottom">ลิ้นชักล่าง (เป้าหมายยอดรวม: 14,000)</option>
-                        </select>
-                    </div>
-
-                    <div class="card border-0 shadow-sm mb-3"
-                        style="border-radius: 12px; overflow: hidden; background: #121212; color: white;">
-                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                            <table class="table table-dark table-borderless align-middle mb-0"
-                                style="background: transparent;">
-                                <thead
-                                    style="border-bottom: 1px solid #333; position: sticky; top: 0; background: #121212; z-index: 1;">
-                                    <tr>
-                                        <th class="py-3 text-white fw-light" style="font-size: 0.85rem; width: 35%;">
-                                            ประเภทเงิน</th>
-                                        <th class="py-3 text-white text-center fw-light"
-                                            style="font-size: 0.85rem; width: 15%;">มูลค่า</th>
-                                        <th class="py-3 text-white text-center fw-light"
-                                            style="font-size: 0.85rem; width: 25%;">จำนวน</th>
-                                        <th class="py-3 text-white text-end fw-light"
-                                            style="font-size: 0.85rem; padding-right: 15px; width: 25%;">ยอดย่อย</th>
-                                    </tr>
-                                </thead>
-                                <!-- COINS PAGE -->
-                                <tbody id="coins" style="display: table-row-group;">
-                                    <!-- Generated by JS -->
-                                </tbody>
-                                <!-- BANKNOTES PAGE -->
-                                <tbody id="banknotes" style="display: none;">
-                                    <!-- Generated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- PAGINATION -->
-                        <div class="d-flex justify-content-center py-3"
-                            style="background: #1a1a1a; border-top: 1px solid #333;">
-                            <nav aria-label="Cash Form Pagination">
-                                <ul class="pagination pagination-sm mb-0 shadow border border-dark rounded-pill"
-                                    style="overflow: hidden;">
-                                    <li class="page-item active" id="page-item-coins">
-                                        <button class="page-link border-0 px-4 py-2 text-white bg-primary fw-bold"
-                                            onclick="switchCashPage('coins')" type="button">หน้า 1 : เหรียญ</button>
-                                    </li>
-                                    <li class="page-item" id="page-item-banknotes">
-                                        <button class="page-link border-0 px-4 py-2 text-white bg-dark opacity-50"
-                                            onclick="switchCashPage('banknotes')" type="button">หน้า 2 : ธนบัตร</button>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
-
-                        <!-- SUMMARY FOOTER -->
-                        <div class="p-3" style="border-top: 1px solid #333; background: #0a0a0a;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-white opacity-75 small fw-light">เป้าหมาย (Target)</span>
-                                <span class="text-white fw-bold" id="cashTargetShow">5,000.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-white opacity-75 small fw-light">รวมยอดนับได้จริง (Counted)</span>
-                                <span class="text-white fw-bold" id="cashTotalAmount">0.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center pt-2"
-                                style="border-top: 1px dashed #333;">
-                                <span class="text-white opacity-75 fw-bold">ผลต่าง (Diff)</span>
-                                <span class="fw-bold fs-4" id="cashDiffAmount" style="color: #ffc107;">0.00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex w-100 gap-2 mt-2">
-                        <button type="submit" class="btn btn-success py-3 fw-bold fs-6 shadow flex-grow-1"
-                            style="border-radius: 12px;">
-                            <i class="bi bi-line me-2"></i>ส่งยอด (LINE)
-                        </button>
-                        <button type="button" class="btn btn-outline-dark py-3 fw-bold fs-6 shadow"
-                            style="border-radius: 12px; min-width: 60px;" onclick="copyCashSummary()" id="copyCashBtn">
-                            <i class="bi bi-clipboard"></i>
-                        </button>
-                    </div>
-                </form>
+                <div id="scheduleContent" style="display: none;">
+                    <div id="scheduleList">กำลังโหลด...</div>
+                </div>
             </div>
 
-            <!-- --- SURVEY PAGE --- -->
-            <div id="surveyPage" class="hidden">
-                <div class="d-flex align-items-center gap-2 mb-4">
-                    <button class="btn btn-light rounded-circle p-2" onclick="show('mainPage')"
-                        style="width: 40px; height: 40px; border: 1px solid #ddd;">
-                        <i class="bi bi-chevron-left text-dark"></i>
-                    </button>
-                    <h4 class="mb-0">แบบสำรวจกะงาน</h4>
-                </div>
-
-                <div class="progress mb-4" style="height: 6px; border-radius: 10px; background-color: #fcece8;">
-                    <div id="surveyProgress" class="progress-bar" style="width: 10%; background-color: #ff8e71;"></div>
-                </div>
-
-                <form id="shiftSurveyForm" onsubmit="submitSurvey(event)">
-                    <!-- Questions will be injected here via JS -->
-                    <div id="surveyContent"></div>
-
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="button" id="prevQuestBtn" class="btn btn-outline flex-grow-1 hidden"
-                            onclick="changeQuestion(-1)" style="border-color: #ff8e71; color: #ff8e71;">กลับ</button>
-                        <button type="button" id="nextQuestBtn" class="btn flex-grow-1 text-white fw-bold"
-                            style="background-color: #ff8e71;" onclick="changeQuestion(1)">ถัดไป</button>
-                        <button type="submit" id="submitSurveyBtn"
-                            class="btn btn-success flex-grow-1 hidden">ส่งแบบสำรวจ</button>
+            <!-- History Moved Inside Working Hours Summary -->
+            <!-- Satisfaction Survey Card (Premium Balanced) - Moved to bottom -->
+            <div id="surveyPrompt" class="mb-3 mt-4"
+                style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #ff8e71; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
+                onclick="show('surveyPage')">
+                <div class="px-3 py-2 d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 36px; height: 36px; background: #fff5f2; color: #ff8e71; flex-shrink: 0;">
+                        <i class="bi bi-star-fill" style="font-size: 1.1rem;"></i>
                     </div>
-                </form>
+                    <div style="flex-grow: 1; min-width: 0;">
+                        <div class="fw-bold text-dark text-truncate"
+                            style="font-size: 0.95rem; letter-spacing: -0.2px;">
+                            แบบสำรวจความพึงพอใจประจำกะ</div>
+                        <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
+                            ช่วยเราพัฒนาและปรับปรุงระบบให้ดียิ่งขึ้นครับ ✨</div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
+                </div>
+            </div>
+
+            <div class="text-center mt-5 mb-4">
+                <button onclick="location.reload(true)" class="btn btn-sm btn-outline-secondary border-0 opacity-50"
+                    style="font-size: 12px; width: auto; margin: 0 auto;">
+                    <i class="bi bi-arrow-clockwise"></i> Force Refresh
+                </button>
             </div>
         </div>
 
-        <script>
-            // Emergency Debugger - Runs immediately
-            window.log = (msg, isError = false) => {
-                console.log(msg);
-                const debug = document.getElementById('debugConsole');
-                if (debug) {
-                    if (isError) debug.style.display = 'block';
-                    debug.innerHTML += `<div>> ${msg}</div>`;
-                    debug.scrollTop = debug.scrollHeight;
+        <!-- --- CASH SUBMISSION PAGE --- -->
+        <div id="cashPage" class="hidden pb-5">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <button class="btn btn-light rounded-circle p-2 d-flex justify-content-center align-items-center"
+                    onclick="show('mainPage')" style="width: 40px; height: 40px; border: 1px solid #ddd;">
+                    <i class="bi bi-chevron-left text-dark fs-5" style="margin-left: -2px;"></i>
+                </button>
+                <h4 class="mb-0 fw-bold ms-2">ส่งยอดเงินประจำกะ</h4>
+            </div>
+
+            <form id="cashForm" onsubmit="submitCash(event)">
+                <div class="mb-3">
+                    <label class="form-label text-dark fw-bold small">เลือกประเภทลิ้นชัก</label>
+                    <select id="drawerSelect" class="form-select bg-white text-dark shadow-sm border-0 py-3 rounded-4"
+                        onchange="calcCash()">
+                        <option value="top">ลิ้นชักบน (เป้าหมายยอดรวม: 5,000)</option>
+                        <option value="bottom">ลิ้นชักล่าง (เป้าหมายยอดรวม: 14,000)</option>
+                    </select>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-3"
+                    style="border-radius: 12px; overflow: hidden; background: #121212; color: white;">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-dark table-borderless align-middle mb-0"
+                            style="background: transparent;">
+                            <thead
+                                style="border-bottom: 1px solid #333; position: sticky; top: 0; background: #121212; z-index: 1;">
+                                <tr>
+                                    <th class="py-3 text-white text-center fw-light"
+                                        style="font-size: 0.85rem; width: 25%;">
+                                        ประเภท</th>
+                                    <th class="py-3 text-white text-center fw-light"
+                                        style="font-size: 0.85rem; width: 35%;">จำนวน</th>
+                                    <th class="py-3 text-white text-end fw-light"
+                                        style="font-size: 0.85rem; padding-right: 15px; width: 40%;">ยอดย่อย</th>
+                                </tr>
+                            </thead>
+                            <!-- COINS PAGE -->
+                            <tbody id="coins" style="display: table-row-group;">
+                                <!-- Generated by JS -->
+                            </tbody>
+                            <!-- BANKNOTES PAGE -->
+                            <tbody id="banknotes" style="display: none;">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION -->
+                    <div class="d-flex justify-content-center py-3"
+                        style="background: #1a1a1a; border-top: 1px solid #333;">
+                        <nav aria-label="Cash Form Pagination">
+                            <ul class="pagination pagination-sm mb-0 shadow border border-dark rounded-pill"
+                                style="overflow: hidden;">
+                                <li class="page-item active" id="page-item-coins">
+                                    <button class="page-link border-0 px-4 py-2 text-white bg-primary fw-bold"
+                                        onclick="switchCashPage('coins')" type="button">หน้า 1 : เหรียญ</button>
+                                </li>
+                                <li class="page-item" id="page-item-banknotes">
+                                    <button class="page-link border-0 px-4 py-2 text-white bg-dark opacity-50"
+                                        onclick="switchCashPage('banknotes')" type="button">หน้า 2 : ธนบัตร</button>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                    <!-- SUMMARY FOOTER -->
+                    <div class="p-3" style="border-top: 1px solid #333; background: #0a0a0a;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-white opacity-75 small fw-light">เป้าหมาย (Target)</span>
+                            <span class="text-white fw-bold" id="cashTargetShow">5,000.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-white opacity-75 small fw-light">รวมยอดนับได้จริง (Counted)</span>
+                            <span class="text-white fw-bold" id="cashTotalAmount">0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2"
+                            style="border-top: 1px dashed #333;">
+                            <span class="text-white opacity-75 fw-bold">ผลต่าง (Diff)</span>
+                            <span class="fw-bold fs-4" id="cashDiffAmount" style="color: #ffc107;">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-nowrap w-100 gap-2 mt-2 mb-2">
+                    <button type="submit" class="btn btn-success py-2 fw-bold flex-grow-1 shadow-sm"
+                        style="border-radius: 12px; background: #20c997; border: none; font-size: 1rem;">
+                        <i class="bi bi-line me-2"></i>ส่งยอด (LINE)
+                    </button>
+                    <button type="button" class="btn btn-light py-2 shadow-sm"
+                        style="border-radius: 12px; min-width: 50px; border: 1px solid #ddd; color: #555;"
+                        onclick="copyCashSummary()">
+                        <i class="bi bi-clipboard fs-5"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- --- SURVEY PAGE --- -->
+        <div id="surveyPage" class="hidden">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <button class="btn btn-light rounded-circle p-2" onclick="show('mainPage')"
+                    style="width: 40px; height: 40px; border: 1px solid #ddd;">
+                    <i class="bi bi-chevron-left text-dark"></i>
+                </button>
+                <h4 class="mb-0">แบบสำรวจกะงาน</h4>
+            </div>
+
+            <div class="progress mb-4" style="height: 6px; border-radius: 10px; background-color: #fcece8;">
+                <div id="surveyProgress" class="progress-bar" style="width: 10%; background-color: #ff8e71;"></div>
+            </div>
+
+            <form id="shiftSurveyForm" onsubmit="submitSurvey(event)">
+                <!-- Questions will be injected here via JS -->
+                <div id="surveyContent"></div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button" id="prevQuestBtn" class="btn btn-outline flex-grow-1 hidden"
+                        onclick="changeQuestion(-1)" style="border-color: #ff8e71; color: #ff8e71;">กลับ</button>
+                    <button type="button" id="nextQuestBtn" class="btn flex-grow-1 text-white fw-bold"
+                        style="background-color: #ff8e71;" onclick="changeQuestion(1)">ถัดไป</button>
+                    <button type="submit" id="submitSurveyBtn"
+                        class="btn btn-success flex-grow-1 hidden">ส่งแบบสำรวจ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Emergency Debugger - Runs immediately
+        window.log = (msg, isError = false) => {
+            console.log(msg);
+            const debug = document.getElementById('debugConsole');
+            if (debug) {
+                if (isError) debug.style.display = 'block';
+                debug.innerHTML += `<div>> ${msg}</div>`;
+                debug.scrollTop = debug.scrollHeight;
+            }
+            const loadingText = document.getElementById('loadingText');
+            if (loadingText) loadingText.innerText = msg;
+        };
+
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            window.log('CRITICAL: ' + msg + ' (L:' + lineNo + ')', true);
+            return false;
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.log('หน้าเว็บโหลดเสร็จแล้ว (DOM Ready)');
+        });
+    </script>
+
+
+    <script type="module">
+        import { getDeptCategoryColor } from './colors.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- 🔴 CONFIG (Public) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
+            authDomain: "in-out-dashboard.firebaseapp.com",
+            projectId: "in-out-dashboard",
+            storageBucket: "in-out-dashboard.firebasestorage.app",
+            messagingSenderId: "846266395224",
+            appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
+            measurementId: "G-WN14VJSG17"
+        };
+        const LIFF_ID = "2008951813-KgjInNxK";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let currentUser = {};
+
+        // MAIN
+        async function main() {
+            // --- Preview Mode for Admin ---
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('preview') === 'true') {
+                window.log('📱 Preview Mode');
+                document.getElementById('loadingPage').classList.add('hidden');
+                document.getElementById('mainPage').classList.remove('hidden');
+
+                // Try to get real user data from admin parent window
+                let realUser = null;
+                try {
+                    const parentData = window.parent?.allUserData;
+                    if (parentData) {
+                        const targetUid = urlParams.get('uid');
+                        const userArray = Object.values(parentData);
+                        if (targetUid) {
+                            realUser = userArray.find(u => u.lineUserId === targetUid || u._docId === targetUid);
+                        }
+                        if (!realUser) {
+                            const approvedUsers = userArray.filter(u => u.status === 'Approved');
+                            if (approvedUsers.length > 0) {
+                                realUser = approvedUsers[0]; // just pick the first approved instead of random to be consistent
+                            }
+                        }
+                    }
+                } catch (e) { console.warn("Cannot access parent frame", e); }
+
+                if (realUser) {
+                    currentUser = realUser;
+                    document.getElementById('showName').textContent = realUser.name || 'ไม่ทราบชื่อ';
+                    document.getElementById('showEmpId').textContent = `${realUser.empId || '—'} | ${realUser.dept || 'General'}`;
+                    document.getElementById('mainProfileImg').src = realUser.pictureUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
+
+                    const cp = document.getElementById('cashPrompt');
+                    if (cp) cp.classList.toggle('hidden', !realUser.enableCash);
+                    if (realUser.enableCash && typeof initCashForm === 'function') {
+                        initCashForm();
+                    }
+                } else {
+                    document.getElementById('showName').textContent = 'สมชาย ตัวอย่าง';
+                    document.getElementById('showEmpId').textContent = 'EMP-66001 | General';
+                    document.getElementById('mainProfileImg').src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
                 }
-                const loadingText = document.getElementById('loadingText');
-                if (loadingText) loadingText.innerText = msg;
-            };
 
-            window.onerror = function (msg, url, lineNo, columnNo, error) {
-                window.log('CRITICAL: ' + msg + ' (L:' + lineNo + ')', true);
-                return false;
-            };
+                // Clock
+                function updatePreviewClock() {
+                    const now = new Date();
+                    const el = document.getElementById('clock');
+                    if (el) el.textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                    const dateEl = document.getElementById('currentDate');
+                    if (dateEl) dateEl.textContent = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                }
+                updatePreviewClock();
+                setInterval(updatePreviewClock, 1000);
 
-            document.addEventListener('DOMContentLoaded', () => {
-                window.log('หน้าเว็บโหลดเสร็จแล้ว (DOM Ready)');
-            });
-        </script>
+                // Shift
+                const shiftEl = document.getElementById('shiftStatus');
+                if (shiftEl) shiftEl.innerHTML = '☀️ กะเช้า (08:00 - 17:00)';
 
+                // Hours
+                const h1 = document.getElementById('hours1Value');
+                const h2 = document.getElementById('hours2Value');
+                const h3 = document.getElementById('hours3Value');
+                if (h1) h1.textContent = '1,250.50';
+                if (h2) h2.textContent = '82.71';
+                if (h3) h3.textContent = '310.25';
 
-        <script type="module">
-            import { getDeptCategoryColor } from './colors.js';
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-            import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
-                from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-            // --- 🔴 CONFIG (Public) ---
-            const firebaseConfig = {
-                apiKey: "AIzaSyDEe7ndwzIXokG50MbNykyMG2Ed2bYWvEI",
-                authDomain: "in-out-dashboard.firebaseapp.com",
-                projectId: "in-out-dashboard",
-                storageBucket: "in-out-dashboard.firebasestorage.app",
-                messagingSenderId: "846266395224",
-                appId: "1:846266395224:web:44d1dfe11692f33ca5f82d",
-                measurementId: "G-WN14VJSG17"
-            };
-            const LIFF_ID = "2008951813-KgjInNxK";
-
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
-            let currentUser = {};
-
-            // MAIN
-            async function main() {
-                // --- Preview Mode for Admin ---
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('preview') === 'true') {
-                    window.log('📱 Preview Mode');
-                    document.getElementById('loadingPage').classList.add('hidden');
-                    document.getElementById('mainPage').classList.remove('hidden');
-
-                    // Try to get real user data from admin parent window
-                    let realUser = null;
-                    try {
-                        const parentData = window.parent?.allUserData;
-                        if (parentData) {
-                            const targetUid = urlParams.get('uid');
-                            const userArray = Object.values(parentData);
-                            if (targetUid) {
-                                realUser = userArray.find(u => u.lineUserId === targetUid || u._docId === targetUid);
-                            }
-                            if (!realUser) {
-                                const approvedUsers = userArray.filter(u => u.status === 'Approved');
-                                if (approvedUsers.length > 0) {
-                                    realUser = approvedUsers[0]; // just pick the first approved instead of random to be consistent
-                                }
-                            }
-                        }
-                    } catch (e) { console.warn("Cannot access parent frame", e); }
-
-                    if (realUser) {
-                        currentUser = realUser;
-                        document.getElementById('showName').textContent = realUser.name || 'ไม่ทราบชื่อ';
-                        document.getElementById('showEmpId').textContent = `${realUser.empId || '—'} | ${realUser.dept || 'General'}`;
-                        document.getElementById('mainProfileImg').src = realUser.pictureUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
-
-                        const cp = document.getElementById('cashPrompt');
-                        if (cp) cp.classList.toggle('hidden', !realUser.enableCash);
-                        if (realUser.enableCash && typeof initCashForm === 'function') {
-                            initCashForm();
-                        }
-                    } else {
-                        document.getElementById('showName').textContent = 'สมชาย ตัวอย่าง';
-                        document.getElementById('showEmpId').textContent = 'EMP-66001 | General';
-                        document.getElementById('mainProfileImg').src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
-                    }
-
-                    // Clock
-                    function updatePreviewClock() {
-                        const now = new Date();
-                        const el = document.getElementById('clock');
-                        if (el) el.textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-                        const dateEl = document.getElementById('currentDate');
-                        if (dateEl) dateEl.textContent = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                    }
-                    updatePreviewClock();
-                    setInterval(updatePreviewClock, 1000);
-
-                    // Shift
-                    const shiftEl = document.getElementById('shiftStatus');
-                    if (shiftEl) shiftEl.innerHTML = '☀️ กะเช้า (08:00 - 17:00)';
-
-                    // Hours
-                    const h1 = document.getElementById('hours1Value');
-                    const h2 = document.getElementById('hours2Value');
-                    const h3 = document.getElementById('hours3Value');
-                    if (h1) h1.textContent = '1,250.50';
-                    if (h2) h2.textContent = '82.71';
-                    if (h3) h3.textContent = '310.25';
-
-                    // Schedule mock
-                    const schedEl = document.getElementById('scheduleList');
-                    if (schedEl) {
-                        const today = new Date();
-                        const mockSchedule = [];
-                        for (let i = 0; i < 5; i++) {
-                            const d = new Date(today);
-                            d.setDate(d.getDate() + i);
-                            const dayStr = d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
-                            const shifts = ['☀️ เช้า (08:00-17:00)', '☀️ เช้า (09:00-18:00)', '🚫 หยุด (Day Off)', '🕛 เที่ยง (11:00-20:00)', '☀️ เช้า (08:00-17:00)'];
-                            const colors = ['#e8f5e9', '#e8f5e9', '#fff3e0', '#e3f2fd', '#e8f5e9'];
-                            mockSchedule.push(`<div style="padding:10px 14px;background:${colors[i]};border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+                // Schedule mock
+                const schedEl = document.getElementById('scheduleList');
+                if (schedEl) {
+                    const today = new Date();
+                    const mockSchedule = [];
+                    for (let i = 0; i < 5; i++) {
+                        const d = new Date(today);
+                        d.setDate(d.getDate() + i);
+                        const dayStr = d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
+                        const shifts = ['☀️ เช้า (08:00-17:00)', '☀️ เช้า (09:00-18:00)', '🚫 หยุด (Day Off)', '🕛 เที่ยง (11:00-20:00)', '☀️ เช้า (08:00-17:00)'];
+                        const colors = ['#e8f5e9', '#e8f5e9', '#fff3e0', '#e3f2fd', '#e8f5e9'];
+                        mockSchedule.push(`<div style="padding:10px 14px;background:${colors[i]};border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
                             <span style="font-weight:600;font-size:13px;">${dayStr}</span>
                             <span style="font-size:12px;opacity:0.8;">${shifts[i]}</span>
                         </div>`);
-                        }
-                        schedEl.innerHTML = mockSchedule.join('');
                     }
+                    schedEl.innerHTML = mockSchedule.join('');
+                }
 
-                    // History mock
-                    const histEl = document.getElementById('historyList');
-                    if (histEl) {
-                        histEl.innerHTML = `
+                // History mock
+                const histEl = document.getElementById('historyList');
+                if (histEl) {
+                    histEl.innerHTML = `
                         <li class="history-item" style="padding:10px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;">
                             <div><span style="font-weight:600;">🟢 เข้างาน</span><br><small style="color:#888;">08:31 น.</small></div>
                             <small style="color:#888;">วันนี้</small>
                         </li>`;
-                    }
-
-                    // Disable actual buttons in preview
-                    const btnIn = document.getElementById('btnCheckIn');
-                    const btnOut = document.getElementById('btnCheckOut');
-                    if (btnIn) { btnIn.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
-                    if (btnOut) { btnOut.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
-
-                    return; // Skip LIFF init
                 }
 
-                window.log('กำลังตรวจสอบสถานะ LIFF...');
-                try {
-                    // Initialize LIFF
-                    await liff.init({ liffId: LIFF_ID });
-                    window.log('เชื่อมต่อ LIFF สำเร็จ (Init OK)');
-
-                    if (!liff.isLoggedIn()) {
-                        window.log('กรุณาเข้าสู่ระบบ LINE...');
-                        liff.login();
-                        return;
-                    }
-
-                    window.log('กำลังดึงข้อมูลโปรไฟล์...');
-                    const profile = await liff.getProfile();
-                    currentUser = {
-                        lineUserId: profile.userId,
-                        pictureUrl: profile.pictureUrl || "",
-                        displayName: profile.displayName || ""
-                    };
-                    window.log('สวัสดีคุณ ' + currentUser.displayName);
-                    await checkUser();
-                } catch (err) {
-                    window.log('LIFF ERROR: ' + err.message);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'เชื่อมต่อไม่สำเร็จ',
-                        text: err.message || 'กรุณาลองใหม่อีกครั้ง',
-                        confirmButtonText: 'ลองอีกครั้ง'
-                    }).then(() => location.reload());
-                }
-            }
-
-            async function checkUser() {
-                window.log('กำลังตรวจสอบข้อมูลในระบบ...');
-                try {
-                    const userRef = doc(db, "users", currentUser.lineUserId);
-
-                    // Get doc with default behavior (will try cache if offline)
-                    const userDoc = await getDoc(userRef);
-
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        // Merge data but preserve existing values if new ones are undefined
-                        currentUser = {
-                            ...userData,
-                            lineUserId: currentUser.lineUserId,
-                            pictureUrl: currentUser.pictureUrl || userData.pictureUrl || "",
-                            displayName: currentUser.displayName || userData.displayName || "",
-                            name: userData.name || "",
-                            dept: userData.dept || "",
-                            empId: userData.empId || ""
-                        };
-                        window.log('ยินดีต้อนรับกลับ ' + (userData.name || ''));
-
-                        // Update profile info silently if changed
-                        const hasPicChanged = currentUser.pictureUrl && currentUser.pictureUrl !== userData.pictureUrl;
-                        const hasNameChanged = currentUser.displayName && currentUser.displayName !== userData.displayName;
-
-                        if (hasPicChanged || hasNameChanged) {
-                            const upd = {};
-                            if (hasPicChanged) upd.pictureUrl = currentUser.pictureUrl;
-                            if (hasNameChanged) upd.displayName = currentUser.displayName;
-                            upd.lastProfileUpdate = serverTimestamp();
-
-                            updateDoc(userRef, upd).catch(err => console.error("Silent sync error:", err));
-                        }
-
-                        if (userData.status === 'Pending') {
-                            show('pendingPage', userData);
-                        } else if (userData.status === 'Approved') {
-                            show('mainPage');
-                        } else {
-                            Swal.fire('ระงับการใช้งาน', 'กรุณาติดต่อแอดมิน', 'error');
-                        }
-                    } else {
-                        window.log('กรุณาลงทะเบียนพนักงาน');
-                        show('registerPage');
-                    }
-                } catch (e) {
-                    window.log('DATABASE ERROR: ' + e.message);
-                    const isOffline = e.message.includes('offline');
-                    Swal.fire({
-                        icon: isOffline ? 'info' : 'warning',
-                        title: isOffline ? 'สัญญาณอินเทอร์เน็ตไม่เสถียร' : 'การเชื่อมต่อขัดข้อง',
-                        text: isOffline ? 'ระบบไม่สามารถติดต่อเซิร์ฟเวอร์ได้ในขณะนี้ กรุณาลองใหม่อีกครั้งเมือสัญญาณปกติ' : 'ไม่สามารถดึงข้อมูลระบบได้: ' + e.message,
-                        confirmButtonText: 'ลองใหม่อีกครั้ง',
-                        showCancelButton: true,
-                        cancelButtonText: 'ปิด'
-                    }).then((result) => {
-                        if (result.isConfirmed) location.reload();
-                    });
-                }
-            }
-
-
-
-            async function show(id, data) {
-                ['loadingPage', 'registerPage', 'pendingPage', 'mainPage', 'surveyPage', 'cashPage'].forEach(p => {
-                    const el = document.getElementById(p);
-                    if (el) {
-                        el.classList.add('hidden');
-                        el.style.display = 'none';
-                    }
-                });
-
-                // Update department colors when showing main page
-                if (id === 'mainPage' && currentUser && currentUser.dept) {
-                    updateDeptUI();
-                }
-
-                const target = document.getElementById(id);
-                target.classList.remove('hidden'); // Remove !important class
-                target.style.display = 'block';    // Set display
-
-                if (id === 'registerPage') {
-                    document.getElementById('regisProfileImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
-                    document.getElementById('regisName').innerText = currentUser.displayName;
-                } else if (id === 'pendingPage') {
-                    document.getElementById('pendingImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
-                    document.getElementById('pendingName').innerText = data.name;
-                } else if (id === 'mainPage') {
-                    const displayName = currentUser.name || currentUser.displayName || 'ผู้ใช้งาน';
-                    const empId = currentUser.empId || 'N/A';
-                    const dept = currentUser.dept || 'ทั่วไป';
-
-                    const nameEl = document.getElementById('showName');
-                    const empEl = document.getElementById('showEmpId');
-                    if (nameEl) nameEl.innerText = displayName;
-                    if (empEl) empEl.innerText = `${empId} | ${dept}`;
-
-                    const cashPrompt = document.getElementById('cashPrompt');
-                    if (cashPrompt) {
-                        if (currentUser.enableCash) {
-                            cashPrompt.classList.remove('hidden');
-                            if (typeof initCashForm === 'function') {
-                                initCashForm();
-                            }
-                        } else {
-                            cashPrompt.classList.add('hidden');
-                        }
-                    }
-
-                    // Fallback for profile picture
-                    const profileImg = document.getElementById('mainProfileImg');
-                    const finalPic = currentUser.pictureUrl || `https://via.placeholder.com/60`;
-
-                    if (profileImg) {
-                        profileImg.src = finalPic + (finalPic.includes('?') ? '&' : '?') + `v=${Date.now()}`;
-                        profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
-                    }
-
-                    const updateClock = () => {
-                        const now = new Date();
-                        const clockEl = document.getElementById('clock');
-                        const dateEl = document.getElementById('currentDate');
-                        if (clockEl) clockEl.innerText = now.toLocaleTimeString('th-TH', { hour12: false });
-                        if (dateEl) dateEl.innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                    };
-                    updateClock(); // Run immediately
-                    // Clear any existing interval to prevent duplicates if show is called multiple times
-                    if (window.clockInterval) clearInterval(window.clockInterval);
-                    window.clockInterval = setInterval(updateClock, 1000);
-
-                    loadHistory();
-                    loadSchedule();
-                    loadWorkingHours();
-                }
-            }
-
-            window.toggleInternshipFields = () => {
-                const dept = document.getElementById('department').value;
-                const fields = document.getElementById('internshipFields');
-                if (dept.includes('Extern') || dept.includes('Intern')) {
-                    fields.style.display = 'block';
-                } else {
-                    fields.style.display = 'none';
-                }
-            };
-
-            window.toggleSection = (id) => {
-                const el = document.getElementById(id);
-                const icon = document.getElementById('icon-' + id);
-                if (!el) return;
-
-                if (el.style.display === 'none') {
-                    el.style.display = 'block';
-                    if (icon) icon.className = 'bi bi-chevron-up text-muted';
-                } else {
-                    el.style.display = 'none';
-                    if (icon) icon.className = 'bi bi-chevron-down text-muted';
-                }
-            };
-
-            // --- 🟢 REGISTRATION ---
-            window.handleRegister = async (event) => {
-                event.preventDefault();
-
-                const empId = document.getElementById('userPhone').value;
-                const fullName = document.getElementById('fullName').value;
-                const department = document.getElementById('department').value;
-
-                // Validate internship dates if Pharmacist Extern or Intern
-                const isStudent = department.includes('Extern') || department.includes('Intern');
-                if (isStudent) {
-                    const startDate = document.getElementById('internshipStartDate').valueAsDate;
-                    const endDate = document.getElementById('internshipEndDate').valueAsDate;
-
-                    if (!startDate || !endDate) {
-                        Swal.fire('ผิดพลาด', 'กรุณากรอกวันที่เริ่มต้นและสิ้นสุดการฝึกงานให้ครบถ้วน', 'error');
-                        return;
-                    }
-
-                    if (endDate <= startDate) {
-                        Swal.fire('ผิดพลาด', 'วันที่สิ้นสุดการฝึกงานต้องมากกว่าวันที่เริ่มต้น', 'error');
-                        return;
-                    }
-                }
-
-                try {
-                    // Save user data with registration timestamp
-                    await setDoc(doc(db, "users", currentUser.lineUserId), {
-                        lineUserId: currentUser.lineUserId,
-                        pictureUrl: currentUser.pictureUrl || "",
-                        displayName: currentUser.displayName || "",
-                        empId: empId,
-                        name: fullName,
-                        dept: department,
-                        status: 'Pending',
-                        registrationDate: serverTimestamp(),
-                        createdAt: serverTimestamp(),
-                        ...(isStudent && {
-                            internshipStartDate: document.getElementById('internshipStartDate').valueAsDate,
-                            internshipEndDate: document.getElementById('internshipEndDate').valueAsDate
-                        })
-                    });
-
-                    // Show pending page
-                    show('pendingPage', { name: fullName });
-
-                } catch (error) {
-                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message, 'error');
-                }
-            };
-
-            // --- 🟢 CORE LOGIC: Record Time ---
-            window.recordTime = async (type) => {
-                // ... (keep existing recordTime logic but remove the duplicate checks inside since buttons are hidden?)
-                // Actually, keep server-side checks for safety, but UI will hide button.
-                const result = await Swal.fire({
-                    title: `ยืนยันการ ${type}?`,
-                    text: type === 'เข้างาน' ? "เริ่มงานสู้งานนะครับ!" : "เดินทางกลับโดยสวัสดิภาพครับ",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: type === 'เข้างาน' ? '#198754' : '#dc3545',
-                    confirmButtonText: `ใช่, ${type}`,
-                    cancelButtonText: 'ยกเลิก'
-                });
-
-                if (!result.isConfirmed) return;
-
-                const btn = type === 'เข้างาน' ? document.getElementById('btnCheckIn') : document.getElementById('btnCheckOut');
-                const originalText = btn.innerHTML;
-                btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ตรวจสอบ...';
-
-                try {
-                    // GPS Force
-                    if (!navigator.geolocation) throw new Error("อุปกรณ์ไม่รองรับ GPS");
-                    navigator.geolocation.getCurrentPosition(async (pos) => {
-                        await save(type, pos.coords.latitude, pos.coords.longitude);
-                    }, (err) => {
-                        Swal.fire({ title: 'ต้องการพิกัด GPS', text: 'กรุณาเปิด GPS', icon: 'warning' });
-                        btn.disabled = false; btn.innerHTML = originalText;
-                    }, { enableHighAccuracy: true });
-
-                } catch (err) {
-                    Swal.fire('แจ้งเตือน', err.message, 'warning');
-                    btn.disabled = false; btn.innerHTML = originalText;
-                }
-
-                async function save(type, lat, lng, isAuto = false) {
-                    try {
-                        btn.innerHTML = '💾 บันทึก...';
-
-                        let lateReason = "";
-                        let isLate = false;
-                        let delayMin = 0;
-
-                        // 🕒 LATE DETECTION LOGIC (Only for Clock-In)
-                        if (type === 'เข้างาน' && !isAuto) {
-                            const todayStr = new Date().toLocaleDateString('sv');
-                            const schedSnap = await getDocs(query(collection(db, "schedules"),
-                                where("userId", "==", currentUser.lineUserId),
-                                where("date", "==", todayStr)));
-
-                            if (!schedSnap.empty) {
-                                const schedData = schedSnap.docs[0].data();
-                                const shiftDetail = schedData.shiftDetail || "";
-                                // Match HH:mm from shiftDetail (e.g., ⏰ 10:00 - 19:00)
-                                const timeMatch = shiftDetail.match(/(\d{1,2}):(\d{2})/);
-
-                                if (timeMatch) {
-                                    const schedHour = parseInt(timeMatch[1]);
-                                    const schedMin = parseInt(timeMatch[2]);
-
-                                    const now = new Date();
-                                    const schedTime = new Date(now);
-                                    schedTime.setHours(schedHour, schedMin, 0, 0);
-
-                                    // Grace period: 5 minutes
-                                    if (now > new Date(schedTime.getTime() + 5 * 60000)) {
-                                        isLate = true;
-                                        delayMin = Math.round((now - schedTime) / 60000);
-
-                                        const { value: reason } = await Swal.fire({
-                                            title: 'คุณมาสายกว่ากำหนด',
-                                            text: `ตารางงานเริ่ม ${timeMatch[0]} น. (สาย ${delayMin} นาที)`,
-                                            input: 'textarea',
-                                            inputLabel: 'กรุณาระบุเหตุผลที่มาสาย',
-                                            inputPlaceholder: 'ติดฝน / รถติด / ธุระส่วนตัว...',
-                                            icon: 'warning',
-                                            allowOutsideClick: false,
-                                            inputValidator: (value) => {
-                                                if (!value) return 'จำเป็นต้องระบุเหตุผลครับ'
-                                            }
-                                        });
-                                        lateReason = reason || "ไม่ได้ระบุเหตุผล";
-                                    }
-                                }
-                            }
-                        }
-
-                        await addDoc(collection(db, "attendance"), {
-                            userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
-                            type: type, timestamp: serverTimestamp(),
-                            location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`, userAgent: navigator.userAgent,
-                            isLate: isLate,
-                            lateReason: lateReason,
-                            delayMin: delayMin
-                        });
-
-                        if (liff.isInClient()) {
-                            liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}` }]).catch(e => console.error(e));
-                        }
-                        if (!isAuto) {
-                            if (type === 'ออกงาน') {
-                                let endText = '<div class="mb-2">พักผ่อนให้เต็มที่นะครับ</div><div style="font-size:1.8rem; font-weight:bold; color:#ff6b6b;">또 만나요</div><div class="text-muted small mt-1">(แล้วเจอกันใหม่ครับ)</div>';
-                                if (currentUser.taskClockOut) {
-                                    endText = `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 mb-3 text-start"><div class="fw-bold text-dark"><i class="bi bi-bell-fill text-warning me-2"></i> งานที่ต้องทำก่อนกลับ:</div><div class="mt-1 text-danger fw-bold" style="font-size:1.1rem;">${currentUser.taskClockOut}</div></div>` + endText;
-                                }
-                                Swal.fire({
-                                    title: 'เลิกงานแล้ว!',
-                                    html: endText,
-                                    icon: 'success',
-                                    confirmButtonText: 'รับทราบ/ปิด'
-                                });
-                            } else {
-                                if (currentUser.taskClockIn) {
-                                    Swal.fire({
-                                        title: 'บันทึกเข้างานสำเร็จ',
-                                        html: `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 mt-2 text-start"><div class="fw-bold text-dark"><i class="bi bi-bell-fill text-warning me-2"></i> งานที่ต้องทำ:</div><div class="mt-1 text-danger fw-bold" style="font-size:1.1rem;">${currentUser.taskClockIn}</div></div>`,
-                                        icon: 'success',
-                                        confirmButtonText: 'รับทราบ'
-                                    });
-                                } else {
-                                    Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
-                                }
-                            }
-                        }
-                        loadHistory(); // Reload to toggle buttons
-                        loadWorkingHours(); // Reload working hours
-                    } catch (e) { Swal.fire('Error', e.message, 'error'); }
-                    finally { btn.disabled = false; btn.innerHTML = originalText; }
-                }
-            };
-
-            async function loadHistory() {
-                const now = new Date();
-                const todayStr = now.toLocaleDateString('sv');
-                const start = new Date(); start.setHours(0, 0, 0, 0);
-
-                // 1. Check for schedule today (Option 2: Hard Block)
-                const schedQuery = query(collection(db, "schedules"),
-                    where("userId", "==", currentUser.lineUserId),
-                    where("date", "==", todayStr));
-                const schedSnap = await getDocs(schedQuery);
-                const hasSchedule = !schedSnap.empty;
-
-                const q = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", start), orderBy("timestamp"));
-                const snap = await getDocs(q);
-
-                // 🟡 SMART BUTTONS LOGIC
-                const logs = snap.docs.map(d => d.data());
+                // Disable actual buttons in preview
                 const btnIn = document.getElementById('btnCheckIn');
                 const btnOut = document.getElementById('btnCheckOut');
-                const statusMsg = document.getElementById('clockInStatusMsg');
+                if (btnIn) { btnIn.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
+                if (btnOut) { btnOut.onclick = (e) => { e.preventDefault(); alert('⚠️ Preview Mode: ปุ่มนี้ใช้งานไม่ได้ในโหมดตัวอย่าง'); }; }
 
-                if (!hasSchedule) {
-                    // BLOCK CLOCKING IF NO SCHEDULE
-                    btnIn.classList.add('hidden');
-                    btnOut.classList.add('hidden');
-                    if (statusMsg) {
-                        statusMsg.classList.remove('hidden');
-                        statusMsg.innerHTML = `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 text-start mb-1">
+                return; // Skip LIFF init
+            }
+
+            window.log('กำลังตรวจสอบสถานะ LIFF...');
+            try {
+                // Initialize LIFF
+                await liff.init({ liffId: LIFF_ID });
+                window.log('เชื่อมต่อ LIFF สำเร็จ (Init OK)');
+
+                if (!liff.isLoggedIn()) {
+                    window.log('กรุณาเข้าสู่ระบบ LINE...');
+                    liff.login();
+                    return;
+                }
+
+                window.log('กำลังดึงข้อมูลโปรไฟล์...');
+                const profile = await liff.getProfile();
+                currentUser = {
+                    lineUserId: profile.userId,
+                    pictureUrl: profile.pictureUrl || "",
+                    displayName: profile.displayName || ""
+                };
+                window.log('สวัสดีคุณ ' + currentUser.displayName);
+                await checkUser();
+            } catch (err) {
+                window.log('LIFF ERROR: ' + err.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เชื่อมต่อไม่สำเร็จ',
+                    text: err.message || 'กรุณาลองใหม่อีกครั้ง',
+                    confirmButtonText: 'ลองอีกครั้ง'
+                }).then(() => location.reload());
+            }
+        }
+
+        async function checkUser() {
+            window.log('กำลังตรวจสอบข้อมูลในระบบ...');
+            try {
+                const userRef = doc(db, "users", currentUser.lineUserId);
+
+                // Get doc with default behavior (will try cache if offline)
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    // Merge data but preserve existing values if new ones are undefined
+                    currentUser = {
+                        ...userData,
+                        lineUserId: currentUser.lineUserId,
+                        pictureUrl: currentUser.pictureUrl || userData.pictureUrl || "",
+                        displayName: currentUser.displayName || userData.displayName || "",
+                        name: userData.name || "",
+                        dept: userData.dept || "",
+                        empId: userData.empId || ""
+                    };
+                    window.log('ยินดีต้อนรับกลับ ' + (userData.name || ''));
+
+                    // Update profile info silently if changed
+                    const hasPicChanged = currentUser.pictureUrl && currentUser.pictureUrl !== userData.pictureUrl;
+                    const hasNameChanged = currentUser.displayName && currentUser.displayName !== userData.displayName;
+
+                    if (hasPicChanged || hasNameChanged) {
+                        const upd = {};
+                        if (hasPicChanged) upd.pictureUrl = currentUser.pictureUrl;
+                        if (hasNameChanged) upd.displayName = currentUser.displayName;
+                        upd.lastProfileUpdate = serverTimestamp();
+
+                        updateDoc(userRef, upd).catch(err => console.error("Silent sync error:", err));
+                    }
+
+                    if (userData.status === 'Pending') {
+                        show('pendingPage', userData);
+                    } else if (userData.status === 'Approved') {
+                        show('mainPage');
+                    } else {
+                        Swal.fire('ระงับการใช้งาน', 'กรุณาติดต่อแอดมิน', 'error');
+                    }
+                } else {
+                    window.log('กรุณาลงทะเบียนพนักงาน');
+                    show('registerPage');
+                }
+            } catch (e) {
+                window.log('DATABASE ERROR: ' + e.message);
+                const isOffline = e.message.includes('offline');
+                Swal.fire({
+                    icon: isOffline ? 'info' : 'warning',
+                    title: isOffline ? 'สัญญาณอินเทอร์เน็ตไม่เสถียร' : 'การเชื่อมต่อขัดข้อง',
+                    text: isOffline ? 'ระบบไม่สามารถติดต่อเซิร์ฟเวอร์ได้ในขณะนี้ กรุณาลองใหม่อีกครั้งเมือสัญญาณปกติ' : 'ไม่สามารถดึงข้อมูลระบบได้: ' + e.message,
+                    confirmButtonText: 'ลองใหม่อีกครั้ง',
+                    showCancelButton: true,
+                    cancelButtonText: 'ปิด'
+                }).then((result) => {
+                    if (result.isConfirmed) location.reload();
+                });
+            }
+        }
+
+
+
+        function show(id, data) {
+            ['loadingPage', 'registerPage', 'pendingPage', 'mainPage', 'surveyPage', 'cashPage'].forEach(p => {
+                const el = document.getElementById(p);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.style.display = 'none';
+                }
+            });
+
+            // Update department colors when showing main page
+            if (id === 'mainPage' && currentUser && currentUser.dept) {
+                updateDeptUI();
+            }
+
+            const target = document.getElementById(id);
+            target.classList.remove('hidden'); // Remove !important class
+            target.style.display = 'block';    // Set display
+
+            if (id === 'registerPage') {
+                document.getElementById('regisProfileImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
+                document.getElementById('regisName').innerText = currentUser.displayName;
+            } else if (id === 'pendingPage') {
+                document.getElementById('pendingImg').src = `${currentUser.pictureUrl}?v=${Date.now()}`;
+                document.getElementById('pendingName').innerText = data.name;
+            } else if (id === 'mainPage') {
+                const displayName = currentUser.name || currentUser.displayName || 'ผู้ใช้งาน';
+                const empId = currentUser.empId || 'N/A';
+                const dept = currentUser.dept || 'ทั่วไป';
+
+                const nameEl = document.getElementById('showName');
+                const empEl = document.getElementById('showEmpId');
+                if (nameEl) nameEl.innerText = displayName;
+                if (empEl) empEl.innerText = `${empId} | ${dept}`;
+
+                const cashPrompt = document.getElementById('cashPrompt');
+                if (cashPrompt) {
+                    if (currentUser.enableCash) {
+                        cashPrompt.classList.remove('hidden');
+                        if (typeof initCashForm === 'function') {
+                            initCashForm();
+                        }
+                    } else {
+                        cashPrompt.classList.add('hidden');
+                    }
+                }
+
+                // Fallback for profile picture
+                const profileImg = document.getElementById('mainProfileImg');
+                const finalPic = currentUser.pictureUrl || `https://via.placeholder.com/60`;
+
+                if (profileImg) {
+                    profileImg.src = finalPic + (finalPic.includes('?') ? '&' : '?') + `v=${Date.now()}`;
+                    profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
+                }
+
+                const updateClock = () => {
+                    const now = new Date();
+                    const clockEl = document.getElementById('clock');
+                    const dateEl = document.getElementById('currentDate');
+                    if (clockEl) clockEl.innerText = now.toLocaleTimeString('th-TH', { hour12: false });
+                    if (dateEl) dateEl.innerText = now.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                };
+                updateClock(); // Run immediately
+                // Clear any existing interval to prevent duplicates if show is called multiple times
+                if (window.clockInterval) clearInterval(window.clockInterval);
+                window.clockInterval = setInterval(updateClock, 1000);
+
+                loadHistory();
+                loadSchedule();
+                loadWorkingHours();
+            }
+        }
+        window.show = show;
+
+        window.toggleInternshipFields = () => {
+            const dept = document.getElementById('department').value;
+            const fields = document.getElementById('internshipFields');
+            if (dept.includes('Extern') || dept.includes('Intern')) {
+                fields.style.display = 'block';
+            } else {
+                fields.style.display = 'none';
+            }
+        };
+
+        window.toggleSection = (id) => {
+            const el = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            if (!el) return;
+
+            if (el.style.display === 'none') {
+                el.style.display = 'block';
+                if (icon) icon.className = 'bi bi-chevron-up text-muted';
+            } else {
+                el.style.display = 'none';
+                if (icon) icon.className = 'bi bi-chevron-down text-muted';
+            }
+        };
+
+        // --- 🟢 REGISTRATION ---
+        window.handleRegister = async (event) => {
+            event.preventDefault();
+
+            const empId = document.getElementById('userPhone').value;
+            const fullName = document.getElementById('fullName').value;
+            const department = document.getElementById('department').value;
+
+            // Validate internship dates if Pharmacist Extern or Intern
+            const isStudent = department.includes('Extern') || department.includes('Intern');
+            if (isStudent) {
+                const startDate = document.getElementById('internshipStartDate').valueAsDate;
+                const endDate = document.getElementById('internshipEndDate').valueAsDate;
+
+                if (!startDate || !endDate) {
+                    Swal.fire('ผิดพลาด', 'กรุณากรอกวันที่เริ่มต้นและสิ้นสุดการฝึกงานให้ครบถ้วน', 'error');
+                    return;
+                }
+
+                if (endDate <= startDate) {
+                    Swal.fire('ผิดพลาด', 'วันที่สิ้นสุดการฝึกงานต้องมากกว่าวันที่เริ่มต้น', 'error');
+                    return;
+                }
+            }
+
+            try {
+                // Save user data with registration timestamp
+                await setDoc(doc(db, "users", currentUser.lineUserId), {
+                    lineUserId: currentUser.lineUserId,
+                    pictureUrl: currentUser.pictureUrl || "",
+                    displayName: currentUser.displayName || "",
+                    empId: empId,
+                    name: fullName,
+                    dept: department,
+                    status: 'Pending',
+                    registrationDate: serverTimestamp(),
+                    createdAt: serverTimestamp(),
+                    ...(isStudent && {
+                        internshipStartDate: document.getElementById('internshipStartDate').valueAsDate,
+                        internshipEndDate: document.getElementById('internshipEndDate').valueAsDate
+                    })
+                });
+
+                // Show pending page
+                show('pendingPage', { name: fullName });
+
+            } catch (error) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message, 'error');
+            }
+        };
+
+        // --- 🟢 CORE LOGIC: Record Time ---
+        window.recordTime = async (type) => {
+            // ... (keep existing recordTime logic but remove the duplicate checks inside since buttons are hidden?)
+            // Actually, keep server-side checks for safety, but UI will hide button.
+            const result = await Swal.fire({
+                title: `ยืนยันการ ${type}?`,
+                text: type === 'เข้างาน' ? "เริ่มงานสู้งานนะครับ!" : "เดินทางกลับโดยสวัสดิภาพครับ",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: type === 'เข้างาน' ? '#198754' : '#dc3545',
+                confirmButtonText: `ใช่, ${type}`,
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (!result.isConfirmed) return;
+
+            const btn = type === 'เข้างาน' ? document.getElementById('btnCheckIn') : document.getElementById('btnCheckOut');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ตรวจสอบ...';
+
+            try {
+                // GPS Force
+                if (!navigator.geolocation) throw new Error("อุปกรณ์ไม่รองรับ GPS");
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    await save(type, pos.coords.latitude, pos.coords.longitude);
+                }, (err) => {
+                    Swal.fire({ title: 'ต้องการพิกัด GPS', text: 'กรุณาเปิด GPS', icon: 'warning' });
+                    btn.disabled = false; btn.innerHTML = originalText;
+                }, { enableHighAccuracy: true });
+
+            } catch (err) {
+                Swal.fire('แจ้งเตือน', err.message, 'warning');
+                btn.disabled = false; btn.innerHTML = originalText;
+            }
+
+            async function save(type, lat, lng, isAuto = false) {
+                try {
+                    btn.innerHTML = '💾 บันทึก...';
+
+                    let lateReason = "";
+                    let isLate = false;
+                    let delayMin = 0;
+
+                    // 🕒 LATE DETECTION LOGIC (Only for Clock-In)
+                    if (type === 'เข้างาน' && !isAuto) {
+                        const todayStr = new Date().toLocaleDateString('sv');
+                        const schedSnap = await getDocs(query(collection(db, "schedules"),
+                            where("userId", "==", currentUser.lineUserId),
+                            where("date", "==", todayStr)));
+
+                        if (!schedSnap.empty) {
+                            const schedData = schedSnap.docs[0].data();
+                            const shiftDetail = schedData.shiftDetail || "";
+                            // Match HH:mm from shiftDetail (e.g., ⏰ 10:00 - 19:00)
+                            const timeMatch = shiftDetail.match(/(\d{1,2}):(\d{2})/);
+
+                            if (timeMatch) {
+                                const schedHour = parseInt(timeMatch[1]);
+                                const schedMin = parseInt(timeMatch[2]);
+
+                                const now = new Date();
+                                const schedTime = new Date(now);
+                                schedTime.setHours(schedHour, schedMin, 0, 0);
+
+                                // Grace period: 5 minutes
+                                if (now > new Date(schedTime.getTime() + 5 * 60000)) {
+                                    isLate = true;
+                                    delayMin = Math.round((now - schedTime) / 60000);
+
+                                    const { value: reason } = await Swal.fire({
+                                        title: 'คุณมาสายกว่ากำหนด',
+                                        text: `ตารางงานเริ่ม ${timeMatch[0]} น. (สาย ${delayMin} นาที)`,
+                                        input: 'textarea',
+                                        inputLabel: 'กรุณาระบุเหตุผลที่มาสาย',
+                                        inputPlaceholder: 'ติดฝน / รถติด / ธุระส่วนตัว...',
+                                        icon: 'warning',
+                                        allowOutsideClick: false,
+                                        inputValidator: (value) => {
+                                            if (!value) return 'จำเป็นต้องระบุเหตุผลครับ'
+                                        }
+                                    });
+                                    lateReason = reason || "ไม่ได้ระบุเหตุผล";
+                                }
+                            }
+                        }
+                    }
+
+                    await addDoc(collection(db, "attendance"), {
+                        userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
+                        type: type, timestamp: serverTimestamp(),
+                        location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`, userAgent: navigator.userAgent,
+                        isLate: isLate,
+                        lateReason: lateReason,
+                        delayMin: delayMin
+                    });
+
+                    if (liff.isInClient()) {
+                        liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}` }]).catch(e => console.error(e));
+                    }
+                    if (!isAuto) {
+                        if (type === 'ออกงาน') {
+                            let endText = '<div class="mb-2">พักผ่อนให้เต็มที่นะครับ</div><div style="font-size:1.8rem; font-weight:bold; color:#ff6b6b;">또 만나요</div><div class="text-muted small mt-1">(แล้วเจอกันใหม่ครับ)</div>';
+                            if (currentUser.taskClockOut) {
+                                endText = `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 mb-3 text-start"><div class="fw-bold text-dark"><i class="bi bi-bell-fill text-warning me-2"></i> งานที่ต้องทำก่อนกลับ:</div><div class="mt-1 text-danger fw-bold" style="font-size:1.1rem;">${currentUser.taskClockOut}</div></div>` + endText;
+                            }
+                            Swal.fire({
+                                title: 'เลิกงานแล้ว!',
+                                html: endText,
+                                icon: 'success',
+                                confirmButtonText: 'รับทราบ/ปิด'
+                            });
+                        } else {
+                            if (currentUser.taskClockIn) {
+                                Swal.fire({
+                                    title: 'บันทึกเข้างานสำเร็จ',
+                                    html: `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 mt-2 text-start"><div class="fw-bold text-dark"><i class="bi bi-bell-fill text-warning me-2"></i> งานที่ต้องทำ:</div><div class="mt-1 text-danger fw-bold" style="font-size:1.1rem;">${currentUser.taskClockIn}</div></div>`,
+                                    icon: 'success',
+                                    confirmButtonText: 'รับทราบ'
+                                });
+                            } else {
+                                Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
+                            }
+                        }
+                    }
+                    loadHistory(); // Reload to toggle buttons
+                    loadWorkingHours(); // Reload working hours
+                } catch (e) { Swal.fire('Error', e.message, 'error'); }
+                finally { btn.disabled = false; btn.innerHTML = originalText; }
+            }
+        };
+
+        async function loadHistory() {
+            const now = new Date();
+            const todayStr = now.toLocaleDateString('sv');
+            const start = new Date(); start.setHours(0, 0, 0, 0);
+
+            // 1. Check for schedule today (Option 2: Hard Block)
+            const schedQuery = query(collection(db, "schedules"),
+                where("userId", "==", currentUser.lineUserId),
+                where("date", "==", todayStr));
+            const schedSnap = await getDocs(schedQuery);
+            const hasSchedule = !schedSnap.empty;
+
+            const q = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", start), orderBy("timestamp"));
+            const snap = await getDocs(q);
+
+            // 🟡 SMART BUTTONS LOGIC
+            const logs = snap.docs.map(d => d.data());
+            const btnIn = document.getElementById('btnCheckIn');
+            const btnOut = document.getElementById('btnCheckOut');
+            const statusMsg = document.getElementById('clockInStatusMsg');
+
+            if (!hasSchedule) {
+                // BLOCK CLOCKING IF NO SCHEDULE
+                btnIn.classList.add('hidden');
+                btnOut.classList.add('hidden');
+                if (statusMsg) {
+                    statusMsg.classList.remove('hidden');
+                    statusMsg.innerHTML = `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 text-start mb-1">
                         <div class="fw-bold text-warning-emphasis mb-1"><i class="bi bi-exclamation-triangle-fill"></i> ยังไม่ได้แจ้งเวรของวันนี้</div>
                         <div class="small text-muted mb-2">กรุณาแจ้งเวลาปฏิบัติงานก่อนเริ่มลงเวลาครับ</div>
                         <button onclick="toggleLeaveForm(); document.getElementById('leaveType').value='แจ้งเวลาปฏิบัติงาน'; toggleTimeInputs();" 
@@ -1453,535 +1466,562 @@
                             <i class="bi bi-calendar-plus"></i> แจ้งเวลาทำงาน (อนุมัติทันที)
                         </button>
                     </div>`;
+                }
+            } else {
+                // PROCEED WITH NORMAL IN/OUT LOGIC
+                let lastType = null;
+                let lastTimestamp = null;
+                if (logs.length > 0) {
+                    const lastLog = logs[logs.length - 1];
+                    lastType = lastLog.type;
+                    lastTimestamp = lastLog.timestamp ? lastLog.timestamp.toDate() : new Date();
+                }
+
+                if (lastType === 'เข้างาน') {
+                    btnIn.classList.add('hidden');
+                    const diffMs = now - lastTimestamp;
+                    const diffHours = diffMs / (1000 * 60 * 60);
+
+                    if (diffHours >= 1) {
+                        btnOut.classList.remove('hidden');
+                        if (statusMsg) statusMsg.classList.add('hidden');
+                    } else {
+                        btnOut.classList.add('hidden');
+                        if (statusMsg) {
+                            statusMsg.classList.remove('hidden');
+                            statusMsg.innerHTML = `<i class="bi bi-hourglass-split"></i> คุณเพิ่งลงเวลา ${lastTimestamp.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} (รอ 1 ชม. เพื่อออกงาน)`;
+                        }
+                    }
+
+                    if (now.getHours() >= 23) {
+                        await performAutoCheckout();
+                        return;
                     }
                 } else {
-                    // PROCEED WITH NORMAL IN/OUT LOGIC
-                    let lastType = null;
-                    let lastTimestamp = null;
-                    if (logs.length > 0) {
-                        const lastLog = logs[logs.length - 1];
-                        lastType = lastLog.type;
-                        lastTimestamp = lastLog.timestamp ? lastLog.timestamp.toDate() : new Date();
-                    }
+                    btnIn.classList.remove('hidden');
+                    btnOut.classList.add('hidden');
 
-                    if (lastType === 'เข้างาน') {
-                        btnIn.classList.add('hidden');
-                        const diffMs = now - lastTimestamp;
-                        const diffHours = diffMs / (1000 * 60 * 60);
-
-                        if (diffHours >= 1) {
-                            btnOut.classList.remove('hidden');
-                            if (statusMsg) statusMsg.classList.add('hidden');
-                        } else {
-                            btnOut.classList.add('hidden');
-                            if (statusMsg) {
-                                statusMsg.classList.remove('hidden');
-                                statusMsg.innerHTML = `<i class="bi bi-hourglass-split"></i> คุณเพิ่งลงเวลา ${lastTimestamp.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} (รอ 1 ชม. เพื่อออกงาน)`;
-                            }
-                        }
-
-                        if (now.getHours() >= 23) {
-                            await performAutoCheckout();
-                            return;
-                        }
-                    } else {
-                        btnIn.classList.remove('hidden');
-                        btnOut.classList.add('hidden');
-
-                        // Option 2: Show today's shift info even if they can clock in
-                        if (hasSchedule && statusMsg) {
-                            const sched = schedSnap.docs[0].data();
-                            const timeInfo = (sched.shiftDetail || "").replace("⏰", "").trim();
-                            statusMsg.classList.remove('hidden');
-                            statusMsg.innerHTML = `<div class="p-2 bg-success bg-opacity-10 border border-success-subtle rounded-3 text-center mb-1">
+                    // Option 2: Show today's shift info even if they can clock in
+                    if (hasSchedule && statusMsg) {
+                        const sched = schedSnap.docs[0].data();
+                        const timeInfo = (sched.shiftDetail || "").replace("⏰", "").trim();
+                        statusMsg.classList.remove('hidden');
+                        statusMsg.innerHTML = `<div class="p-2 bg-success bg-opacity-10 border border-success-subtle rounded-3 text-center mb-1">
                             <span class="text-success fw-bold" style="font-size:0.9rem;"><i class="bi bi-clock-history"></i> วันนี้คุณมีเวร: ${timeInfo}</span>
                             <div class="small text-muted" style="font-size:0.75rem;">สามารถลงเวลาเข้างานได้ทันทีครับ</div>
                         </div>`;
-                        } else if (statusMsg) {
-                            statusMsg.classList.add('hidden');
-                        }
+                    } else if (statusMsg) {
+                        statusMsg.classList.add('hidden');
                     }
                 }
+            }
 
-                // Render List (Fetch whole month instead of just today)
-                const list = document.getElementById('historyList'); list.innerHTML = "";
-                const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                const qMonth = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", startMonth), orderBy("timestamp", "desc"));
-                const snapMonth = await getDocs(qMonth);
+            // Render List (Fetch whole month instead of just today)
+            const list = document.getElementById('historyList'); list.innerHTML = "";
+            const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const qMonth = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", startMonth), orderBy("timestamp", "desc"));
+            const snapMonth = await getDocs(qMonth);
 
-                if (snapMonth.empty) { list.innerHTML = "<p class='text-muted text-center small'>ยังไม่มีประวัติในเดือนนี้</p>"; return; }
-                snapMonth.forEach(d => {
-                    const v = d.data();
-                    const dObj = v.timestamp ? new Date(v.timestamp.seconds * 1000) : new Date();
-                    const dateStr = dObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
-                    const timeStr = dObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    const icon = v.type === 'เข้างาน' ? 'bi-geo-alt-fill text-success' : 'bi-box-arrow-right text-danger';
-                    list.innerHTML += `<li class="history-item ${v.type === 'เข้างาน' ? 'in' : 'out'}">
+            if (snapMonth.empty) { list.innerHTML = "<p class='text-muted text-center small'>ยังไม่มีประวัติในเดือนนี้</p>"; return; }
+            snapMonth.forEach(d => {
+                const v = d.data();
+                const dObj = v.timestamp ? new Date(v.timestamp.seconds * 1000) : new Date();
+                const dateStr = dObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+                const timeStr = dObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+                const icon = v.type === 'เข้างาน' ? 'bi-geo-alt-fill text-success' : 'bi-box-arrow-right text-danger';
+                list.innerHTML += `<li class="history-item ${v.type === 'เข้างาน' ? 'in' : 'out'}">
                     <div class="d-flex align-items-center gap-2"><i class="bi ${icon}"></i> <span class="fw-bold">${v.type} <small class="text-muted fw-normal ms-1">(${dateStr})</small></span></div>
                     <span class="mono-font badge bg-light text-dark border">${timeStr} น.</span>
                 </li>`;
+            });
+        }
+
+        async function performAutoCheckout() {
+            Swal.fire({
+                title: 'เลยเวลา 23:00 น.',
+                text: 'ระบบทำการบันทึก "ออกงาน" ให้โดยอัตโนมัติ (Timestamp 23:00)',
+                icon: 'info',
+                timer: 4000
+            });
+
+            // Calculate timestamp for Today 23:00:00
+            const autoTime = new Date();
+            autoTime.setHours(23, 0, 0, 0);
+
+            // Get location if possible, else 0,0
+            let lat = 0, lng = 0;
+            try {
+                const pos = await new Promise((res, rej) => {
+                    navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 });
                 });
-            }
+                lat = pos.coords.latitude; lng = pos.coords.longitude;
+            } catch (e) { console.log('Auto-checkout GPS failed, using default'); }
 
-            async function performAutoCheckout() {
-                Swal.fire({
-                    title: 'เลยเวลา 23:00 น.',
-                    text: 'ระบบทำการบันทึก "ออกงาน" ให้โดยอัตโนมัติ (Timestamp 23:00)',
-                    icon: 'info',
-                    timer: 4000
+            try {
+                await addDoc(collection(db, "attendance"), {
+                    userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
+                    type: 'ออกงาน',
+                    timestamp: autoTime, // Force 23:00
+                    location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`,
+                    userAgent: 'Evaluate-System (Auto 23:00)'
                 });
+                loadHistory(); // Reload UI
+            } catch (e) { console.error("Auto Checkout Err", e); }
+        }
 
-                // Calculate timestamp for Today 23:00:00
-                const autoTime = new Date();
-                autoTime.setHours(23, 0, 0, 0);
+        async function loadSchedule() {
+            // ... (rest same) ...
+            // โหลดตารางเวร (logic เดิม + UI ใหม่)
+            const today = new Date().toISOString().split('T')[0];
+            const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today));
+            const snap = await getDocs(q);
+            const div = document.getElementById('scheduleList');
+            const statusEl = document.getElementById('shiftStatus');
 
-                // Get location if possible, else 0,0
-                let lat = 0, lng = 0;
-                try {
-                    const pos = await new Promise((res, rej) => {
-                        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000 });
-                    });
-                    lat = pos.coords.latitude; lng = pos.coords.longitude;
-                } catch (e) { console.log('Auto-checkout GPS failed, using default'); }
-
-                try {
-                    await addDoc(collection(db, "attendance"), {
-                        userId: currentUser.lineUserId, lineUserId: currentUser.lineUserId, pictureUrl: currentUser.pictureUrl, name: currentUser.name, empId: currentUser.empId, dept: currentUser.dept,
-                        type: 'ออกงาน',
-                        timestamp: autoTime, // Force 23:00
-                        location: { lat, lng }, mapUrl: `http://maps.google.com/?q=${lat},${lng}`,
-                        userAgent: 'Evaluate-System (Auto 23:00)'
-                    });
-                    loadHistory(); // Reload UI
-                } catch (e) { console.error("Auto Checkout Err", e); }
-            }
-
-            async function loadSchedule() {
-                // ... (rest same) ...
-                // โหลดตารางเวร (logic เดิม + UI ใหม่)
-                const today = new Date().toISOString().split('T')[0];
-                const q = query(collection(db, "schedules"), where("userId", "==", currentUser.lineUserId), where("date", ">=", today));
-                const snap = await getDocs(q);
-                const div = document.getElementById('scheduleList');
-                const statusEl = document.getElementById('shiftStatus');
-
-                if (snap.empty) {
-                    div.innerHTML = "<p class='text-muted text-center small'>ไม่มีตารางเร็วๆ นี้</p>";
-                    if (statusEl) {
-                        statusEl.innerText = "ไม่ได้ระบุเวร";
-                        statusEl.className = "badge rounded-pill bg-light text-muted border px-3 py-1";
-                    }
-                    return;
-                }
-
-                const docs = snap.docs.map(doc => doc.data()).sort((a, b) => a.date.localeCompare(b.date));
-                div.innerHTML = "";
-                docs.forEach(v => {
-                    const dThai = new Date(v.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
-                    let badgeClass = "bg-primary-subtle text-primary";
-                    if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) badgeClass = "bg-danger-subtle text-danger";
-                    else if (v.shiftDetail.includes('ดึก')) badgeClass = "bg-dark-subtle text-dark";
-
-                    // Clean emojis to prevent duplicates like 🤒🛑
-                    const cleanDetail = v.shiftDetail.replace(/🤒|🌴|📋|👶|🙏|🛑|🚫|🏖️|💼|⏰|☀️|🕛|🕙|⚙️/g, '').trim();
-                    let emoji = '';
-                    const lLower = v.shiftDetail.toLowerCase();
-                    if (lLower.includes('ป่วย')) emoji = '🤒';
-                    else if (lLower.includes('พัก')) emoji = '🌴';
-                    else if (lLower.includes('กิจ')) emoji = '📋';
-                    else if (lLower.includes('หยุด')) emoji = '🛑';
-
-                    const displayDetail = emoji ? `${emoji} ${cleanDetail}` : v.shiftDetail;
-
-                    div.innerHTML += `<div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-white rounded border border-light shadow-sm">
-                    <div class="fw-bold text-secondary"><i class="bi bi-calendar-day me-2"></i>${dThai}</div>
-                    <span class="badge ${badgeClass} border">${displayDetail}</span>
-                </div>`;
-                });
-
-                // Update Shift Status Badge current day
-                const todaySched = snap.docs.find(d => d.data().date === today);
-                if (todaySched) {
-                    statusEl.innerText = todaySched.data().shiftDetail;
-                    statusEl.className = "badge rounded-pill px-3 py-1 border " + (todaySched.data().shiftDetail.includes('หยุด') ? "bg-danger text-white" : "bg-success text-white");
-                } else {
+            if (snap.empty) {
+                div.innerHTML = "<p class='text-muted text-center small'>ไม่มีตารางเร็วๆ นี้</p>";
+                if (statusEl) {
                     statusEl.innerText = "ไม่ได้ระบุเวร";
                     statusEl.className = "badge rounded-pill bg-light text-muted border px-3 py-1";
                 }
+                return;
             }
 
-            window.toggleLeaveForm = () => {
-                const el = document.getElementById('leaveFormSection');
-                el.classList.toggle('hidden');
-                if (!el.classList.contains('hidden')) loadMyLeaves();
+            const docs = snap.docs.map(doc => doc.data()).sort((a, b) => a.date.localeCompare(b.date));
+            div.innerHTML = "";
+            docs.forEach(v => {
+                const dThai = new Date(v.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
+                let badgeClass = "bg-primary-subtle text-primary";
+                if (v.shiftDetail.includes('หยุด') || v.shiftDetail.includes('ลา')) badgeClass = "bg-danger-subtle text-danger";
+                else if (v.shiftDetail.includes('ดึก')) badgeClass = "bg-dark-subtle text-dark";
+
+                // Clean emojis to prevent duplicates like 🤒🛑
+                const cleanDetail = v.shiftDetail.replace(/🤒|🌴|📋|👶|🙏|🛑|🚫|🏖️|💼|⏰|☀️|🕛|🕙|⚙️/g, '').trim();
+                let emoji = '';
+                const lLower = v.shiftDetail.toLowerCase();
+                if (lLower.includes('ป่วย')) emoji = '🤒';
+                else if (lLower.includes('พัก')) emoji = '🌴';
+                else if (lLower.includes('กิจ')) emoji = '📋';
+                else if (lLower.includes('หยุด')) emoji = '🛑';
+
+                const displayDetail = emoji ? `${emoji} ${cleanDetail}` : v.shiftDetail;
+
+                div.innerHTML += `<div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-white rounded border border-light shadow-sm">
+                    <div class="fw-bold text-secondary"><i class="bi bi-calendar-day me-2"></i>${dThai}</div>
+                    <span class="badge ${badgeClass} border">${displayDetail}</span>
+                </div>`;
+            });
+
+            // Update Shift Status Badge current day
+            const todaySched = snap.docs.find(d => d.data().date === today);
+            if (todaySched) {
+                statusEl.innerText = todaySched.data().shiftDetail;
+                statusEl.className = "badge rounded-pill px-3 py-1 border " + (todaySched.data().shiftDetail.includes('หยุด') ? "bg-danger text-white" : "bg-success text-white");
+            } else {
+                statusEl.innerText = "ไม่ได้ระบุเวร";
+                statusEl.className = "badge rounded-pill bg-light text-muted border px-3 py-1";
             }
+        }
 
-            window.toggleTimeInputs = () => {
-                const type = document.getElementById('leaveType').value;
-                const group = document.getElementById('timeInputGroup');
-                if (type === 'แจ้งเวลาปฏิบัติงาน') group.classList.remove('hidden'); else group.classList.add('hidden');
-            };
+        window.toggleLeaveForm = () => {
+            const el = document.getElementById('leaveFormSection');
+            el.classList.toggle('hidden');
+            if (!el.classList.contains('hidden')) loadMyLeaves();
+        }
 
-            window.selectRequestType = (val, btn) => {
-                document.getElementById('leaveType').value = val;
+        window.toggleTimeInputs = () => {
+            const type = document.getElementById('leaveType').value;
+            const group = document.getElementById('timeInputGroup');
+            if (type === 'แจ้งเวลาปฏิบัติงาน') group.classList.remove('hidden'); else group.classList.add('hidden');
+        };
 
-                // UI feedback
-                document.querySelectorAll('.type-chip').forEach(c => {
-                    c.classList.remove('active', 'btn-primary', 'btn-warning', 'btn-outline-secondary');
-                    c.classList.add('btn-outline-secondary');
-                });
+        window.selectRequestType = (val, btn) => {
+            document.getElementById('leaveType').value = val;
 
-                const isLeave = val.startsWith('ลา') || val === 'อื่น ๆ';
-                btn.classList.remove('btn-outline-secondary');
-                btn.classList.add('active', isLeave ? 'btn-warning' : 'btn-primary');
+            // UI feedback
+            document.querySelectorAll('.type-chip').forEach(c => {
+                c.classList.remove('active', 'btn-primary', 'btn-warning', 'btn-outline-secondary');
+                c.classList.add('btn-outline-secondary');
+            });
 
-                window.toggleTimeInputs();
-            };
+            const isLeave = val.startsWith('ลา') || val === 'อื่น ๆ';
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('active', isLeave ? 'btn-warning' : 'btn-primary');
 
-            window.setQuickShift = (start, end, btn) => {
-                document.getElementById('reqStartTime').value = start;
-                document.getElementById('reqEndTime').value = end;
+            window.toggleTimeInputs();
+        };
 
-                // UI feedback for chips
-                document.querySelectorAll('.shift-chip-compact').forEach(c => {
-                    c.classList.remove('active');
-                });
+        window.setQuickShift = (start, end, btn) => {
+            document.getElementById('reqStartTime').value = start;
+            document.getElementById('reqEndTime').value = end;
 
-                btn.classList.add('active');
-            };
+            // UI feedback for chips
+            document.querySelectorAll('.shift-chip-compact').forEach(c => {
+                c.classList.remove('active');
+            });
 
-            window.syncMinDate = () => {
-                const start = document.getElementById('leaveStart').value;
-                const endInput = document.getElementById('leaveEnd');
-                endInput.min = start;
-                if (endInput.value && endInput.value < start) endInput.value = start;
-            };
+            btn.classList.add('active');
+        };
 
-            window.updateDaySummary = () => {
-                const startStr = document.getElementById('leaveStart').value;
-                const endStr = document.getElementById('leaveEnd').value;
-                const summaryDiv = document.getElementById('daySummary');
+        window.syncMinDate = () => {
+            const start = document.getElementById('leaveStart').value;
+            const endInput = document.getElementById('leaveEnd');
+            endInput.min = start;
+            if (endInput.value && endInput.value < start) endInput.value = start;
+        };
 
-                if (startStr && endStr) {
-                    const s = new Date(startStr);
-                    const e = new Date(endStr);
-                    const diffTime = Math.abs(e - s);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        window.updateDaySummary = () => {
+            const startStr = document.getElementById('leaveStart').value;
+            const endStr = document.getElementById('leaveEnd').value;
+            const summaryDiv = document.getElementById('daySummary');
 
-                    if (diffDays > 0) {
-                        document.getElementById('totalDays').innerText = diffDays;
-                        summaryDiv.classList.remove('hidden');
-                    } else summaryDiv.classList.add('hidden');
+            if (startStr && endStr) {
+                const s = new Date(startStr);
+                const e = new Date(endStr);
+                const diffTime = Math.abs(e - s);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                if (diffDays > 0) {
+                    document.getElementById('totalDays').innerText = diffDays;
+                    summaryDiv.classList.remove('hidden');
                 } else summaryDiv.classList.add('hidden');
-            };
+            } else summaryDiv.classList.add('hidden');
+        };
 
-            window.submitLeaveRequest = async () => {
-                const type = document.getElementById('leaveType').value;
-                const start = document.getElementById('leaveStart').value;
-                const end = document.getElementById('leaveEnd').value;
-                const reason = document.getElementById('leaveReason').value;
-                const attachLink = document.getElementById('leaveLink').value;
+        window.submitLeaveRequest = async () => {
+            const type = document.getElementById('leaveType').value;
+            const start = document.getElementById('leaveStart').value;
+            const end = document.getElementById('leaveEnd').value;
+            const reason = document.getElementById('leaveReason').value;
+            const attachLink = document.getElementById('leaveLink').value;
 
-                const startTime = document.getElementById('reqStartTime').value;
-                const endTime = document.getElementById('reqEndTime').value;
+            const startTime = document.getElementById('reqStartTime').value;
+            const endTime = document.getElementById('reqEndTime').value;
 
-                if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันเริ่มและวันสิ้นสุดให้ครบถ้วน', 'warning');
-                if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
+            if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันเริ่มและวันสิ้นสุดให้ครบถ้วน', 'warning');
+            if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
 
-                let finalReason = reason || "";
-                const isWorkSchedule = (type === 'แจ้งเวลาปฏิบัติงาน');
+            let finalReason = reason || "";
+            const isWorkSchedule = (type === 'แจ้งเวลาปฏิบัติงาน');
+            if (isWorkSchedule) {
+                if (!startTime || !endTime) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุเวลาเริ่มและสิ้นสุดงาน', 'warning');
+                if (startTime >= endTime) return Swal.fire('ข้อมูลผิดพลาด', 'เวลาเริ่มงานต้องมาก่อนเวลาเลิกงาน', 'warning');
+                finalReason = `[ลงเวร ${startTime} - ${endTime}] ${reason || '(ไม่มีเหตุผลเพิ่มเติม)'}`;
+            } else {
+                // For Leave requests, reason might be more important, but let's keep it optional if needed
+                if (!reason && type !== 'อื่น ๆ') finalReason = `ขออนุญาต${type}`;
+            }
+
+            try {
+                // Auto-Approve logic for Work Schedule
+                const currentStatus = isWorkSchedule ? "Approved" : "Pending";
+
+                await addDoc(collection(db, "leave_requests"), {
+                    userId: currentUser.lineUserId, name: currentUser.name, dept: currentUser.dept,
+                    type, startDate: start, endDate: end, reason: finalReason,
+                    attachLink, status: currentStatus, requestedAt: serverTimestamp(),
+                    ...(startTime && endTime ? { reqStartTime: startTime, reqEndTime: endTime } : {})
+                });
+
                 if (isWorkSchedule) {
-                    if (!startTime || !endTime) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุเวลาเริ่มและสิ้นสุดงาน', 'warning');
-                    if (startTime >= endTime) return Swal.fire('ข้อมูลผิดพลาด', 'เวลาเริ่มงานต้องมาก่อนเวลาเลิกงาน', 'warning');
-                    finalReason = `[ลงเวร ${startTime} - ${endTime}] ${reason || '(ไม่มีเหตุผลเพิ่มเติม)'}`;
+                    let c = new Date(start), finish = new Date(end);
+                    const shiftDetail = `⏰ ${startTime} - ${endTime}`;
+                    const batchPromises = [];
+
+                    while (c <= finish) {
+                        let ds = c.toLocaleDateString('sv');
+                        batchPromises.push(setDoc(doc(db, "schedules", `${currentUser.lineUserId}_${ds}`), {
+                            userId: currentUser.lineUserId, name: currentUser.name, date: ds, shiftDetail: shiftDetail,
+                            reason: finalReason, attachLink: attachLink || '', timestamp: serverTimestamp()
+                        }));
+                        c.setDate(c.getDate() + 1);
+                    }
+                    await Promise.all(batchPromises);
+                    Swal.fire('สำเร็จ', 'บันทึกเวลาปฏิบัติงานเรียบร้อย (อนุมัติอัตโนมัติ)', 'success');
                 } else {
-                    // For Leave requests, reason might be more important, but let's keep it optional if needed
-                    if (!reason && type !== 'อื่น ๆ') finalReason = `ขออนุญาต${type}`;
+                    Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
                 }
 
-                try {
-                    // Auto-Approve logic for Work Schedule
-                    const currentStatus = isWorkSchedule ? "Approved" : "Pending";
+                toggleLeaveForm();
+                loadSchedule();
+                loadHistory(); // Re-check buttons after shift is added
+            } catch (e) { Swal.fire('Error', e.message, 'error'); }
+        }
 
-                    await addDoc(collection(db, "leave_requests"), {
-                        userId: currentUser.lineUserId, name: currentUser.name, dept: currentUser.dept,
-                        type, startDate: start, endDate: end, reason: finalReason,
-                        attachLink, status: currentStatus, requestedAt: serverTimestamp(),
-                        ...(startTime && endTime ? { reqStartTime: startTime, reqEndTime: endTime } : {})
-                    });
+        async function loadMyLeaves() {
+            try {
+                const q = query(collection(db, "leave_requests"), where("userId", "==", currentUser.lineUserId));
+                const snap = await getDocs(q);
+                const list = document.getElementById('myLeaveList');
+                if (!list) return;
+                list.innerHTML = "";
 
-                    if (isWorkSchedule) {
-                        let c = new Date(start), finish = new Date(end);
-                        const shiftDetail = `⏰ ${startTime} - ${endTime}`;
-                        const batchPromises = [];
+                if (snap.empty) {
+                    list.innerHTML = "<p class='text-muted text-center small'>ไม่มีประวัติการลา</p>";
+                    return;
+                }
 
-                        while (c <= finish) {
-                            let ds = c.toLocaleDateString('sv');
-                            batchPromises.push(setDoc(doc(db, "schedules", `${currentUser.lineUserId}_${ds}`), {
-                                userId: currentUser.lineUserId, name: currentUser.name, date: ds, shiftDetail: shiftDetail,
-                                reason: finalReason, attachLink: attachLink || '', timestamp: serverTimestamp()
-                            }));
-                            c.setDate(c.getDate() + 1);
-                        }
-                        await Promise.all(batchPromises);
-                        Swal.fire('สำเร็จ', 'บันทึกเวลาปฏิบัติงานเรียบร้อย (อนุมัติอัตโนมัติ)', 'success');
-                    } else {
-                        Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
-                    }
+                const docs = snap.docs.map(doc => doc.data()).sort((a, b) => {
+                    const startA = a.startDate || "";
+                    const startB = b.startDate || "";
+                    return startB.localeCompare(startA);
+                });
 
-                    toggleLeaveForm();
-                    loadSchedule();
-                    loadHistory(); // Re-check buttons after shift is added
-                } catch (e) { Swal.fire('Error', e.message, 'error'); }
-            }
-
-            async function loadMyLeaves() {
-                try {
-                    const q = query(collection(db, "leave_requests"), where("userId", "==", currentUser.lineUserId));
-                    const snap = await getDocs(q);
-                    const list = document.getElementById('myLeaveList');
-                    if (!list) return;
-                    list.innerHTML = "";
-
-                    if (snap.empty) {
-                        list.innerHTML = "<p class='text-muted text-center small'>ไม่มีประวัติการลา</p>";
-                        return;
-                    }
-
-                    const docs = snap.docs.map(doc => doc.data()).sort((a, b) => {
-                        const startA = a.startDate || "";
-                        const startB = b.startDate || "";
-                        return startB.localeCompare(startA);
-                    });
-
-                    docs.forEach(v => {
-                        let color = 'text-warning', icon = 'bi-hourglass-split';
-                        if (v.status === 'Approved') { color = 'text-success'; icon = 'bi-check-circle-fill'; }
-                        if (v.status === 'Rejected') { color = 'text-danger'; icon = 'bi-x-circle-fill'; }
-                        const dColor = getDeptCategoryColor(currentUser.dept);
-                        list.innerHTML += `<li class="history-item py-2 px-0 border-0 shadow-none d-flex justify-content-between mb-1">
+                docs.forEach(v => {
+                    let color = 'text-warning', icon = 'bi-hourglass-split';
+                    if (v.status === 'Approved') { color = 'text-success'; icon = 'bi-check-circle-fill'; }
+                    if (v.status === 'Rejected') { color = 'text-danger'; icon = 'bi-x-circle-fill'; }
+                    const dColor = getDeptCategoryColor(currentUser.dept);
+                    list.innerHTML += `<li class="history-item py-2 px-0 border-0 shadow-none d-flex justify-content-between mb-1">
                     <div><span class="badge small border me-2" style="background:${dColor}20; color:${dColor}; border-color:${dColor}">${v.type}</span> <small class="text-muted">${v.startDate}</small></div>
                     <div class="${color} fw-bold small"><i class="bi ${icon}"></i> ${v.status}</div>
                  </li>`
-                    });
-                } catch (err) {
-                    console.error("Error loading my leaves:", err);
-                }
+                });
+            } catch (err) {
+                console.error("Error loading my leaves:", err);
             }
+        }
 
-            // --- DEPARTMENT COLORS ---
+        // --- DEPARTMENT COLORS ---
 
 
-            function updateDeptUI() {
-                if (!currentUser || !currentUser.dept) return;
-                const color = getDeptCategoryColor(currentUser.dept);
+        function updateDeptUI() {
+            if (!currentUser || !currentUser.dept) return;
+            const color = getDeptCategoryColor(currentUser.dept);
 
-                // Apply custom color to profile elements
-                const elements = ['showName', 'showEmpId'];
-                elements.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.style.backgroundColor = color;
-                        el.style.color = 'white';
+            // Apply custom color to profile elements
+            const elements = ['showName', 'showEmpId'];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.backgroundColor = color;
+                    el.style.color = 'white';
+                }
+            });
+
+            const profileImg = document.getElementById('mainProfileImg');
+            if (profileImg) {
+                profileImg.style.borderColor = color;
+            }
+        }
+
+
+        // --- WORKING HOURS CALCULATION ---
+        async function loadWorkingHours() {
+            try {
+                const dept = currentUser.dept || '';
+                const isPharmacistExtern = dept === 'Pharmacist Extern' || dept.includes('Intern');
+
+                const now = new Date();
+                const todayStr = 'Today ' + String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + now.getFullYear();
+                const monthStr = 'This month ' + String(now.getMonth() + 1).padStart(2, '0') + '/' + now.getFullYear();
+                const yearStr = 'This year ' + now.getFullYear();
+
+                const h1Title = document.getElementById('hours1Title');
+                if (h1Title) h1Title.innerText = todayStr;
+
+                const h2Title = document.getElementById('hours2Title');
+                if (h2Title) h2Title.innerText = 'This week';
+
+                const h3Title = document.getElementById('hours3Title');
+                if (h3Title) h3Title.innerText = monthStr;
+
+                const h4Title = document.getElementById('hours4Title');
+                if (h4Title) h4Title.innerText = yearStr;
+
+                await calculateHoursToday(); // Updates hours1Value
+                await calculateHoursFromWeekStart(); // Updates hours2Value
+                await calculateHoursFromMonthStart(); // Updates hours3Value
+                await calculateHoursFromYearStart(); // Updates hours4Value
+
+            } catch (error) {
+                console.error('Error loading working hours:', error);
+            }
+        }
+
+        async function calculateInternshipHours() {
+            try {
+                // Get user data including internship period
+                const userDoc = await getDoc(doc(db, "users", currentUser.lineUserId));
+                if (!userDoc.exists()) return;
+
+                const userData = userDoc.data();
+
+                // Use internship period if available, otherwise fall back to registration date
+                let startDate, endDate;
+
+                if (userData.internshipStartDate && userData.internshipEndDate) {
+                    startDate = userData.internshipStartDate.toDate ?
+                        userData.internshipStartDate.toDate() :
+                        new Date(userData.internshipStartDate);
+
+                    endDate = userData.internshipEndDate.toDate ?
+                        userData.internshipEndDate.toDate() :
+                        new Date(userData.internshipEndDate);
+
+                    // If end date is in the future, use yesterday as end date
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    yesterday.setHours(23, 59, 59, 999);
+
+                    if (endDate > yesterday) {
+                        endDate = yesterday;
+                    }
+                } else {
+                    // Fallback to registration date if no internship period is set
+                    const registrationDate = userData.registrationDate || userData.createdAt;
+                    if (!registrationDate) {
+                        document.getElementById('hours1Value').innerText = '0.00';
+                        return;
+                    }
+                    startDate = registrationDate.toDate ?
+                        registrationDate.toDate() :
+                        new Date(registrationDate);
+                    endDate = new Date(); // Include today
+                }
+
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours1Value').innerText = hours.toFixed(2);
+
+            } catch (error) {
+                console.error('Error calculating internship hours:', error);
+                document.getElementById('hours1Value').innerText = '0.00';
+            }
+        }
+
+        async function calculateHoursToday() {
+            try {
+                const now = new Date();
+                const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const endDate = now;
+
+                const q = query(
+                    collection(db, "attendance"),
+                    where("userId", "==", currentUser.lineUserId),
+                    where("timestamp", ">=", startDate),
+                    where("timestamp", "<=", endDate),
+                    orderBy("timestamp")
+                );
+
+                const snap = await getDocs(q);
+                const records = snap.docs.map(doc => doc.data());
+
+                let inTime = null;
+                let outTime = null;
+
+                records.forEach(r => {
+                    if (r.type === 'เข้างาน' && !inTime) {
+                        inTime = r.timestamp.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
+                    }
+                    if (r.type === 'ออกงาน') {
+                        outTime = r.timestamp.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
                     }
                 });
 
-                const profileImg = document.getElementById('mainProfileImg');
-                if (profileImg) {
-                    profileImg.style.borderColor = color;
+                const msgEl = document.getElementById('todayInOutText');
+                if (msgEl) {
+                    let txt = '';
+                    if (inTime) txt += `IN ${inTime}<br>`;
+                    if (outTime) txt += `OUT ${outTime}`;
+                    msgEl.innerHTML = txt;
                 }
+
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours1Value').innerText = hours.toFixed(2);
+            } catch (error) {
+                console.error('Error calculating hours today:', error);
+                document.getElementById('hours1Value').innerText = '0.00';
             }
+        }
 
+        async function calculateHoursFromWeekStart() {
+            try {
+                const now = new Date();
+                const dayOfWeek = now.getDay() || 7; // Get day of week (1-7), Monday is 1
+                const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek + 1);
+                const endDate = now;
 
-            // --- WORKING HOURS CALCULATION ---
-            async function loadWorkingHours() {
-                try {
-                    const dept = currentUser.dept || '';
-                    const isPharmacistExtern = dept === 'Pharmacist Extern' || dept.includes('Intern');
-
-                    const totalCard = document.getElementById('totalHoursCard');
-                    const yearlyCard = document.getElementById('yearlyHoursCard');
-                    const monthlyCard = document.getElementById('monthlyHoursCard');
-
-                    // Update UI text for new requirements
-                    const h1Title = document.getElementById('hours1Title');
-                    if (h1Title) h1Title.innerText = 'วันนี้ (เสร็จสิ้น)';
-
-                    const h2Title = document.getElementById('hours2Title');
-                    if (h2Title) h2Title.innerText = 'สัปดาห์นี้';
-
-                    const h3Title = document.getElementById('hours3Title');
-                    if (h3Title) h3Title.innerText = 'เดือนนี้';
-
-                    // We will use existing cards for: Today(total/1), Week(monthly/2), Month(yearly/3)
-                    // Need to fetch Year and put it somewhere else or re-use existing cards.
-                    // The prompt asked for: Today, This week, This month, This year.
-                    // There are only 3 cards available for hours. We will update the HTML layout as well.
-
-                    await calculateHoursToday(); // Updates hours1Value
-                    await calculateHoursFromWeekStart(); // Updates hours2Value
-                    await calculateHoursFromMonthStart(); // Updates hours3Value
-
-                    if (totalCard) totalCard.style.display = 'block';
-                    if (yearlyCard) yearlyCard.style.display = 'block';
-
-                } catch (error) {
-                    console.error('Error loading working hours:', error);
-                }
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours2Value').innerText = hours.toFixed(2);
+            } catch (error) {
+                console.error('Error calculating hours from week start:', error);
+                document.getElementById('hours2Value').innerText = '0.00';
             }
+        }
 
-            async function calculateInternshipHours() {
-                try {
-                    // Get user data including internship period
-                    const userDoc = await getDoc(doc(db, "users", currentUser.lineUserId));
-                    if (!userDoc.exists()) return;
+        async function calculateHoursFromMonthStart() {
+            try {
+                const now = new Date();
+                const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of current month
+                const endDate = now;
 
-                    const userData = userDoc.data();
-
-                    // Use internship period if available, otherwise fall back to registration date
-                    let startDate, endDate;
-
-                    if (userData.internshipStartDate && userData.internshipEndDate) {
-                        startDate = userData.internshipStartDate.toDate ?
-                            userData.internshipStartDate.toDate() :
-                            new Date(userData.internshipStartDate);
-
-                        endDate = userData.internshipEndDate.toDate ?
-                            userData.internshipEndDate.toDate() :
-                            new Date(userData.internshipEndDate);
-
-                        // If end date is in the future, use yesterday as end date
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        yesterday.setHours(23, 59, 59, 999);
-
-                        if (endDate > yesterday) {
-                            endDate = yesterday;
-                        }
-                    } else {
-                        // Fallback to registration date if no internship period is set
-                        const registrationDate = userData.registrationDate || userData.createdAt;
-                        if (!registrationDate) {
-                            document.getElementById('hours1Value').innerText = '0.00';
-                            return;
-                        }
-                        startDate = registrationDate.toDate ?
-                            registrationDate.toDate() :
-                            new Date(registrationDate);
-                        endDate = new Date(); // Include today
-                    }
-
-                    const hours = await calculateWorkingHours(startDate, endDate);
-                    document.getElementById('hours1Value').innerText = hours.toFixed(2);
-
-                } catch (error) {
-                    console.error('Error calculating internship hours:', error);
-                    document.getElementById('hours1Value').innerText = '0.00';
-                }
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours3Value').innerText = hours.toFixed(2);
+            } catch (error) {
+                console.error('Error calculating hours from month start:', error);
+                document.getElementById('hours3Value').innerText = '0.00';
             }
+        }
 
-            async function calculateHoursToday() {
-                try {
-                    const now = new Date();
-                    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                    const endDate = now;
+        async function calculateHoursFromYearStart() {
+            try {
+                const now = new Date();
+                const startDate = new Date(now.getFullYear(), 0, 1); // 1st January
+                const endDate = now;
 
-                    const hours = await calculateWorkingHours(startDate, endDate);
-                    document.getElementById('hours1Value').innerText = hours.toFixed(2);
-                } catch (error) {
-                    console.error('Error calculating hours today:', error);
-                    document.getElementById('hours1Value').innerText = '0.00';
-                }
+                const hours = await calculateWorkingHours(startDate, endDate);
+                const el = document.getElementById('hours4Value') || document.getElementById('hours1Value'); // Fallback
+                if (el && el.id === 'hours4Value') el.innerText = hours.toFixed(2);
+            } catch (error) {
+                console.error('Error calculating hours from year start:', error);
             }
+        }
 
-            async function calculateHoursFromWeekStart() {
-                try {
-                    const now = new Date();
-                    const dayOfWeek = now.getDay() || 7; // Get day of week (1-7), Monday is 1
-                    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek + 1);
-                    const endDate = now;
+        // --- 📋 SATISFACTION SURVEY SYSTEM ---
+        let currentQuestionIndex = 0;
+        const surveyQuestions = [
+            { id: 1, type: 'single', q: '1. คุณชอบกะงานประเภทใดมากที่สุด?', options: ['08:00 - 17:00', '09:00 - 18:00', '10:00 - 19:00', '11:00 - 20:00', '12:00 - 21:00 (กะปิดร้าน)', 'ไม่มี preference ชัดเจน'], hasOther: true },
+            { id: 2, type: 'multiple', q: '2. คุณมีข้อจำกัดเกี่ยวกับเวลาเดินทางหรือไม่?', options: ['มีปัญหาการเดินทางในช่วงเช้ามืดหรือดึก', 'ต้องดูแลครอบครัวหรือภาระส่วนตัว', 'ไม่มีข้อจำกัดด้านการเดินทาง'], hasOther: true },
+            { id: 3, type: 'rating', q: '3. คุณพึงพอใจกับการหมุนเวียนกะปัจจุบันแค่ไหน?', subQ: 'ระบุเหตุผลประกอบ (ถ้ามี):', labels: ['น้อยที่สุด', 'มากที่สุด'] },
+            { id: 4, type: 'multiple', q: '4. คุณมีปัญหาสุขภาพที่เกี่ยวข้องกับกะงานหรือไม่?', options: ['ใช่ นอนไม่หลับ/รบกวนนาฬิกาชีวิต', 'ใช่ ความเครียดจากงานต่อเนื่อง', 'ไม่มีปัญหา'], hasOther: true },
+            { id: 5, type: 'single', q: '5. คุณต้องการวันหยุดหรือพักเบรกในกะงานอย่างไร?', options: ['หยุด 2 วัน (สพ.-อา.)', 'หยุดหมุนเวียนตาม preference', 'ไม่มี preference แต่ขอพักเบรก 1 ชม.'], hasOther: true },
+            { id: 6, type: 'rating', q: '6. คุณคิดว่าการกระจายกะงานปัจจุบันยุติธรรมแค่ไหน?', subQ: 'ระบุเหตุผลประกอบ (ถ้ามี):', labels: ['ไม่ยุติธรรมเลย', 'ยุติธรรมมาก'] },
+            { id: 7, type: 'single', q: '7. ความพึงพอใจการทำงานร่วมกับ Extern (แบ่งเบาภาระ)?', options: ['ใช่ ชอบทำงานคู่เพื่อแลกเปลี่ยนความรู้', 'ไม่มี preference'], hasOther: true },
+            { id: 8, type: 'open', q: '8. ข้อจำกัดอื่นๆ ที่อาจกระทบการจัดกะ (เช่น การเรียน/กิจกรรม)?' },
+            { id: 9, type: 'open', q: '9. คุณมีข้อเสนอแนะเพื่อปรับปรุงระบบกะงานอย่างไร?' },
+            { id: 10, type: 'single', q: '10. ในการจัดตารางเวร คุณให้ความสำคัญกับ "ความต้องการส่วนตัว" (Preference) เมื่อเทียบกับ "ความสมดุลของทีม" ในสัดส่วนเท่าใด?', options: ['เน้นความต้องการส่วนตัวเป็นหลัก (สัดส่วน 80:20)', 'เน้นความเท่าเทียมและสลับกันรับผิดชอบ (สัดส่วน 50:50)', 'เน้นความสมดุลและความต้องการของทีมเป็นหลัก (สัดส่วน 20:80)'], hasOther: true }
+        ];
+        const surveyAnswers = {};
 
-                    const hours = await calculateWorkingHours(startDate, endDate);
-                    document.getElementById('hours2Value').innerText = hours.toFixed(2);
-                } catch (error) {
-                    console.error('Error calculating hours from week start:', error);
-                    document.getElementById('hours2Value').innerText = '0.00';
-                }
-            }
+        window.renderQuestion = () => {
+            const q = surveyQuestions[currentQuestionIndex];
+            const container = document.getElementById('surveyContent');
+            const progress = ((currentQuestionIndex + 1) / surveyQuestions.length) * 100;
+            document.getElementById('surveyProgress').style.width = progress + '%';
 
-            async function calculateHoursFromMonthStart() {
-                try {
-                    const now = new Date();
-                    const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of current month
-                    const endDate = now;
-
-                    const hours = await calculateWorkingHours(startDate, endDate);
-                    document.getElementById('hours3Value').innerText = hours.toFixed(2);
-                } catch (error) {
-                    console.error('Error calculating hours from month start:', error);
-                    document.getElementById('hours3Value').innerText = '0.00';
-                }
-            }
-
-            async function calculateHoursFromYearStart() {
-                try {
-                    const now = new Date();
-                    const startDate = new Date(now.getFullYear(), 0, 1); // 1st January
-                    const endDate = now;
-
-                    const hours = await calculateWorkingHours(startDate, endDate);
-                    const el = document.getElementById('hours4Value') || document.getElementById('hours1Value'); // Fallback
-                    if (el && el.id === 'hours4Value') el.innerText = hours.toFixed(2);
-                } catch (error) {
-                    console.error('Error calculating hours from year start:', error);
-                }
-            }
-
-            // --- 📋 SATISFACTION SURVEY SYSTEM ---
-            let currentQuestionIndex = 0;
-            const surveyQuestions = [
-                { id: 1, type: 'single', q: '1. คุณชอบกะงานประเภทใดมากที่สุด?', options: ['08:00 - 17:00', '09:00 - 18:00', '10:00 - 19:00', '11:00 - 20:00', '12:00 - 21:00 (กะปิดร้าน)', 'ไม่มี preference ชัดเจน'], hasOther: true },
-                { id: 2, type: 'multiple', q: '2. คุณมีข้อจำกัดเกี่ยวกับเวลาเดินทางหรือไม่?', options: ['มีปัญหาการเดินทางในช่วงเช้ามืดหรือดึก', 'ต้องดูแลครอบครัวหรือภาระส่วนตัว', 'ไม่มีข้อจำกัดด้านการเดินทาง'], hasOther: true },
-                { id: 3, type: 'rating', q: '3. คุณพึงพอใจกับการหมุนเวียนกะปัจจุบันแค่ไหน?', subQ: 'ระบุเหตุผลประกอบ (ถ้ามี):', labels: ['น้อยที่สุด', 'มากที่สุด'] },
-                { id: 4, type: 'multiple', q: '4. คุณมีปัญหาสุขภาพที่เกี่ยวข้องกับกะงานหรือไม่?', options: ['ใช่ นอนไม่หลับ/รบกวนนาฬิกาชีวิต', 'ใช่ ความเครียดจากงานต่อเนื่อง', 'ไม่มีปัญหา'], hasOther: true },
-                { id: 5, type: 'single', q: '5. คุณต้องการวันหยุดหรือพักเบรกในกะงานอย่างไร?', options: ['หยุด 2 วัน (สพ.-อา.)', 'หยุดหมุนเวียนตาม preference', 'ไม่มี preference แต่ขอพักเบรก 1 ชม.'], hasOther: true },
-                { id: 6, type: 'rating', q: '6. คุณคิดว่าการกระจายกะงานปัจจุบันยุติธรรมแค่ไหน?', subQ: 'ระบุเหตุผลประกอบ (ถ้ามี):', labels: ['ไม่ยุติธรรมเลย', 'ยุติธรรมมาก'] },
-                { id: 7, type: 'single', q: '7. ความพึงพอใจการทำงานร่วมกับ Extern (แบ่งเบาภาระ)?', options: ['ใช่ ชอบทำงานคู่เพื่อแลกเปลี่ยนความรู้', 'ไม่มี preference'], hasOther: true },
-                { id: 8, type: 'open', q: '8. ข้อจำกัดอื่นๆ ที่อาจกระทบการจัดกะ (เช่น การเรียน/กิจกรรม)?' },
-                { id: 9, type: 'open', q: '9. คุณมีข้อเสนอแนะเพื่อปรับปรุงระบบกะงานอย่างไร?' },
-                { id: 10, type: 'single', q: '10. ในการจัดตารางเวร คุณให้ความสำคัญกับ "ความต้องการส่วนตัว" (Preference) เมื่อเทียบกับ "ความสมดุลของทีม" ในสัดส่วนเท่าใด?', options: ['เน้นความต้องการส่วนตัวเป็นหลัก (สัดส่วน 80:20)', 'เน้นความเท่าเทียมและสลับกันรับผิดชอบ (สัดส่วน 50:50)', 'เน้นความสมดุลและความต้องการของทีมเป็นหลัก (สัดส่วน 20:80)'], hasOther: true }
-            ];
-            const surveyAnswers = {};
-
-            window.renderQuestion = () => {
-                const q = surveyQuestions[currentQuestionIndex];
-                const container = document.getElementById('surveyContent');
-                const progress = ((currentQuestionIndex + 1) / surveyQuestions.length) * 100;
-                document.getElementById('surveyProgress').style.width = progress + '%';
-
-                let h = `<div class="animate__animated animate__fadeInRight">
+            let h = `<div class="animate__animated animate__fadeInRight">
                         <label class="h5 fw-bold mb-4 d-block" style="color:#2d3436;">${q.q}</label>`;
 
-                if (q.type === 'single' || q.type === 'multiple') {
-                    h += `<div class="d-grid gap-2">`;
-                    q.options.forEach((opt, idx) => {
-                        const isSelected = surveyAnswers[q.id]?.includes(opt);
-                        h += `<div class="survey-option p-3 rounded-4 border-2 mb-2 d-flex align-items-center" 
+            if (q.type === 'single' || q.type === 'multiple') {
+                h += `<div class="d-grid gap-2">`;
+                q.options.forEach((opt, idx) => {
+                    const isSelected = surveyAnswers[q.id]?.includes(opt);
+                    h += `<div class="survey-option p-3 rounded-4 border-2 mb-2 d-flex align-items-center" 
                                onclick="selectOption(${q.id}, '${opt}', '${q.type}')"
                                style="cursor:pointer; border: 2px solid ${isSelected ? '#ff8e71' : '#f1f2f6'}; background:${isSelected ? '#fff5f2' : 'white'};">
                             <i class="bi ${isSelected ? (q.type === 'single' ? 'bi-record-circle-fill' : 'bi-check-square-fill') : (q.type === 'single' ? 'bi-circle' : 'bi-square')} me-3" style="color:${isSelected ? '#ff8e71' : '#ddd'}"></i>
                             <span style="color:${isSelected ? '#2d3436' : '#636e72'}; font-weight:${isSelected ? '600' : '400'}">${opt}</span>
                           </div>`;
-                    });
-                    if (q.hasOther) {
-                        const otherVal = surveyAnswers[q.id + '_other'] || '';
-                        h += `<input type="text" class="form-control rounded-4 py-3 border-2" placeholder="อื่นๆ (โปรดระบุ)..." 
+                });
+                if (q.hasOther) {
+                    const otherVal = surveyAnswers[q.id + '_other'] || '';
+                    h += `<input type="text" class="form-control rounded-4 py-3 border-2" placeholder="อื่นๆ (โปรดระบุ)..." 
                                  onchange="surveyAnswers['${q.id}_other']=this.value" value="${otherVal}">`;
-                    }
-                    h += `</div>`;
-                } else if (q.type === 'rating') {
-                    const currentVal = surveyAnswers[q.id] || 3;
-                    h += `<div class="mb-4">
+                }
+                h += `</div>`;
+            } else if (q.type === 'rating') {
+                const currentVal = surveyAnswers[q.id] || 3;
+                h += `<div class="mb-4">
                         <div class="text-center mb-3">
                              <div class="badge rounded-pill" style="background-color: #fcece8; color: #ff8e71; font-size: 0.85rem; padding: 6px 16px; border: 1px solid #ff8e71;">คะแนนที่เลือก: ${currentVal}</div>
                         </div>
@@ -1994,337 +2034,343 @@
                             <!-- Buttons Grid (Forcing Horizontal) -->
                             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;">`;
 
-                    [1, 2, 3, 4, 5].forEach(num => {
-                        const isActive = currentVal === num;
-                        h += `<div onclick="selectRating(${q.id}, ${num})" 
+                [1, 2, 3, 4, 5].forEach(num => {
+                    const isActive = currentVal === num;
+                    h += `<div onclick="selectRating(${q.id}, ${num})" 
                                class="d-flex align-items-center justify-content-center"
                                style="height: 45px; cursor: pointer; border-radius: 12px; border: 2px solid ${isActive ? '#ff8e71' : '#e9ecef'}; 
                                       background: ${isActive ? '#ff8e71' : 'white'}; color: ${isActive ? 'white' : '#636e72'}; 
                                       font-weight: 700; font-size: 1.1rem; transition: all 0.15s ease;">
                                ${num}
                           </div>`;
-                    });
+                });
 
-                    h += `      </div>
+                h += `      </div>
                         </div>
                       </div>`;
-                    h += `<textarea class="form-control rounded-4 p-3 border-2 mt-3" rows="3" placeholder="${q.subQ}"
+                h += `<textarea class="form-control rounded-4 p-3 border-2 mt-3" rows="3" placeholder="${q.subQ}"
                                   onchange="surveyAnswers['${q.id}_reason']=this.value">${surveyAnswers[q.id + '_reason'] || ''}</textarea>`;
-                } else if (q.type === 'open') {
-                    h += `<textarea class="form-control rounded-4 p-3 border-2" rows="5" placeholder="คำตอบของคุณ..."
+            } else if (q.type === 'open') {
+                h += `<textarea class="form-control rounded-4 p-3 border-2" rows="5" placeholder="คำตอบของคุณ..."
                                 onchange="surveyAnswers['${q.id}']=this.value">${surveyAnswers[q.id] || ''}</textarea>`;
-                }
-                h += `</div>`;
-                container.innerHTML = h;
-
-                // Update Buttons
-                document.getElementById('prevQuestBtn').classList.toggle('hidden', currentQuestionIndex === 0);
-                const isLast = currentQuestionIndex === surveyQuestions.length - 1;
-                document.getElementById('nextQuestBtn').classList.toggle('hidden', isLast);
-                document.getElementById('submitSurveyBtn').classList.toggle('hidden', !isLast);
-            };
-
-            window.selectOption = (qId, opt, type) => {
-                if (type === 'single') {
-                    surveyAnswers[qId] = [opt];
-                } else {
-                    if (!surveyAnswers[qId]) surveyAnswers[qId] = [];
-                    const idx = surveyAnswers[qId].indexOf(opt);
-                    if (idx > -1) surveyAnswers[qId].splice(idx, 1);
-                    else surveyAnswers[qId].push(opt);
-                }
-                renderQuestion();
-            };
-
-            window.selectRating = (qId, num) => {
-                surveyAnswers[qId] = num;
-                renderQuestion();
-            };
-
-            window.changeQuestion = (dir) => {
-                currentQuestionIndex += dir;
-                renderQuestion();
-            };
-
-            window.submitSurvey = async (e) => {
-                e.preventDefault();
-                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-                try {
-                    await setDoc(doc(db, "survey_responses", currentUser.lineUserId), {
-                        userId: currentUser.lineUserId,
-                        name: currentUser.name,
-                        dept: currentUser.dept,
-                        answers: surveyAnswers,
-                        timestamp: serverTimestamp()
-                    });
-                    Swal.fire('สำเร็จ', 'ขอบคุณที่ร่วมตอบแบบสำรวจครับ', 'success');
-                    show('mainPage');
-                } catch (err) { Swal.fire('Error', err.message, 'error'); }
-            };
-
-            // Initialize survey if page is shown
-            const originalShow = window.show || show;
-            window.show = (id, data) => {
-                if (typeof originalShow === 'function') originalShow(id, data);
-                if (id === 'surveyPage') {
-                    currentQuestionIndex = 0;
-                    renderQuestion();
-                }
-            };
-            window.showPage = window.show; // Alias for compatibility
-
-            async function calculateWorkingHours(startDate, endDate) {
-                try {
-                    const q = query(
-                        collection(db, "attendance"),
-                        where("userId", "==", currentUser.lineUserId),
-                        where("timestamp", ">=", startDate),
-                        where("timestamp", "<=", endDate),
-                        orderBy("timestamp")
-                    );
-
-                    const snap = await getDocs(q);
-                    const records = snap.docs.map(doc => ({
-                        ...doc.data(),
-                        timestamp: doc.data().timestamp.toDate()
-                    }));
-
-                    // Group records by date and calculate daily hours
-                    const dailyRecords = {};
-                    records.forEach(record => {
-                        const dateKey = record.timestamp.toISOString().split('T')[0];
-                        if (!dailyRecords[dateKey]) {
-                            dailyRecords[dateKey] = [];
-                        }
-                        dailyRecords[dateKey].push(record);
-                    });
-
-                    let totalHours = 0;
-
-                    Object.values(dailyRecords).forEach(dayRecords => {
-                        // Sort by time
-                        dayRecords.sort((a, b) => a.timestamp - b.timestamp);
-
-                        let dayHours = 0;
-                        let clockInTime = null;
-
-                        dayRecords.forEach(record => {
-                            if (record.type === 'เข้างาน') {
-                                clockInTime = record.timestamp;
-                            } else if (record.type === 'ออกงาน' && clockInTime) {
-                                // Calculate hours between clock in and clock out
-                                const diffMs = record.timestamp - clockInTime;
-                                const diffHours = diffMs / (1000 * 60 * 60);
-                                dayHours += diffHours;
-                                clockInTime = null;
-                            }
-                        });
-
-                        // Handle case where clocked in but no clock out
-                        // IMPORTANT: Do NOT calculate incomplete shift hours per user requirements.
-                        if (clockInTime) {
-                            // Only show value when fully clocked out (pair is complete)
-                        }
-
-                        totalHours += dayHours;
-                    });
-
-                    return totalHours;
-
-                } catch (error) {
-                    console.error('Error in calculateWorkingHours:', error);
-                    return 0;
-                }
             }
-            // --- CASH SUBMISSION SYSTEM ---
-            const cashTypes = [
-                { id: 'c100', name: 'เหรียญ 1 บาท', val: 1.00, type: 'coin' },
-                { id: 'c200', name: 'เหรียญ 2 บาท', val: 2.00, type: 'coin' },
-                { id: 'c500', name: 'เหรียญ 5 บาท', val: 5.00, type: 'coin' },
-                { id: 'c1000', name: 'เหรียญ 10 บาท', val: 10.00, type: 'coin' },
-                { id: 'b20', name: 'ธนบัตร 20 บาท', val: 20.00, type: 'banknote' },
-                { id: 'b50', name: 'ธนบัตร 50 บาท', val: 50.00, type: 'banknote' },
-                { id: 'b100', name: 'ธนบัตร 100 บาท', val: 100.00, type: 'banknote' },
-                { id: 'b500', name: 'ธนบัตร 500 บาท', val: 500.00, type: 'banknote' },
-                { id: 'b1000', name: 'ธนบัตร 1,000 บาท', val: 1000.00, type: 'banknote' }
-            ];
+            h += `</div>`;
+            container.innerHTML = h;
 
-            function initCashForm() {
-                const coinsBody = document.getElementById('coins');
-                const banknotesBody = document.getElementById('banknotes');
-                if (!coinsBody || !banknotesBody) return;
-                if (coinsBody.children.length > 0) return; // Already init
+            // Update Buttons
+            document.getElementById('prevQuestBtn').classList.toggle('hidden', currentQuestionIndex === 0);
+            const isLast = currentQuestionIndex === surveyQuestions.length - 1;
+            document.getElementById('nextQuestBtn').classList.toggle('hidden', isLast);
+            document.getElementById('submitSurveyBtn').classList.toggle('hidden', !isLast);
+        };
 
-                let htmlCoins = '';
-                let htmlBanknotes = '';
+        window.selectOption = (qId, opt, type) => {
+            if (type === 'single') {
+                surveyAnswers[qId] = [opt];
+            } else {
+                if (!surveyAnswers[qId]) surveyAnswers[qId] = [];
+                const idx = surveyAnswers[qId].indexOf(opt);
+                if (idx > -1) surveyAnswers[qId].splice(idx, 1);
+                else surveyAnswers[qId].push(opt);
+            }
+            renderQuestion();
+        };
 
-                cashTypes.forEach(c => {
-                    const row = `
+        window.selectRating = (qId, num) => {
+            surveyAnswers[qId] = num;
+            renderQuestion();
+        };
+
+        window.changeQuestion = (dir) => {
+            currentQuestionIndex += dir;
+            renderQuestion();
+        };
+
+        window.submitSurvey = async (e) => {
+            e.preventDefault();
+            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+            try {
+                await setDoc(doc(db, "survey_responses", currentUser.lineUserId), {
+                    userId: currentUser.lineUserId,
+                    name: currentUser.name,
+                    dept: currentUser.dept,
+                    answers: surveyAnswers,
+                    timestamp: serverTimestamp()
+                });
+                Swal.fire('สำเร็จ', 'ขอบคุณที่ร่วมตอบแบบสำรวจครับ', 'success');
+                show('mainPage');
+            } catch (err) { Swal.fire('Error', err.message, 'error'); }
+        };
+
+        // Initialize survey if page is shown
+        const originalShow = window.show || show;
+        window.show = (id, data) => {
+            if (typeof originalShow === 'function') originalShow(id, data);
+            if (id === 'surveyPage') {
+                currentQuestionIndex = 0;
+                renderQuestion();
+            }
+        };
+        window.showPage = window.show; // Alias for compatibility
+
+        async function calculateWorkingHours(startDate, endDate) {
+            try {
+                const q = query(
+                    collection(db, "attendance"),
+                    where("userId", "==", currentUser.lineUserId),
+                    where("timestamp", ">=", startDate),
+                    where("timestamp", "<=", endDate),
+                    orderBy("timestamp")
+                );
+
+                const snap = await getDocs(q);
+                const records = snap.docs.map(doc => ({
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp.toDate()
+                }));
+
+                // Group records by date and calculate daily hours
+                const dailyRecords = {};
+                records.forEach(record => {
+                    const dateKey = record.timestamp.toISOString().split('T')[0];
+                    if (!dailyRecords[dateKey]) {
+                        dailyRecords[dateKey] = [];
+                    }
+                    dailyRecords[dateKey].push(record);
+                });
+
+                let totalHours = 0;
+
+                Object.values(dailyRecords).forEach(dayRecords => {
+                    // Sort by time
+                    dayRecords.sort((a, b) => a.timestamp - b.timestamp);
+
+                    let dayHours = 0;
+                    let clockInTime = null;
+
+                    dayRecords.forEach(record => {
+                        if (record.type === 'เข้างาน') {
+                            clockInTime = record.timestamp;
+                        } else if (record.type === 'ออกงาน' && clockInTime) {
+                            // Calculate hours between clock in and clock out
+                            const diffMs = record.timestamp - clockInTime;
+                            const diffHours = diffMs / (1000 * 60 * 60);
+                            dayHours += diffHours;
+                            clockInTime = null;
+                        }
+                    });
+
+                    // Handle case where clocked in but no clock out
+                    // IMPORTANT: Do NOT calculate incomplete shift hours per user requirements.
+                    if (clockInTime) {
+                        // Only show value when fully clocked out (pair is complete)
+                    }
+
+                    totalHours += dayHours;
+                });
+
+                return totalHours;
+
+            } catch (error) {
+                console.error('Error in calculateWorkingHours:', error);
+                return 0;
+            }
+        }
+        // --- CASH SUBMISSION SYSTEM ---
+        const cashTypes = [
+            { id: 'c100', name: 'เหรียญ 1 บาท', val: 1.00, type: 'coin' },
+            { id: 'c200', name: 'เหรียญ 2 บาท', val: 2.00, type: 'coin' },
+            { id: 'c500', name: 'เหรียญ 5 บาท', val: 5.00, type: 'coin' },
+            { id: 'c1000', name: 'เหรียญ 10 บาท', val: 10.00, type: 'coin' },
+            { id: 'b20', name: 'ธนบัตร 20 บาท', val: 20.00, type: 'banknote' },
+            { id: 'b50', name: 'ธนบัตร 50 บาท', val: 50.00, type: 'banknote' },
+            { id: 'b100', name: 'ธนบัตร 100 บาท', val: 100.00, type: 'banknote' },
+            { id: 'b500', name: 'ธนบัตร 500 บาท', val: 500.00, type: 'banknote' },
+            { id: 'b1000', name: 'ธนบัตร 1,000 บาท', val: 1000.00, type: 'banknote' }
+        ];
+
+        function initCashForm() {
+            const coinsBody = document.getElementById('coins');
+            const banknotesBody = document.getElementById('banknotes');
+            if (!coinsBody || !banknotesBody) return;
+            if (coinsBody.children.length > 0) return; // Already init
+
+            let htmlCoins = '';
+            let htmlBanknotes = '';
+
+            cashTypes.forEach(c => {
+                let displayIcon = '';
+                if (c.type === 'coin') {
+                    displayIcon = `<div class="d-inline-flex justify-content-center align-items-center bg-warning text-dark fw-bold rounded-circle border border-2 border-white shadow-sm" style="width: 36px; height: 36px; font-size: 0.95rem;">${c.val}</div>`;
+                } else {
+                    displayIcon = `<div class="d-inline-flex justify-content-center align-items-center bg-success text-white fw-bold rounded shadow-sm" style="min-width: 52px; height: 32px; font-size: 0.95rem; border: 1px dashed rgba(255,255,255,0.6);">${c.val >= 1000 ? '1,000' : c.val}</div>`;
+                }
+
+                const row = `
                 <tr style="border-bottom: 1px solid #333;">
-                    <td class="text-white py-3" style="font-size: 0.95rem;">${c.name}</td>
-                    <td class="text-white text-center py-3" style="font-size: 0.95rem;">${c.val >= 1 ? c.val.toLocaleString() : c.val}</td>
-                    <td class="py-2 text-center">
+                    <td class="py-3 text-center" style="width: 25%;">${displayIcon}</td>
+                    <td class="py-2 text-center" style="width: 35%;">
                         <input type="number" id="qty_${c.id}" 
                             class="form-control text-center text-dark border-0 fw-bold shadow-sm" 
                             style="width: 80px; margin: 0 auto; height: 45px; border-radius: 12px; background: #fff;" 
                             min="0" placeholder="" oninput="calcCash()" onfocus="this.select()">
                     </td>
-                    <td class="text-white text-end py-3" style="font-size: 0.95rem; padding-right: 15px;" id="sub_${c.id}">0.00</td>
+                    <td class="text-white text-end py-3 fw-bold" style="font-size: 1.05rem; padding-right: 15px; width: 40%; color: #20c997 !important;" id="sub_${c.id}">0.00</td>
                 </tr>`;
 
-                    if (c.type === 'coin') htmlCoins += row;
-                    else htmlBanknotes += row;
-                });
+                if (c.type === 'coin') htmlCoins += row;
+                else htmlBanknotes += row;
+            });
 
-                coinsBody.innerHTML = htmlCoins;
-                banknotesBody.innerHTML = htmlBanknotes;
-                calcCash();
+            coinsBody.innerHTML = htmlCoins;
+            banknotesBody.innerHTML = htmlBanknotes;
+            calcCash();
+        }
+        window.initCashForm = initCashForm;
+
+        window.switchCashPage = function (page) {
+            if (page === 'coins') {
+                document.getElementById('coins').style.display = 'table-row-group';
+                document.getElementById('banknotes').style.display = 'none';
+                document.querySelector('#page-item-coins button').className = 'page-link border-0 px-4 py-2 text-white bg-primary fw-bold';
+                document.querySelector('#page-item-banknotes button').className = 'page-link border-0 px-4 py-2 text-white bg-dark opacity-50';
+            } else {
+                document.getElementById('coins').style.display = 'none';
+                document.getElementById('banknotes').style.display = 'table-row-group';
+                document.querySelector('#page-item-banknotes button').className = 'page-link border-0 px-4 py-2 text-white bg-primary fw-bold';
+                document.querySelector('#page-item-coins button').className = 'page-link border-0 px-4 py-2 text-white bg-dark opacity-50';
             }
-            window.initCashForm = initCashForm;
+        };
 
-            window.switchCashPage = function (page) {
-                if (page === 'coins') {
-                    document.getElementById('coins').style.display = 'table-row-group';
-                    document.getElementById('banknotes').style.display = 'none';
-                    document.querySelector('#page-item-coins button').className = 'page-link border-0 px-4 py-2 text-white bg-primary fw-bold';
-                    document.querySelector('#page-item-banknotes button').className = 'page-link border-0 px-4 py-2 text-white bg-dark opacity-50';
-                } else {
-                    document.getElementById('coins').style.display = 'none';
-                    document.getElementById('banknotes').style.display = 'table-row-group';
-                    document.querySelector('#page-item-banknotes button').className = 'page-link border-0 px-4 py-2 text-white bg-primary fw-bold';
-                    document.querySelector('#page-item-coins button').className = 'page-link border-0 px-4 py-2 text-white bg-dark opacity-50';
+        function calcCash() {
+            let total = 0;
+            cashTypes.forEach(c => {
+                const qtyVal = document.getElementById(`qty_${c.id}`).value;
+                const qty = parseInt(qtyVal) || 0;
+                const sub = qty * c.val;
+                total += sub;
+                document.getElementById(`sub_${c.id}`).innerText = qtyVal ? sub.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
+            });
+            document.getElementById('cashTotalAmount').innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const isTopDrawer = document.getElementById('drawerSelect').value === 'top';
+            const drawerTarget = isTopDrawer ? 5000 : 14000;
+            const diff = total - drawerTarget;
+
+            document.getElementById('cashTargetShow').innerText = drawerTarget.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+            const diffEl = document.getElementById('cashDiffAmount');
+            diffEl.innerText = (diff > 0 ? '+' : '') + diff.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+            if (diff > 0) diffEl.style.color = '#198754';
+            else if (diff < 0) diffEl.style.color = '#dc3545';
+            else diffEl.style.color = '#ffc107';
+        }
+        window.calcCash = calcCash;
+
+        async function submitCash(e) {
+            e.preventDefault();
+            let hasAmount = false;
+            const entries = {};
+            let total = 0;
+            cashTypes.forEach(c => {
+                const qty = parseInt(document.getElementById(`qty_${c.id}`).value) || 0;
+                if (qty > 0) {
+                    hasAmount = true;
+                    entries[c.id] = { name: c.name, val: c.val, qty, subTotal: c.val * qty };
+                    total += c.val * qty;
                 }
-            };
+            });
 
-            function calcCash() {
-                let total = 0;
-                cashTypes.forEach(c => {
-                    const qtyVal = document.getElementById(`qty_${c.id}`).value;
-                    const qty = parseInt(qtyVal) || 0;
-                    const sub = qty * c.val;
-                    total += sub;
-                    document.getElementById(`sub_${c.id}`).innerText = qtyVal ? sub.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
-                });
-                document.getElementById('cashTotalAmount').innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-                const isTopDrawer = document.getElementById('drawerSelect').value === 'top';
-                const drawerTarget = isTopDrawer ? 5000 : 14000;
-                const diff = total - drawerTarget;
-
-                document.getElementById('cashTargetShow').innerText = drawerTarget.toLocaleString(undefined, { minimumFractionDigits: 2 });
-
-                const diffEl = document.getElementById('cashDiffAmount');
-                diffEl.innerText = (diff > 0 ? '+' : '') + diff.toLocaleString(undefined, { minimumFractionDigits: 2 });
-
-                if (diff > 0) diffEl.style.color = '#198754';
-                else if (diff < 0) diffEl.style.color = '#dc3545';
-                else diffEl.style.color = '#ffc107';
+            if (!hasAmount) {
+                Swal.fire('ข้อผิดพลาด', 'กรุณาระบุจำนวนเงินอย่างน้อย 1 รายการ', 'warning');
+                return;
             }
-            window.calcCash = calcCash;
 
-            async function submitCash(e) {
-                e.preventDefault();
-                let hasAmount = false;
-                const entries = {};
-                let total = 0;
-                cashTypes.forEach(c => {
-                    const qty = parseInt(document.getElementById(`qty_${c.id}`).value) || 0;
-                    if (qty > 0) {
-                        hasAmount = true;
-                        entries[c.id] = { name: c.name, val: c.val, qty, subTotal: c.val * qty };
-                        total += c.val * qty;
-                    }
-                });
+            Swal.fire({
+                title: 'ยืนยันยอดนำส่ง',
+                html: 'ยอดรวมทั้งหมด: <b class="text-success fs-3">' + total.toLocaleString(undefined, { minimumFractionDigits: 2 }) + '</b> บาท',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันการส่งเงิน',
+                cancelButtonText: 'แก้ไข',
+                confirmButtonColor: '#198754'
+            }).then(async (res) => {
+                if (res.isConfirmed) {
+                    Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    try {
+                        const isTopDrawer = document.getElementById('drawerSelect').value === 'top';
+                        const drawerName = isTopDrawer ? 'ลิ้นชักบน' : 'ลิ้นชักล่าง';
+                        const drawerTarget = isTopDrawer ? 5000 : 14000;
+                        const diff = total - drawerTarget;
 
-                if (!hasAmount) {
-                    Swal.fire('ข้อผิดพลาด', 'กรุณาระบุจำนวนเงินอย่างน้อย 1 รายการ', 'warning');
-                    return;
-                }
+                        const msgText = `💰 แจ้งผลนับเงินประจำกะ\n👤 ผู้ส่ง: ${currentUser.name}\n💼 ประเภท: ${drawerName}\n🎯 เป้าหมาย: ${drawerTarget.toLocaleString()}\n💵 ยอดรวมที่นับได้: ${total.toLocaleString()}\n⚖️ ผลต่าง: ${diff > 0 ? '+' : ''}${diff.toLocaleString()}`;
 
-                Swal.fire({
-                    title: 'ยืนยันยอดนำส่ง',
-                    html: 'ยอดรวมทั้งหมด: <b class="text-success fs-3">' + total.toLocaleString(undefined, { minimumFractionDigits: 2 }) + '</b> บาท',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'ยืนยันการส่งเงิน',
-                    cancelButtonText: 'แก้ไข',
-                    confirmButtonColor: '#198754'
-                }).then(async (res) => {
-                    if (res.isConfirmed) {
-                        Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                        try {
-                            const isTopDrawer = document.getElementById('drawerSelect').value === 'top';
-                            const drawerName = isTopDrawer ? 'ลิ้นชักบน' : 'ลิ้นชักล่าง';
-                            const drawerTarget = isTopDrawer ? 5000 : 14000;
-                            const diff = total - drawerTarget;
+                        const localDate = new Date().toLocaleDateString('sv');
 
-                            const msgText = `💰 แจ้งผลนับเงินประจำกะ\n👤 ผู้ส่ง: ${currentUser.name}\n💼 ประเภท: ${drawerName}\n🎯 เป้าหมาย: ${drawerTarget.toLocaleString()}\n💵 ยอดรวมที่นับได้: ${total.toLocaleString()}\n⚖️ ผลต่าง: ${diff > 0 ? '+' : ''}${diff.toLocaleString()}`;
+                        await addDoc(collection(db, "cash_submissions"), {
+                            userId: currentUser.lineUserId,
+                            name: currentUser.name,
+                            dept: currentUser.dept,
+                            date: localDate,
+                            timestamp: serverTimestamp(),
+                            entries: entries,
+                            totalAmount: total,
+                            drawerType: drawerName,
+                            targetAmount: drawerTarget,
+                            diffAmount: diff
+                        });
 
-                            const localDate = new Date().toLocaleDateString('sv');
+                        // Clear form
+                        cashTypes.forEach(c => { document.getElementById(`qty_${c.id}`).value = ''; });
+                        calcCash();
 
-                            await addDoc(collection(db, "cash_submissions"), {
-                                userId: currentUser.lineUserId,
-                                name: currentUser.name,
-                                dept: currentUser.dept,
-                                date: localDate,
-                                timestamp: serverTimestamp(),
-                                entries: entries,
-                                totalAmount: total,
-                                drawerType: drawerName,
-                                targetAmount: drawerTarget,
-                                diffAmount: diff
-                            });
-
-                            // Clear form
-                            cashTypes.forEach(c => { document.getElementById(`qty_${c.id}`).value = ''; });
-                            calcCash();
-
-                            if (liff.isInClient()) {
-                                try {
-                                    await liff.sendMessages([{ type: 'text', text: msgText }]);
-                                } catch (e) {
-                                    console.error('LIFF Error: ', e);
-                                }
+                        if (liff.isInClient()) {
+                            try {
+                                await liff.sendMessages([{ type: 'text', text: msgText }]);
+                            } catch (e) {
+                                console.error('LIFF Error: ', e);
                             }
-
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'ส่งยอดเงินแล้ว',
-                                text: 'ระบบได้บันทึกยอดเงินของท่านเรียบร้อยแล้ว',
-                                confirmButtonText: 'ตกลง'
-                            }).then(() => {
-                                show('mainPage');
-                            });
-                        } catch (err) {
-                            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + err.message, 'error');
                         }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'ส่งยอดเงินแล้ว',
+                            text: 'ระบบได้บันทึกยอดเงินของท่านเรียบร้อยแล้ว',
+                            confirmButtonText: 'ตกลง'
+                        }).then(() => {
+                            show('mainPage');
+                        });
+                    } catch (err) {
+                        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + err.message, 'error');
                     }
-                });
-            }
+                }
+            });
+        }
 
-            window.copyCashSummary = () => {
-                let total = 0;
-                cashTypes.forEach(c => {
-                    const qtyVal = document.getElementById(`qty_${c.id}`).value;
-                    total += (parseInt(qtyVal) || 0) * c.val;
-                });
-                const isTopDrawer = document.getElementById('drawerSelect').value === 'top';
-                const drawerName = isTopDrawer ? 'ลิ้นชักบน' : 'ลิ้นชักล่าง';
-                const drawerTarget = isTopDrawer ? 5000 : 14000;
-                const diff = total - drawerTarget;
-                const msgText = `💰 แจ้งผลนับเงินประจำกะ\n👤 ผู้ส่ง: ${currentUser.name || currentUser.displayName || 'พนักงาน'}\n💼 ประเภท: ${drawerName}\n🎯 เป้าหมาย: ${drawerTarget.toLocaleString()}\n💵 ยอดรวมที่นับได้: ${total.toLocaleString()}\n⚖️ ผลต่าง: ${diff > 0 ? '+' : ''}${diff.toLocaleString()}`;
+        window.copyCashSummary = () => {
+            let total = 0;
+            cashTypes.forEach(c => {
+                const qtyVal = document.getElementById(`qty_${c.id}`).value;
+                total += (parseInt(qtyVal) || 0) * c.val;
+            });
+            const isTopDrawer = document.getElementById('drawerSelect').value === 'top';
+            const drawerName = isTopDrawer ? 'ลิ้นชักบน' : 'ลิ้นชักล่าง';
+            const drawerTarget = isTopDrawer ? 5000 : 14000;
+            const diff = total - drawerTarget;
+            const msgText = `💰 แจ้งผลนับเงินประจำกะ\n👤 ผู้ส่ง: ${currentUser.name || currentUser.displayName || 'พนักงาน'}\n💼 ประเภท: ${drawerName}\n🎯 เป้าหมาย: ${drawerTarget.toLocaleString()}\n💵 ยอดรวมที่นับได้: ${total.toLocaleString()}\n⚖️ ผลต่าง: ${diff > 0 ? '+' : ''}${diff.toLocaleString()}`;
 
-                navigator.clipboard.writeText(msgText).then(() => {
-                    Swal.fire('คัดลอกสำเร็จ', 'ระบบคัดลอกข้อสรุปยอดลงคลิปบอร์ดแล้ว', 'success');
-                }).catch(err => {
-                    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถคัดลอกข้อความได้: ' + err, 'error');
-                });
-            };
-            window.submitCash = submitCash;
-            // Start the application when both DOM and Module are ready
-            window.log('Module Loaded');
-            main();
-        </script>
+            navigator.clipboard.writeText(msgText).then(() => {
+                Swal.fire('คัดลอกสำเร็จ', 'ระบบคัดลอกข้อสรุปยอดลงคลิปบอร์ดแล้ว', 'success');
+            }).catch(err => {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถคัดลอกข้อความได้: ' + err, 'error');
+            });
+        };
+        window.submitCash = submitCash;
+        // Start the application when both DOM and Module are ready
+        window.log('Module Loaded');
+        main();
+    </script>
 </body>
 
 </html>
