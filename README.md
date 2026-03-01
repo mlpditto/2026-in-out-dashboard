@@ -2,7 +2,7 @@
 
 ระบบลงเวลาพนักงานผ่าน LINE LIFF + Firebase Firestore พร้อมหน้า Admin สำหรับดูรายงาน/จัดการข้อมูล
 
-**Current Version**: `v3.54 - Fairness Logic & UI Fix` | **Last Updated**: 2026-02-25
+**Current Version**: `v3.56 - Base64 Profile Upload` | **Last Updated**: 2026-03-01
 
 ---
 
@@ -355,6 +355,13 @@
 ---
 
 ## 📝 Changelog
+
+### v3.56 — 2026-03-01
+- 📷 **User Profile Picture Upload (LIFF)**: เพิ่มฟีเจอร์ให้พนักงานอัพโหลดรูปโปรไฟล์เองได้ผ่าน LINE LIFF
+- 💾 **Firestore Base64 Storage**: บันทึกรูปเป็น Base64 DataURL ลง Firestore โดยตรง (ประหยัดพื้นที่และไม่ต้องเปิด Firebase Storage)
+- ✂️ **Smart Auto-Crop**: ระบบ Crop รูปเป็นสี่เหลี่ยมจัตุรัสและ Resize เหลือ 200px อัตโนมัติเพื่อความสวยงาม
+- 🔒 **Upload Policies**: จำกัดขนาดไฟล์ต้นฉบับ 5MB และ Cooldown การเปลี่ยนรูป 30 วัน
+- 🔄 **Cascaded Image Fallback**: ปรับระบบแสดงรูปเป็นลำดับ: รูปจาก LINE > รูปอัพโหลดเอง > DiceBear Avatar (กรณีโหลดไม่ได้)
 
 ### v3.55 — 2026-03-01
 - 💵 **Cash Submission Revamp**: ปรับ UI หน้าส่งยอดเงินใน LIFF เป็นแบบ Tabs แยกระหว่างเหรียญและธนบัตร พร้อมรองรับการเลือกลิ้นชักเป้าหมาย (5,000 หรือ 14,000)

@@ -1,4 +1,10 @@
-# 🚀 Features - MLP Time Attendance Dashboard (v3.52)
+# 🚀 Features - MLP Time Attendance Dashboard (v3.53)
+
+### 🌟 New in v3.53: User Managed Profiles
+*   📷 **User Profile Picture Upload (v3.53):** Employees can now upload their own profile pictures via the LINE LIFF interface.
+*   ✂️ **Smart Cropping:** Images are automatically cropped to a square and resized (200px) to ensure consistent display.
+*   💾 **Base64 Storage:** Photos are stored efficiently as Base64 strings in Firestore, providing a robust fallback if LINE profile links expire.
+*   🕒 **30-Day Cooldown:** To prevent excessive updates, users can change their profile picture once every 30 days.
 
 ### 🌟 New in v3.52: Task Alerts & Cash Submission
 *   🔔 **Task Reminder Alerts (แจ้งเตือนภาระงาน):** Admins can set custom reminder messages for individual employees to display when they clock in or out.
