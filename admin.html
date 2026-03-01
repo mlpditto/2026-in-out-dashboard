@@ -45,12 +45,23 @@
                         Admin</span></h5>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-1"
-                    onclick="document.getElementById('liffPreviewModal').classList.remove('hidden')"
-                    title="LIFF Preview">
-                    <i class="bi bi-phone"></i><span class="d-none d-sm-inline">Preview LIFF</span>
-                </button>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.52</span>
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-1"
+                        data-bs-toggle="dropdown" title="LIFF Preview" onclick="populatePreviewDropdown()">
+                        <i class="bi bi-phone"></i><span class="d-none d-sm-inline">Preview LIFF</span>
+                    </button>
+                    <ul class="dropdown-menu shadow border-0" id="previewUserDropdown"
+                        style="max-height: 400px; overflow-y: auto; width: 280px; z-index: 1050;">
+                        <li>
+                            <h6 class="dropdown-header">เลือกดูมุมมองพนักงาน (LIFF)</h6>
+                        </li>
+                        <li>
+                            <div class="px-3 text-muted small"><i class="bi bi-hourglass-split"></i> กรุณารอสักครู่...
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.54</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -714,6 +725,26 @@
                         </select>
                         <label>สถานะพนักงาน</label>
                     </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="form-floating"><input type="text" id="editTaskClockIn" class="form-control"
+                                    placeholder="ข้อความ"><label>แจ้งเตือนเมื่อเข้างาน</label></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating"><input type="text" id="editTaskClockOut" class="form-control"
+                                    placeholder="ข้อความ"><label>แจ้งเตือนเมื่อออกงาน</label></div>
+                        </div>
+                    </div>
+                    <div class="mb-3 px-1">
+                        <div class="form-check form-switch border p-2 rounded-3 text-start bg-light shadow-sm">
+                            <input class="form-check-input ms-2 me-2 focus-ring" type="checkbox" role="switch"
+                                id="editEnableCash" style="cursor: pointer;">
+                            <label class="form-check-label user-select-none w-100" for="editEnableCash"
+                                style="cursor: pointer;">
+                                <i class="bi bi-cash-stack text-success me-1"></i> อนุญาตให้ใช้ระบบส่งยอดเงินประจำกะ
+                            </label>
+                        </div>
+                    </div>
                     <div class="row g-2">
                         <div class="col-6">
                             <div class="form-floating"><input type="date" id="editStartDate"
@@ -725,9 +756,17 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 bg-light">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
-                    <button type="button" class="btn btn-primary px-4" onclick="saveEditUser()">บันทึก</button>
+                <div class="modal-footer border-0 bg-light d-flex justify-content-between">
+                    <button type="button"
+                        class="btn btn-outline-primary btn-sm rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 32px; height: 32px;" onclick="previewSpecificUser()"
+                        title="ดูมุมมองของพนักงาน (LIFF Preview)">
+                        <i class="bi bi-phone"></i>
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button type="button" class="btn btn-primary px-4" onclick="saveEditUser()">บันทึก</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -980,23 +1019,39 @@
     </div>
 
     <script>
-        // Auto-load iframe when LIFF preview is opened
+        // Auto-load iframe when LIFF preview is opened (clicks outside phone frame)
         document.getElementById('liffPreviewModal').addEventListener('click', function (e) {
             if (e.target === this) {
                 this.classList.add('hidden');
                 document.getElementById('liffPreviewFrame').src = 'about:blank';
             }
         });
-        // Override to also load iframe
-        const origPreviewBtn = document.querySelector('[title="LIFF Preview"]');
-        if (origPreviewBtn) {
-            origPreviewBtn.addEventListener('click', function () {
-                document.getElementById('liffPreviewFrame').src = 'index.html?preview=true';
-                // Update preview time
-                const now = new Date();
-                document.getElementById('previewTime').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
-            });
-        }
+
+        // Function to populate preview dropdown dynamically
+        window.populatePreviewDropdown = function () {
+            const ul = document.getElementById('previewUserDropdown');
+            if (ul.getAttribute('data-loaded')) return;
+
+            if (window.allUserData) {
+                const users = Object.values(window.allUserData).filter(u => u.status === 'Approved').sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                let html = '<li><h6 class="dropdown-header">เลือกดูมุมมองพนักงาน (LIFF)</h6></li>';
+                users.forEach(u => {
+                    const uid = u.lineUserId || u._docId || u.id;
+                    const img = u.pictureUrl ? u.pictureUrl : 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
+                    html += `<li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" onclick="event.preventDefault(); document.getElementById('previewUserDropdown').parentElement.querySelector('button').click(); window.previewSpecificUser('${uid}')">
+                        <img src="${img}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">
+                        <span class="text-truncate" style="max-width:200px;font-size:0.85rem;">${u.name} ${u.displayName && u.displayName !== u.name ? `<small class="text-muted">(${u.displayName})</small>` : ''}</span>
+                    </a></li>`;
+                });
+                if (users.length === 0) {
+                    html += '<li><div class="px-3 text-muted small">ยังไม่มีพนักงานข้อมูล</div></li>';
+                }
+                ul.innerHTML = html;
+                ul.setAttribute('data-loaded', 'true');
+            } else {
+                ul.innerHTML = '<li><div class="px-3 text-muted small">กำลังโหลดข้อมูล... ลองกดอีกครั้ง</div></li>';
+            }
+        };
     </script>
 
     <script type="module" src="admin.js?v=3.54"></script>

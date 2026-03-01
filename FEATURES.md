@@ -1,5 +1,9 @@
 # 🚀 Features - MLP Time Attendance Dashboard (v3.52)
 
+### 🌟 New in v3.52: Task Alerts & Cash Submission
+*   🔔 **Task Reminder Alerts (แจ้งเตือนภาระงาน):** Admins can set custom reminder messages for individual employees to display when they clock in or out.
+*   💰 **Cash Submission System (ระบบส่งยอดเงิน):** A new tool for staff (when enabled by admin) to input and calculate daily cash collections (coins/banknotes) before ending their shift.
+
 ### 🌟 New in v3.51: Hover Details & Quick Inspection
 *   🖱️ **Hover Details (Tooltips):** Mouse over any "Card" in the calendar or "Badge" in management tables to instantly see the full name, shift details, or reasons. No more repetitive clicking!
 *   📸 **Admin Profile Upload (v3.50):** Direct image uploads to Firebase Storage via the user edit modal.

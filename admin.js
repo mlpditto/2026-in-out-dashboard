@@ -1602,6 +1602,9 @@ window.openEditUser = (id) => {
     document.getElementById('editUserPhone').value = u.phone || '';
     document.getElementById('editUserDept').value = u.dept;
     document.getElementById('editUserStatus').value = u.status || 'Approved';
+    document.getElementById('editTaskClockIn').value = u.taskClockIn || '';
+    document.getElementById('editTaskClockOut').value = u.taskClockOut || '';
+    document.getElementById('editEnableCash').checked = u.enableCash || false;
     document.getElementById('editStartDate').value = u.startDate || '';
     document.getElementById('editEndDate').value = u.endDate || '';
     const picUrlEl = document.getElementById('editUserPicUrl');
@@ -1619,6 +1622,9 @@ window.saveEditUser = async () => {
             phone: document.getElementById('editUserPhone').value,
             dept: document.getElementById('editUserDept').value,
             status: document.getElementById('editUserStatus').value,
+            taskClockIn: document.getElementById('editTaskClockIn').value,
+            taskClockOut: document.getElementById('editTaskClockOut').value,
+            enableCash: document.getElementById('editEnableCash').checked,
             startDate: document.getElementById('editStartDate').value,
             endDate: document.getElementById('editEndDate').value,
             pictureUrl: document.getElementById('editUserPicUrl').value
@@ -1627,6 +1633,33 @@ window.saveEditUser = async () => {
         editModal.hide();
         loadAllUsers();
     } catch (e) { Swal.fire('Error', e.message, 'error') }
+};
+
+window.previewSpecificUser = (forceUid) => {
+    let targetUid = forceUid;
+    const liffModal = document.getElementById('liffPreviewModal');
+    const iframe = document.getElementById('liffPreviewFrame');
+
+    if (!targetUid) {
+        const editUserId = document.getElementById('editUserId').value;
+        const userObj = window.allUserData ? (window.allUserData[editUserId] || Object.values(window.allUserData).find(u => u._docId === editUserId)) : null;
+        if (userObj && userObj.lineUserId) {
+            targetUid = userObj.lineUserId;
+        } else {
+            targetUid = editUserId;
+        }
+        if (typeof editModal !== 'undefined' && editModal) {
+            editModal.hide();
+        }
+    }
+
+    if (liffModal && iframe && targetUid) {
+        liffModal.classList.remove('hidden');
+        iframe.src = `index.html?preview=true&uid=${targetUid}`;
+
+        const now = new Date();
+        document.getElementById('previewTime').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
 };
 
 window.logout = () => signOut(auth);
@@ -2632,7 +2665,7 @@ async function showDayAttendanceDetail(dateStr) {
             return;
         }
 
-        let html = `< div style = "max-height: 400px; overflow-y: auto; padding-right: 5px;" > `;
+        let html = `<div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">`;
 
         const maxHrs = 12; // Baseline for full width
 
@@ -2645,10 +2678,10 @@ async function showDayAttendanceDetail(dateStr) {
             const percentWidth = Math.min((u.hrs / maxHrs) * 100, 100);
 
             html += `
-    < div class="d-flex align-items-center mb-2 p-2 position-relative shadow-sm"
-style = "background: #fff; border-radius: 12px; border-left: 5px solid ${borderCol}; overflow: hidden; min-height: 65px;" >
+    <div class="d-flex align-items-center mb-2 p-2 position-relative shadow-sm"
+style="background: #fff; border-radius: 12px; border-left: 5px solid ${borderCol}; overflow: hidden; min-height: 65px;">
                  
-                < !--Progress Bar Background-- >
+                <!--Progress Bar Background-->
                 <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${percentWidth}%; background: ${pastel}40; z-index: 0;"></div>
                 
                 <div class="d-flex align-items-center gap-3 w-100" style="position: relative; z-index: 1;">
@@ -2662,7 +2695,7 @@ style = "background: #fff; border-radius: 12px; border-left: 5px solid ${borderC
                         <div class="fw-bold" style="color: ${borderCol}; font-size: 0.9rem;">${u.hrs.toFixed(2)} ชม.</div>
                     </div>
                 </div>
-            </div > `;
+            </div>`;
         });
 
         html += '</div>';
@@ -2739,7 +2772,7 @@ window.viewUserStats = async (uid) => {
 
         let leaveHtml = '';
         if (totalLeaveDays > 0) {
-            leaveHtml = `< div class="mt-3" ><h6 class="fw-bold border-bottom pb-1">รายละเอียดวันลา</h6><div class="row g-2">`;
+            leaveHtml = `<div class="mt-3"><h6 class="fw-bold border-bottom pb-1">รายละเอียดวันลา</h6><div class="row g-2">`;
             Object.entries(leaveSummary).forEach(([type, stat]) => {
                 leaveHtml += `
                 <div class="col-6">
@@ -2749,15 +2782,15 @@ window.viewUserStats = async (uid) => {
                     </div>
                 </div>`;
             });
-            leaveHtml += `</div></div > `;
+            leaveHtml += `</div></div>`;
         } else {
-            leaveHtml = `< div class="mt-3 p-3 bg-light rounded text-muted small" > ไม่มีประวัติการลาที่อนุมัติ</div > `;
+            leaveHtml = `<div class="mt-3 p-3 bg-light rounded text-muted small">ไม่มีประวัติการลาที่อนุมัติ</div>`;
         }
 
         Swal.fire({
-            title: `< div class="d-flex align-items-center gap-2 text-start" > <img src="${window.getSafeProfileSrc(u.pictureUrl, 40)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"> <div><div style="font-size:1.1rem;">${u.name}</div><div class="text-muted" style="font-size:0.8rem;">${uid}</div></div></div>`,
+            title: `<div class="d-flex align-items-center gap-2 text-start"><img src="${window.getSafeProfileSrc(u.pictureUrl, 40)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"> <div><div style="font-size:1.1rem;">${u.name}</div><div class="text-muted" style="font-size:0.8rem;">${uid}</div></div></div>`,
             html: `
-    < div class="text-start mt-3" >
+    <div class="text-start mt-3">
                 <h6 class="fw-bold border-bottom pb-1">สถิติการทำงาน</h6>
                 <div class="row g-2 mb-3">
                     <div class="col-4">
@@ -2790,7 +2823,7 @@ window.viewUserStats = async (uid) => {
                 </div>
 
                 ${leaveHtml}
-            </div > `,
+            </div>`,
             showCloseButton: true,
             confirmButtonText: 'ปิด',
             confirmButtonColor: '#6c757d',
@@ -2813,7 +2846,7 @@ window.loadSurveyResults = async () => {
     try {
         const snap = await getDocs(query(collection(db, "survey_responses"), orderBy("timestamp", "desc")));
         if (snap.empty) {
-            emptyState.innerHTML = `< i class="bi bi-chat-dots text-muted" style = "font-size: 3rem;" ></i > <p class="mt-3 text-muted">ยังไม่มีผู้ตอบแบบสำรวจ</p>`;
+            emptyState.innerHTML = '<i class="bi bi-chat-dots text-muted" style="font-size: 3rem;"></i><p class="mt-3 text-muted">ยังไม่มีผู้ตอบแบบสำรวจ</p>';
             return;
         }
 
@@ -2833,12 +2866,12 @@ function processSurveyData(responses) {
     const total = responses.length;
     const statsRow = document.getElementById('surveyStatsRow');
     statsRow.innerHTML = `
-    < div class="col-md-3" >
+    <div class="col-md-3">
         <div class="p-3 bg-white border rounded shadow-sm text-center">
             <small class="text-muted d-block">จำนวนผู้ตอบทั้งหมด</small>
             <h3 class="fw-bold mb-0 text-primary">${total} <small class="fs-6 fw-normal">คน</small></h3>
         </div>
-        </div >
+        </div>
         <div class="col-md-3">
             <div class="p-3 bg-white border rounded shadow-sm text-center">
                 <small class="text-muted d-block">เฉลี่ยความพอใจ (วนกะ)</small>
@@ -2877,7 +2910,7 @@ function processSurveyData(responses) {
         const comment = r.answers['9'] || r.answers['8'] || r.answers['3_reason'] || r.answers['6_reason'];
         if (comment) {
             fbHtml += `
-    < div class="p-3 border-bottom" >
+    <div class="p-3 border-bottom">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div class="fw-bold text-primary small d-flex align-items-center gap-2">
                         <img src="${window.getSafeProfileSrc(userProfileMap[r.userId]?.pictureUrl, 24)}" class="rounded-circle" width="24" height="24">
@@ -2890,7 +2923,7 @@ function processSurveyData(responses) {
                     ${r.answers['3_reason'] ? `<small class="badge bg-light text-muted fw-normal" title="เหตุผลความพอใจ">💡 ${r.answers['3_reason']}</small>` : ''}
                     ${r.answers['6_reason'] ? `<small class="badge bg-light text-muted fw-normal" title="เหตุผลความยุติธรรม">⚖️ ${r.answers['6_reason']}</small>` : ''}
                 </div>
-            </div > `;
+            </div>`;
         }
     });
     feedbackList.innerHTML = fbHtml || '<p class="text-muted text-center p-3">ไม่มีข้อเสนอแนะเพิ่มเติม</p>';
@@ -2898,7 +2931,7 @@ function processSurveyData(responses) {
     // 5. Full Table
     const tableBody = document.getElementById('surveyFullTableBody');
     tableBody.innerHTML = responses.map(r => `
-    < tr >
+    <tr>
             <td>${r.timestamp?.toDate().toLocaleDateString('th-TH')}</td>
             <td>
                 <div class="fw-bold">${r.name}</div>
@@ -2912,7 +2945,7 @@ function processSurveyData(responses) {
             <td class="text-end">
                 <button class="btn btn-sm btn-light" onclick="viewFullSurvey('${r.id}')"><i class="bi bi-eye"></i></button>
             </td>
-        </tr >
+        </tr>
     `).join('');
 
     // 6. Health & Constraints Summary
@@ -2922,12 +2955,12 @@ function processSurveyData(responses) {
         (r.answers['4'] || []).forEach(h => { healthCounts[h] = (healthCounts[h] || 0) + 1; });
     });
     healthSummary.innerHTML = Object.entries(healthCounts).map(([h, count]) => `
-    < div class="col-md-6" >
+    <div class="col-md-6">
         <div class="p-2 border rounded bg-white d-flex justify-content-between align-items-center">
             <small>${h}</small>
             <span class="badge bg-danger rounded-pill">${count}</span>
         </div>
-        </div >
+        </div>
     `).join('') || '<div class="col-12 text-center text-muted">ไม่มีรายงานปัญหาสุขภาพ</div>';
 }
 
@@ -2998,7 +3031,7 @@ window.viewFullSurvey = async (id) => {
     if (!docSnap.exists()) return;
     const r = docSnap.data();
 
-    let html = `< div class="text-start small" style = "max-height: 400px; overflow-y: auto;" > `;
+    let html = `<div class="text-start small" style="max-height: 400px; overflow-y: auto;">`;
     const questions = [
         "1. กะที่ชอบ", "2. การเดินทาง", "3. ความพอใจ", "4. สุขภาพ",
         "5. วันหยุด", "6. ความเป็นธรรม", "7. Extern", "8. ข้อจำกัดอื่น",
@@ -3010,13 +3043,13 @@ window.viewFullSurvey = async (id) => {
         const ans = r.answers[idx];
         const reason = r.answers[idx + '_reason'] || r.answers[idx + '_other'] || '';
         html += `
-    < div class="mb-3 border-bottom pb-2" >
+    <div class="mb-3 border-bottom pb-2">
             <div class="fw-bold text-muted mb-1">${q}</div>
             <div class="text-dark">${Array.isArray(ans) ? ans.join(', ') : (ans || '-')}</div>
             ${reason ? `<div class="mt-1 p-2 bg-light rounded text-muted italic">"${reason}"</div>` : ''}
-        </div > `;
+        </div>`;
     });
-    html += `</div > `;
+    html += `</div>`;
 
     Swal.fire({
         title: `ผลแบบสำรวจ: ${r.name} `,

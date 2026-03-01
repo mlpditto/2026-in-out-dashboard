@@ -640,105 +640,77 @@
                 </div>
                 <!-- Collapsible Content -->
                 <div id="workingHoursContent" style="display: none;">
-                    <div class="row g-2">
-                        <!-- Total Hours -->
-                        <div class="col-6" id="totalHoursCard">
-                            <div class="card h-100 border-0 shadow-sm"
-                                style="border-radius: 12px; border-top: 3px solid #0d6efd !important;">
-                                <div class="card-body p-2 d-flex flex-column justify-content-center">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
-                                            style="width: 24px; height: 24px;">
-                                            <i class="bi bi-infinity text-primary" style="font-size: 0.75rem;"></i>
-                                        </div>
-                                    </div>
-                                    <h4 class="mb-0 fw-bold text-dark" id="hours1Value" style="font-size: 1.15rem;">0.00
-                                    </h4>
-                                    <div class="small fw-bold text-muted text-uppercase" id="hours1Title"
-                                        style="font-size: 0.6rem; letter-spacing: 0.3px;">ทั้งหมด</div>
-                                </div>
+
+                    <!-- New Stacked Layout resembling the design -->
+                    <div class="card border-0 shadow-sm"
+                        style="border-radius: 16px; overflow: hidden; background: white;">
+
+                        <!-- Today (or Total for Externs) -->
+                        <div id="totalHoursCard" class="px-3 py-3" style="border-top: 3px solid #0d6efd;">
+                            <div class="d-flex align-items-center mb-1 text-muted" style="opacity: 0.7;">
+                                <i class="bi bi-infinity me-2" style="font-size: 1.2rem;"></i>
+                            </div>
+                            <h3 class="mb-0 fw-bold text-dark" id="hours1Value"
+                                style="color: #2c3e50 !important; font-size: 1.5rem;">0.00</h3>
+                            <div class="small text-muted" id="hours1Title" style="font-size: 0.8rem;">วันนี้ (เสร็จสิ้น)
                             </div>
                         </div>
-                        <!-- Yearly Hours -->
-                        <div class="col-6" id="yearlyHoursCard">
-                            <div class="card h-100 border-0 shadow-sm"
-                                style="border-radius: 12px; border-top: 3px solid #0dcaf0 !important;">
-                                <div class="card-body p-2 d-flex flex-column justify-content-center">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center"
-                                            style="width: 24px; height: 24px;">
-                                            <i class="bi bi-calendar-check text-info" style="font-size: 0.75rem;"></i>
-                                        </div>
-                                    </div>
-                                    <h4 class="mb-0 fw-bold text-dark" id="hours3Value" style="font-size: 1.15rem;">0.00
-                                    </h4>
-                                    <div class="small fw-bold text-muted text-uppercase" id="hours3Title"
-                                        style="font-size: 0.6rem; letter-spacing: 0.3px;">ปีนี้</div>
-                                </div>
+
+                        <!-- Year -->
+                        <div class="px-3 py-3" style="border-top: 3px solid #0dcaf0;">
+                            <div class="d-flex align-items-center mb-1 text-muted" style="opacity: 0.7;">
+                                <i class="bi bi-calendar-check me-2" style="font-size: 1.1rem;"></i>
                             </div>
+                            <h3 class="mb-0 fw-bold text-dark" id="hours4Value"
+                                style="color: #2c3e50 !important; font-size: 1.5rem;">0.00</h3>
+                            <div class="small text-muted" style="font-size: 0.8rem;">ปีนี้</div>
                         </div>
-                        <!-- Monthly Hours -->
-                        <div class="col-6" id="monthlyHoursCard">
-                            <div class="card h-100 border-0 shadow-sm"
-                                style="border-radius: 12px; border-top: 3px solid #198754 !important;">
-                                <div class="card-body p-2 d-flex flex-column justify-content-center">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
-                                            style="width: 24px; height: 24px;">
-                                            <i class="bi bi-calendar-month text-success"
-                                                style="font-size: 0.75rem;"></i>
-                                        </div>
-                                    </div>
-                                    <h4 class="mb-0 fw-bold text-dark" id="hours2Value" style="font-size: 1.15rem;">0.00
-                                    </h4>
-                                    <div class="small fw-bold text-muted text-uppercase" id="hours2Title"
-                                        style="font-size: 0.6rem; letter-spacing: 0.3px;">เดือนนี้</div>
-                                </div>
+
+                        <!-- Month -->
+                        <div id="yearlyHoursCard" class="px-3 py-3" style="border-top: 3px solid #198754;">
+                            <div class="d-flex align-items-center mb-1 text-muted" style="opacity: 0.7;">
+                                <i class="bi bi-calendar-month me-2" style="font-size: 1.1rem;"></i>
+                                <span style="font-size: 0.7rem;" class="fw-bold opacity-75">Aug</span>
                             </div>
+                            <h3 class="mb-0 fw-bold text-dark" id="hours3Value"
+                                style="color: #2c3e50 !important; font-size: 1.5rem;">0.00</h3>
+                            <div class="small text-muted" id="hours3Title" style="font-size: 0.8rem;">เดือนนี้</div>
                         </div>
-                        <!-- Leave Info / Metric 4 -->
-                        <div class="col-6">
-                            <div class="card h-100 border-0 shadow-sm"
-                                style="border-radius: 12px; border-top: 3px solid #ffc107 !important;">
-                                <div class="card-body p-2 d-flex flex-column justify-content-center"
-                                    onclick="toggleSection('leaveHistoryContent')" style="cursor: pointer;">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center"
-                                            style="width: 24px; height: 24px;">
-                                            <i class="bi bi-file-earmark-text text-warning"
-                                                style="font-size: 0.75rem;"></i>
-                                        </div>
-                                    </div>
-                                    <h4 class="mb-0 fw-bold text-dark" style="font-size: 1.15rem;">ดูประวัติ</h4>
-                                    <div class="small fw-bold text-muted text-uppercase"
-                                        style="font-size: 0.6rem; letter-spacing: 0.3px;">ข้อมูลการลา</div>
-                                </div>
+
+                        <!-- Week -->
+                        <div id="monthlyHoursCard" class="px-3 py-3" style="border-top: 3px solid #ffc107;">
+                            <div class="d-flex align-items-center mb-1 text-muted" style="opacity: 0.7;">
+                                <i class="bi bi-file-earmark-text me-2" style="font-size: 1.1rem;"></i>
                             </div>
+                            <h3 class="mb-0 fw-bold text-dark" id="hours2Value"
+                                style="color: #2c3e50 !important; font-size: 1.5rem;">0.00</h3>
+                            <div class="small text-muted" id="hours2Title" style="font-size: 0.8rem;">สัปดาห์นี้</div>
                         </div>
+
                     </div>
+
                 </div>
             </div>
-            <!-- Satisfaction Survey Card (Premium Balanced) -->
-            <div id="surveyPrompt" class="mb-3"
-                style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #ff8e71; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
-                onclick="show('surveyPage')">
+
+            <!-- Cash Submission Prompt -->
+            <div id="cashPrompt" class="mb-3 hidden"
+                style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #20c997; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
+                onclick="show('cashPage')">
                 <div class="px-3 py-2 d-flex align-items-center gap-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center"
-                        style="width: 36px; height: 36px; background: #fff5f2; color: #ff8e71; flex-shrink: 0;">
-                        <i class="bi bi-star-fill" style="font-size: 1.1rem;"></i>
+                        style="width: 36px; height: 36px; background: #e0f8f1; color: #20c997; flex-shrink: 0;">
+                        <i class="bi bi-cash-stack" style="font-size: 1.1rem;"></i>
                     </div>
                     <div style="flex-grow: 1; min-width: 0;">
                         <div class="fw-bold text-dark text-truncate"
                             style="font-size: 0.95rem; letter-spacing: -0.2px;">
-                            แบบสำรวจความพึงพอใจประจำกะ</div>
+                            นำส่งยอดเงินประจำกะ</div>
                         <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
-                            ช่วยเราพัฒนาและปรับปรุงระบบให้ดียิ่งขึ้นครับ ✨</div>
+                            บันทึกการส่งมอบเหรียญและธนบัตร 💰</div>
                     </div>
                     <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
                 </div>
             </div>
-
-
 
             <!-- Schedule -->
             <div class="mt-4">
@@ -764,12 +736,125 @@
                 </div>
             </div>
 
+            <!-- Satisfaction Survey Card (Premium Balanced) - Moved to bottom -->
+            <div id="surveyPrompt" class="mb-3 mt-4"
+                style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #ff8e71; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
+                onclick="show('surveyPage')">
+                <div class="px-3 py-2 d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 36px; height: 36px; background: #fff5f2; color: #ff8e71; flex-shrink: 0;">
+                        <i class="bi bi-star-fill" style="font-size: 1.1rem;"></i>
+                    </div>
+                    <div style="flex-grow: 1; min-width: 0;">
+                        <div class="fw-bold text-dark text-truncate"
+                            style="font-size: 0.95rem; letter-spacing: -0.2px;">
+                            แบบสำรวจความพึงพอใจประจำกะ</div>
+                        <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
+                            ช่วยเราพัฒนาและปรับปรุงระบบให้ดียิ่งขึ้นครับ ✨</div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
+                </div>
+            </div>
+
             <div class="text-center mt-5 mb-4">
                 <button onclick="location.reload(true)" class="btn btn-sm btn-outline-secondary border-0 opacity-50"
                     style="font-size: 12px; width: auto; margin: 0 auto;">
                     <i class="bi bi-arrow-clockwise"></i> Force Refresh
                 </button>
             </div>
+        </div>
+
+        <!-- --- CASH SUBMISSION PAGE --- -->
+        <div id="cashPage" class="hidden pb-5">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <button class="btn btn-light rounded-circle p-2" onclick="show('mainPage')"
+                    style="width: 40px; height: 40px; border: 1px solid #ddd;">
+                    <i class="bi bi-chevron-left text-dark"></i>
+                </button>
+                <h4 class="mb-0 fw-bold">ส่งยอดเงินประจำกะ</h4>
+            </div>
+
+            <form id="cashForm" onsubmit="submitCash(event)">
+                <div class="mb-3">
+                    <label class="form-label text-dark fw-bold small">เลือกประเภทลิ้นชัก</label>
+                    <select id="drawerSelect" class="form-select bg-white text-dark shadow-sm border-0 py-3 rounded-4"
+                        onchange="calcCash()">
+                        <option value="top">ลิ้นชักบน (เป้าหมายยอดรวม: 5,000)</option>
+                        <option value="bottom">ลิ้นชักล่าง (เป้าหมายยอดรวม: 14,000)</option>
+                    </select>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-3"
+                    style="border-radius: 12px; overflow: hidden; background: #121212; color: white;">
+                    <!-- TABS -->
+                    <ul class="nav nav-pills p-2" id="cashPills" role="tablist" style="background: #1a1a1a;">
+                        <li class="nav-item flex-fill text-center" role="presentation">
+                            <button class="nav-link active w-100 rounded-3 py-2 text-white fw-bold" id="coins-tab"
+                                data-bs-toggle="pill" data-bs-target="#coins" type="button" role="tab">เหรียญ</button>
+                        </li>
+                        <li class="nav-item flex-fill text-center" role="presentation">
+                            <button class="nav-link w-100 rounded-3 py-2 text-white fw-bold" id="banknotes-tab"
+                                data-bs-toggle="pill" data-bs-target="#banknotes" type="button"
+                                role="tab">ธนบัตร</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content table-responsive" id="cashPillsContent" style="max-height: 400px;">
+                        <table class="table table-dark table-borderless align-middle mb-0"
+                            style="background: transparent;">
+                            <thead
+                                style="border-bottom: 1px solid #333; position: sticky; top: 0; background: #121212; z-index: 1;">
+                                <tr>
+                                    <th class="py-3 text-white fw-light" style="font-size: 0.85rem; width: 35%;">
+                                        ประเภทเงิน</th>
+                                    <th class="py-3 text-white text-center fw-light"
+                                        style="font-size: 0.85rem; width: 15%;">มูลค่า</th>
+                                    <th class="py-3 text-white text-center fw-light"
+                                        style="font-size: 0.85rem; width: 25%;">จำนวน</th>
+                                    <th class="py-3 text-white text-end fw-light"
+                                        style="font-size: 0.85rem; padding-right: 15px; width: 25%;">ยอดย่อย</th>
+                                </tr>
+                            </thead>
+                            <!-- COINS TAB PANE -->
+                            <tbody class="tab-pane fade show active" id="coins" role="tabpanel">
+                                <!-- Generated by JS -->
+                            </tbody>
+                            <!-- BANKNOTES TAB PANE -->
+                            <tbody class="tab-pane fade" id="banknotes" role="tabpanel">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SUMMARY FOOTER -->
+                    <div class="p-3" style="border-top: 1px solid #333; background: #0a0a0a;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-white opacity-75 small fw-light">เป้าหมาย (Target)</span>
+                            <span class="text-white fw-bold" id="cashTargetShow">5,000.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-white opacity-75 small fw-light">รวมยอดนับได้จริง (Counted)</span>
+                            <span class="text-white fw-bold" id="cashTotalAmount">0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2"
+                            style="border-top: 1px dashed #333;">
+                            <span class="text-white opacity-75 fw-bold">ผลต่าง (Diff)</span>
+                            <span class="fw-bold fs-4" id="cashDiffAmount" style="color: #ffc107;">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success w-100 py-3 mt-2 fw-bold fs-6 shadow flex-grow-1"
+                        style="border-radius: 12px;">
+                        <i class="bi bi-line me-2"></i>ส่งยอด (LINE)
+                    </button>
+                    <button type="button" class="btn btn-outline-dark py-3 mt-2 fw-bold fs-6 shadow text-nowrap"
+                        style="border-radius: 12px; width: auto;" onclick="copyCashSummary()" id="copyCashBtn">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+            </form>
         </div>
 
         <!-- --- SURVEY PAGE --- -->
@@ -863,18 +948,31 @@
                 try {
                     const parentData = window.parent?.allUserData;
                     if (parentData) {
-                        const users = Object.values(parentData).filter(u => u.status === 'Approved');
-                        if (users.length > 0) {
-                            // Pick a random approved user for preview
-                            realUser = users[Math.floor(Math.random() * users.length)];
+                        const targetUid = urlParams.get('uid');
+                        const userArray = Object.values(parentData);
+                        if (targetUid) {
+                            realUser = userArray.find(u => u.lineUserId === targetUid || u._docId === targetUid);
+                        }
+                        if (!realUser) {
+                            const approvedUsers = userArray.filter(u => u.status === 'Approved');
+                            if (approvedUsers.length > 0) {
+                                realUser = approvedUsers[0]; // just pick the first approved instead of random to be consistent
+                            }
                         }
                     }
-                } catch (e) { }
+                } catch (e) { console.warn("Cannot access parent frame", e); }
 
                 if (realUser) {
+                    currentUser = realUser;
                     document.getElementById('showName').textContent = realUser.name || 'ไม่ทราบชื่อ';
                     document.getElementById('showEmpId').textContent = `${realUser.empId || '—'} | ${realUser.dept || 'General'}`;
                     document.getElementById('mainProfileImg').src = realUser.pictureUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
+
+                    const cp = document.getElementById('cashPrompt');
+                    if (cp) cp.classList.toggle('hidden', !realUser.enableCash);
+                    if (realUser.enableCash && typeof initCashForm === 'function') {
+                        initCashForm();
+                    }
                 } else {
                     document.getElementById('showName').textContent = 'สมชาย ตัวอย่าง';
                     document.getElementById('showEmpId').textContent = 'EMP-66001 | General';
@@ -1039,7 +1137,7 @@
 
 
         async function show(id, data) {
-            ['loadingPage', 'registerPage', 'pendingPage', 'mainPage', 'surveyPage'].forEach(p => {
+            ['loadingPage', 'registerPage', 'pendingPage', 'mainPage', 'surveyPage', 'cashPage'].forEach(p => {
                 const el = document.getElementById(p);
                 if (el) {
                     el.classList.add('hidden');
@@ -1071,6 +1169,18 @@
                 const empEl = document.getElementById('showEmpId');
                 if (nameEl) nameEl.innerText = displayName;
                 if (empEl) empEl.innerText = `${empId} | ${dept}`;
+
+                const cashPrompt = document.getElementById('cashPrompt');
+                if (cashPrompt) {
+                    if (currentUser.enableCash) {
+                        cashPrompt.classList.remove('hidden');
+                        if (typeof initCashForm === 'function') {
+                            initCashForm();
+                        }
+                    } else {
+                        cashPrompt.classList.add('hidden');
+                    }
+                }
 
                 // Fallback for profile picture
                 const profileImg = document.getElementById('mainProfileImg');
@@ -1275,14 +1385,27 @@
                     }
                     if (!isAuto) {
                         if (type === 'ออกงาน') {
+                            let endText = '<div class="mb-2">พักผ่อนให้เต็มที่นะครับ</div><div style="font-size:1.8rem; font-weight:bold; color:#ff6b6b;">또 만나요</div><div class="text-muted small mt-1">(แล้วเจอกันใหม่ครับ)</div>';
+                            if (currentUser.taskClockOut) {
+                                endText = `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 mb-3 text-start"><div class="fw-bold text-dark"><i class="bi bi-bell-fill text-warning me-2"></i> งานที่ต้องทำก่อนกลับ:</div><div class="mt-1 text-danger fw-bold" style="font-size:1.1rem;">${currentUser.taskClockOut}</div></div>` + endText;
+                            }
                             Swal.fire({
                                 title: 'เลิกงานแล้ว!',
-                                html: '<div class="mb-2">พักผ่อนให้เต็มที่นะครับ</div><div style="font-size:1.8rem; font-weight:bold; color:#ff6b6b;">또 만나요</div><div class="text-muted small mt-1">(แล้วเจอกันใหม่ครับ)</div>',
+                                html: endText,
                                 icon: 'success',
-                                confirmButtonText: 'ปิด'
+                                confirmButtonText: 'รับทราบ/ปิด'
                             });
                         } else {
-                            Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
+                            if (currentUser.taskClockIn) {
+                                Swal.fire({
+                                    title: 'บันทึกเข้างานสำเร็จ',
+                                    html: `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 mt-2 text-start"><div class="fw-bold text-dark"><i class="bi bi-bell-fill text-warning me-2"></i> งานที่ต้องทำ:</div><div class="mt-1 text-danger fw-bold" style="font-size:1.1rem;">${currentUser.taskClockIn}</div></div>`,
+                                    icon: 'success',
+                                    confirmButtonText: 'รับทราบ'
+                                });
+                            } else {
+                                Swal.fire('สำเร็จ', `บันทึก ${type} เรียบร้อย`, 'success');
+                            }
                         }
                     }
                     loadHistory(); // Reload to toggle buttons
@@ -1377,16 +1500,22 @@
                 }
             }
 
-            // Render List
+            // Render List (Fetch whole month instead of just today)
             const list = document.getElementById('historyList'); list.innerHTML = "";
-            if (snap.empty) { list.innerHTML = "<p class='text-muted text-center small'>ยังไม่มีประวัติวันนี้</p>"; return; }
-            snap.forEach(d => {
+            const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const qMonth = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", startMonth), orderBy("timestamp", "desc"));
+            const snapMonth = await getDocs(qMonth);
+
+            if (snapMonth.empty) { list.innerHTML = "<p class='text-muted text-center small'>ยังไม่มีประวัติในเดือนนี้</p>"; return; }
+            snapMonth.forEach(d => {
                 const v = d.data();
-                const time = v.timestamp ? new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour12: false }) : "..";
+                const dObj = v.timestamp ? new Date(v.timestamp.seconds * 1000) : new Date();
+                const dateStr = dObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+                const timeStr = dObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
                 const icon = v.type === 'เข้างาน' ? 'bi-geo-alt-fill text-success' : 'bi-box-arrow-right text-danger';
                 list.innerHTML += `<li class="history-item ${v.type === 'เข้างาน' ? 'in' : 'out'}">
-                    <div class="d-flex align-items-center gap-2"><i class="bi ${icon}"></i> <span class="fw-bold">${v.type}</span></div>
-                    <span class="mono-font badge bg-light text-dark border">${time} น.</span>
+                    <div class="d-flex align-items-center gap-2"><i class="bi ${icon}"></i> <span class="fw-bold">${v.type} <small class="text-muted fw-normal ms-1">(${dateStr})</small></span></div>
+                    <span class="mono-font badge bg-light text-dark border">${timeStr} น.</span>
                 </li>`;
             });
         }
@@ -1667,28 +1796,31 @@
                 const dept = currentUser.dept || '';
                 const isPharmacistExtern = dept === 'Pharmacist Extern' || dept.includes('Intern');
 
+                const totalCard = document.getElementById('totalHoursCard');
                 const yearlyCard = document.getElementById('yearlyHoursCard');
                 const monthlyCard = document.getElementById('monthlyHoursCard');
 
-                // Always calculate all 3 if cards exist
-                await calculateInternshipHours();
-                await calculateHoursFromMonthStart();
-                await calculateHoursFromYearStart();
+                // Update UI text for new requirements
+                const h1Title = document.getElementById('hours1Title');
+                if (h1Title) h1Title.innerText = 'วันนี้ (เสร็จสิ้น)';
 
-                // Custom UI adjustments based on dept
-                if (isPharmacistExtern) {
-                    if (yearlyCard) yearlyCard.style.display = 'none';
-                    const h1Title = document.getElementById('hours1Title');
-                    const h1Desc = document.getElementById('hours1Desc');
-                    if (h1Title) h1Title.innerText = 'ชม.ทำงานทั้งหมด';
-                    if (h1Desc) h1Desc.innerText = 'ตลอดระยะเวลาฝึกงาน';
-                } else {
-                    if (yearlyCard) yearlyCard.style.display = 'block';
-                    const h1Title = document.getElementById('hours1Title');
-                    const h1Desc = document.getElementById('hours1Desc');
-                    if (h1Title) h1Title.innerText = 'ชั่วโมงทำงานทั้งหมด';
-                    if (h1Desc) h1Desc.innerText = 'ตั้งแต่วันแรกที่สมัคร';
-                }
+                const h2Title = document.getElementById('hours2Title');
+                if (h2Title) h2Title.innerText = 'สัปดาห์นี้';
+
+                const h3Title = document.getElementById('hours3Title');
+                if (h3Title) h3Title.innerText = 'เดือนนี้';
+
+                // We will use existing cards for: Today(total/1), Week(monthly/2), Month(yearly/3)
+                // Need to fetch Year and put it somewhere else or re-use existing cards.
+                // The prompt asked for: Today, This week, This month, This year.
+                // There are only 3 cards available for hours. We will update the HTML layout as well.
+
+                await calculateHoursToday(); // Updates hours1Value
+                await calculateHoursFromWeekStart(); // Updates hours2Value
+                await calculateHoursFromMonthStart(); // Updates hours3Value
+
+                if (totalCard) totalCard.style.display = 'block';
+                if (yearlyCard) yearlyCard.style.display = 'block';
 
             } catch (error) {
                 console.error('Error loading working hours:', error);
@@ -1745,18 +1877,46 @@
             }
         }
 
+        async function calculateHoursToday() {
+            try {
+                const now = new Date();
+                const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const endDate = now;
+
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours1Value').innerText = hours.toFixed(2);
+            } catch (error) {
+                console.error('Error calculating hours today:', error);
+                document.getElementById('hours1Value').innerText = '0.00';
+            }
+        }
+
+        async function calculateHoursFromWeekStart() {
+            try {
+                const now = new Date();
+                const dayOfWeek = now.getDay() || 7; // Get day of week (1-7), Monday is 1
+                const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek + 1);
+                const endDate = now;
+
+                const hours = await calculateWorkingHours(startDate, endDate);
+                document.getElementById('hours2Value').innerText = hours.toFixed(2);
+            } catch (error) {
+                console.error('Error calculating hours from week start:', error);
+                document.getElementById('hours2Value').innerText = '0.00';
+            }
+        }
+
         async function calculateHoursFromMonthStart() {
             try {
                 const now = new Date();
                 const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of current month
-                const endDate = now; // Include today
+                const endDate = now;
 
                 const hours = await calculateWorkingHours(startDate, endDate);
-                document.getElementById('hours2Value').innerText = hours.toFixed(2);
-
+                document.getElementById('hours3Value').innerText = hours.toFixed(2);
             } catch (error) {
                 console.error('Error calculating hours from month start:', error);
-                document.getElementById('hours2Value').innerText = '0.00';
+                document.getElementById('hours3Value').innerText = '0.00';
             }
         }
 
@@ -1764,14 +1924,13 @@
             try {
                 const now = new Date();
                 const startDate = new Date(now.getFullYear(), 0, 1); // 1st January
-                const endDate = now; // Include today
+                const endDate = now;
 
                 const hours = await calculateWorkingHours(startDate, endDate);
-                document.getElementById('hours3Value').innerText = hours.toFixed(2);
-
+                const el = document.getElementById('hours4Value') || document.getElementById('hours1Value'); // Fallback
+                if (el && el.id === 'hours4Value') el.innerText = hours.toFixed(2);
             } catch (error) {
                 console.error('Error calculating hours from year start:', error);
-                document.getElementById('hours3Value').innerText = '0.00';
             }
         }
 
@@ -1959,14 +2118,9 @@
                     });
 
                     // Handle case where clocked in but no clock out
+                    // IMPORTANT: Do NOT calculate incomplete shift hours per user requirements.
                     if (clockInTime) {
-                        const now = new Date();
-                        const isToday = clockInTime.toDateString() === now.toDateString();
-                        const endTime = isToday ? now : new Date(clockInTime).setHours(23, 0, 0, 0);
-
-                        const diffMs = endTime - clockInTime;
-                        const diffHours = diffMs / (1000 * 60 * 60);
-                        dayHours += Math.max(0, diffHours);
+                        // Only show value when fully clocked out (pair is complete)
                     }
 
                     totalHours += dayHours;
@@ -1979,6 +2133,177 @@
                 return 0;
             }
         }
+        // --- CASH SUBMISSION SYSTEM ---
+        const cashTypes = [
+            { id: 'c100', name: 'เหรียญ 1 บาท', val: 1.00, type: 'coin' },
+            { id: 'c200', name: 'เหรียญ 2 บาท', val: 2.00, type: 'coin' },
+            { id: 'c500', name: 'เหรียญ 5 บาท', val: 5.00, type: 'coin' },
+            { id: 'c1000', name: 'เหรียญ 10 บาท', val: 10.00, type: 'coin' },
+            { id: 'b20', name: 'ธนบัตร 20 บาท', val: 20.00, type: 'banknote' },
+            { id: 'b50', name: 'ธนบัตร 50 บาท', val: 50.00, type: 'banknote' },
+            { id: 'b100', name: 'ธนบัตร 100 บาท', val: 100.00, type: 'banknote' },
+            { id: 'b500', name: 'ธนบัตร 500 บาท', val: 500.00, type: 'banknote' },
+            { id: 'b1000', name: 'ธนบัตร 1,000 บาท', val: 1000.00, type: 'banknote' }
+        ];
+
+        function initCashForm() {
+            const coinsBody = document.getElementById('coins');
+            const banknotesBody = document.getElementById('banknotes');
+            if (!coinsBody || !banknotesBody) return;
+            if (coinsBody.children.length > 0) return; // Already init
+
+            let htmlCoins = '';
+            let htmlBanknotes = '';
+
+            cashTypes.forEach(c => {
+                const row = `
+                <tr style="border-bottom: 1px solid #333;">
+                    <td class="text-white py-3" style="font-size: 0.95rem;">${c.name}</td>
+                    <td class="text-white text-center py-3" style="font-size: 0.95rem;">${c.val >= 1 ? c.val.toLocaleString() : c.val}</td>
+                    <td class="py-2 text-center">
+                        <input type="number" id="qty_${c.id}" 
+                            class="form-control text-center text-dark border-0 fw-bold shadow-sm" 
+                            style="width: 80px; margin: 0 auto; height: 45px; border-radius: 12px; background: #fff;" 
+                            min="0" placeholder="" oninput="calcCash()" onfocus="this.select()">
+                    </td>
+                    <td class="text-white text-end py-3" style="font-size: 0.95rem; padding-right: 15px;" id="sub_${c.id}">0.00</td>
+                </tr>`;
+
+                if (c.type === 'coin') htmlCoins += row;
+                else htmlBanknotes += row;
+            });
+
+            coinsBody.innerHTML = htmlCoins;
+            banknotesBody.innerHTML = htmlBanknotes;
+            calcCash();
+        }
+        window.initCashForm = initCashForm;
+
+        function calcCash() {
+            let total = 0;
+            cashTypes.forEach(c => {
+                const qtyVal = document.getElementById(`qty_${c.id}`).value;
+                const qty = parseInt(qtyVal) || 0;
+                const sub = qty * c.val;
+                total += sub;
+                document.getElementById(`sub_${c.id}`).innerText = qtyVal ? sub.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
+            });
+            document.getElementById('cashTotalAmount').innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const isTopDrawer = document.getElementById('drawerSelect').value === 'top';
+            const drawerTarget = isTopDrawer ? 5000 : 14000;
+            const diff = total - drawerTarget;
+
+            document.getElementById('cashTargetShow').innerText = drawerTarget.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+            const diffEl = document.getElementById('cashDiffAmount');
+            diffEl.innerText = (diff > 0 ? '+' : '') + diff.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+            if (diff > 0) diffEl.style.color = '#198754';
+            else if (diff < 0) diffEl.style.color = '#dc3545';
+            else diffEl.style.color = '#ffc107';
+        }
+        window.calcCash = calcCash;
+
+        async function submitCash(e) {
+            e.preventDefault();
+            let hasAmount = false;
+            const entries = {};
+            let total = 0;
+            cashTypes.forEach(c => {
+                const qty = parseInt(document.getElementById(`qty_${c.id}`).value) || 0;
+                if (qty > 0) {
+                    hasAmount = true;
+                    entries[c.id] = { name: c.name, val: c.val, qty, subTotal: c.val * qty };
+                    total += c.val * qty;
+                }
+            });
+
+            if (!hasAmount) {
+                Swal.fire('ข้อผิดพลาด', 'กรุณาระบุจำนวนเงินอย่างน้อย 1 รายการ', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'ยืนยันยอดนำส่ง',
+                html: 'ยอดรวมทั้งหมด: <b class="text-success fs-3">' + total.toLocaleString(undefined, { minimumFractionDigits: 2 }) + '</b> บาท',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันการส่งเงิน',
+                cancelButtonText: 'แก้ไข',
+                confirmButtonColor: '#198754'
+            }).then(async (res) => {
+                if (res.isConfirmed) {
+                    Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    try {
+                        const isTopDrawer = document.getElementById('drawerSelect').value === 'top';
+                        const drawerName = isTopDrawer ? 'ลิ้นชักบน' : 'ลิ้นชักล่าง';
+                        const drawerTarget = isTopDrawer ? 5000 : 14000;
+                        const diff = total - drawerTarget;
+
+                        const msgText = `💰 แจ้งผลนับเงินประจำกะ\n👤 ผู้ส่ง: ${currentUser.name}\n💼 ประเภท: ${drawerName}\n🎯 เป้าหมาย: ${drawerTarget.toLocaleString()}\n💵 ยอดรวมที่นับได้: ${total.toLocaleString()}\n⚖️ ผลต่าง: ${diff > 0 ? '+' : ''}${diff.toLocaleString()}`;
+
+                        const localDate = new Date().toLocaleDateString('sv');
+
+                        await addDoc(collection(db, "cash_submissions"), {
+                            userId: currentUser.lineUserId,
+                            name: currentUser.name,
+                            dept: currentUser.dept,
+                            date: localDate,
+                            timestamp: serverTimestamp(),
+                            entries: entries,
+                            totalAmount: total,
+                            drawerType: drawerName,
+                            targetAmount: drawerTarget,
+                            diffAmount: diff
+                        });
+
+                        // Clear form
+                        cashTypes.forEach(c => { document.getElementById(`qty_${c.id}`).value = ''; });
+                        calcCash();
+
+                        if (liff.isInClient()) {
+                            try {
+                                await liff.sendMessages([{ type: 'text', text: msgText }]);
+                            } catch (e) {
+                                console.error('LIFF Error: ', e);
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'ส่งยอดเงินแล้ว',
+                            text: 'ระบบได้บันทึกยอดเงินของท่านเรียบร้อยแล้ว',
+                            confirmButtonText: 'ตกลง'
+                        }).then(() => {
+                            show('mainPage');
+                        });
+                    } catch (err) {
+                        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + err.message, 'error');
+                    }
+                }
+            });
+        }
+
+        window.copyCashSummary = () => {
+            let total = 0;
+            cashTypes.forEach(c => {
+                const qtyVal = document.getElementById(`qty_${c.id}`).value;
+                total += (parseInt(qtyVal) || 0) * c.val;
+            });
+            const isTopDrawer = document.getElementById('drawerSelect').value === 'top';
+            const drawerName = isTopDrawer ? 'ลิ้นชักบน' : 'ลิ้นชักล่าง';
+            const drawerTarget = isTopDrawer ? 5000 : 14000;
+            const diff = total - drawerTarget;
+            const msgText = `💰 แจ้งผลนับเงินประจำกะ\n👤 ผู้ส่ง: ${currentUser.name || currentUser.displayName || 'พนักงาน'}\n💼 ประเภท: ${drawerName}\n🎯 เป้าหมาย: ${drawerTarget.toLocaleString()}\n💵 ยอดรวมที่นับได้: ${total.toLocaleString()}\n⚖️ ผลต่าง: ${diff > 0 ? '+' : ''}${diff.toLocaleString()}`;
+
+            navigator.clipboard.writeText(msgText).then(() => {
+                Swal.fire('คัดลอกสำเร็จ', 'ระบบคัดลอกข้อสรุปยอดลงคลิปบอร์ดแล้ว', 'success');
+            }).catch(err => {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถคัดลอกข้อความได้: ' + err, 'error');
+            });
+        };
+        window.submitCash = submitCash;
         // Start the application when both DOM and Module are ready
         window.log('Module Loaded');
         main();
