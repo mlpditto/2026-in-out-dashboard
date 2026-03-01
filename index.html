@@ -468,11 +468,30 @@
                 <div style="flex:1;">
                     <div class="d-flex align-items-center gap-2">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.50</span>
+                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.56</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
-                <img id="mainProfileImg" src="" class="profile-img" style="width: 55px; height: 55px; margin:0;">
+                <!-- Clickable Profile Picture -->
+                <div style="position:relative; width:55px; height:55px; flex-shrink:0; cursor:pointer;"
+                    onclick="document.getElementById('profileFileInput').click()" title="แตะเพื่อเปลี่ยนรูปโปรไฟล์">
+                    <img id="mainProfileImg" src="" class="profile-img"
+                        style="width:55px;height:55px;margin:0;object-fit:cover;">
+                    <!-- Camera overlay -->
+                    <div id="profileImgOverlay"
+                        style="position:absolute;bottom:0;right:0;width:20px;height:20px;background:#0d6efd;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.25);">
+                        <i class="bi bi-camera-fill" style="font-size:9px;color:white;line-height:1;"></i>
+                    </div>
+                    <!-- Upload spinner (hidden by default) -->
+                    <div id="profileUploadSpinner"
+                        style="display:none;position:absolute;inset:0;background:rgba(255,255,255,0.75);border-radius:50%;align-items:center;justify-content:center;">
+                        <div class="spinner-border spinner-border-sm text-primary" style="width:20px;height:20px;">
+                        </div>
+                    </div>
+                </div>
+                <!-- Hidden file input -->
+                <input type="file" id="profileFileInput" accept="image/*" style="display:none;"
+                    onchange="handleProfileUpload(event)">
             </div>
 
             <div class="status-card">
@@ -684,6 +703,7 @@
                                     This month</div>
                                 <div class="text-end mt-3" style="line-height: 1;">
                                     <span class="fs-1 fw-bold" id="hours3Value" style="color: #555;">0.00</span>
+                                    <span style="color: #555; font-size: 0.9rem; margin-left: 2px;">hr</span>
                                 </div>
                             </div>
                         </div>
@@ -696,6 +716,8 @@
                                     This year</div>
                                 <div class="text-end mt-3" style="line-height: 1;">
                                     <span class="fs-1 fw-bold" id="hours4Value" style="color: #555;">0.00</span>
+                                    <span id="hours4Unit"
+                                        style="color: #555; font-size: 0.9rem; margin-left: 2px;">hr</span>
                                 </div>
                             </div>
                         </div>
@@ -932,6 +954,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Firebase Storage not used — profile photos stored as Base64 in Firestore
 
         // --- 🔴 CONFIG (Public) ---
         const firebaseConfig = {
@@ -947,6 +970,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
         let currentUser = {};
 
         // MAIN
@@ -1105,7 +1129,8 @@
                         displayName: currentUser.displayName || userData.displayName || "",
                         name: userData.name || "",
                         dept: userData.dept || "",
-                        empId: userData.empId || ""
+                        empId: userData.empId || "",
+                        customPhotoURL: userData.customPhotoURL || ""   // ← รูปที่ user upload เอง
                     };
                     window.log('ยินดีต้อนรับกลับ ' + (userData.name || ''));
 
@@ -1197,13 +1222,22 @@
                     }
                 }
 
-                // Fallback for profile picture
+                // Fallback for profile picture — priority: LINE pic > custom upload > placeholder
                 const profileImg = document.getElementById('mainProfileImg');
-                const finalPic = currentUser.pictureUrl || `https://via.placeholder.com/60`;
+                const finalPic = currentUser.pictureUrl || currentUser.customPhotoURL || `https://via.placeholder.com/60`;
 
                 if (profileImg) {
                     profileImg.src = finalPic + (finalPic.includes('?') ? '&' : '?') + `v=${Date.now()}`;
-                    profileImg.onerror = () => { profileImg.src = `https://via.placeholder.com/60`; };
+                    // Cascaded fallback: LINE → custom upload → placeholder
+                    profileImg.onerror = () => {
+                        if (currentUser.customPhotoURL && profileImg.src !== currentUser.customPhotoURL) {
+                            profileImg.onerror = () => { profileImg.onerror = null; profileImg.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.lineUserId}`; };
+                            profileImg.src = currentUser.customPhotoURL;
+                        } else {
+                            profileImg.onerror = null;
+                            profileImg.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.lineUserId}`;
+                        }
+                    };
                 }
 
                 const updateClock = () => {
@@ -1827,12 +1861,33 @@
                 if (h3Title) h3Title.innerText = monthStr;
 
                 const h4Title = document.getElementById('hours4Title');
-                if (h4Title) h4Title.innerText = yearStr;
+                if (h4Title) {
+                    h4Title.innerText = yearStr + (isPharmacistExtern ? ' ∞' : '');
+                }
 
                 await calculateHoursToday(); // Updates hours1Value
                 await calculateHoursFromWeekStart(); // Updates hours2Value
                 await calculateHoursFromMonthStart(); // Updates hours3Value
-                await calculateHoursFromYearStart(); // Updates hours4Value
+
+                if (isPharmacistExtern) {
+                    const elValue = document.getElementById('hours4Value');
+                    const elUnit = document.getElementById('hours4Unit');
+                    if (elValue) {
+                        elValue.innerText = 'in·fin·i·ty';
+                        elValue.classList.remove('fs-1');
+                        elValue.classList.add('fs-4');
+                    }
+                    if (elUnit) elUnit.style.display = 'none';
+                } else {
+                    const elValue = document.getElementById('hours4Value');
+                    const elUnit = document.getElementById('hours4Unit');
+                    if (elValue) {
+                        elValue.classList.remove('fs-4');
+                        elValue.classList.add('fs-1');
+                    }
+                    if (elUnit) elUnit.style.display = 'inline';
+                    await calculateHoursFromYearStart(); // Updates hours4Value
+                }
 
             } catch (error) {
                 console.error('Error loading working hours:', error);
@@ -2367,6 +2422,136 @@
             });
         };
         window.submitCash = submitCash;
+        // ------------------------------------------------------------------
+        // 📷 PROFILE PHOTO UPLOAD
+        // ------------------------------------------------------------------
+
+
+        window.handleProfileUpload = async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // ── Policy 1: File type ──────────────────────────────────────────
+            if (!file.type.startsWith('image/')) {
+                Swal.fire('ผิดประเภท', 'กรุณาเลือกไฟล์รูปภาพเท่านั้นครับ', 'warning');
+                event.target.value = '';
+                return;
+            }
+
+            // ── Policy 2: Raw size ≤ 5 MB (same as LINE profile) ─────────────
+            const MAX_RAW_MB = 5;
+            if (file.size > MAX_RAW_MB * 1024 * 1024) {
+                Swal.fire('ไฟล์ใหญ่เกินไป',
+                    `ขนาดรูปต้องไม่เกิน ${MAX_RAW_MB} MB ครับ (ไฟล์ที่เลือก: ${(file.size / 1024 / 1024).toFixed(1)} MB)`,
+                    'warning');
+                event.target.value = '';
+                return;
+            }
+
+            // ── Policy 3: 30-day cooldown ─────────────────────────────────────
+            const COOLDOWN_DAYS = 30;
+            if (currentUser.lastProfileUpdate) {
+                // Firestore Timestamp → JS Date
+                const lastUpdate = currentUser.lastProfileUpdate.toDate
+                    ? currentUser.lastProfileUpdate.toDate()
+                    : new Date(currentUser.lastProfileUpdate);
+                const diffDays = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24);
+                if (diffDays < COOLDOWN_DAYS) {
+                    const daysLeft = Math.ceil(COOLDOWN_DAYS - diffDays);
+                    const nextDate = new Date(lastUpdate.getTime() + COOLDOWN_DAYS * 86400000)
+                        .toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'ยังไม่ถึงเวลาเปลี่ยนรูป',
+                        html: `เปลี่ยนรูปโปรไฟล์ของระบบได้เดือนละ 1 ครั้ง<br>
+                               <b>เปลี่ยนได้อีกครั้ง:</b> ${nextDate}<br>
+                               <small class="text-muted">(อีก ${daysLeft} วัน)</small>`,
+                        confirmButtonText: 'รับทราบ'
+                    });
+                    event.target.value = '';
+                    return;
+                }
+            }
+
+            // Show spinner
+            const spinner = document.getElementById('profileUploadSpinner');
+            const overlay = document.getElementById('profileImgOverlay');
+            if (spinner) { spinner.style.display = 'flex'; }
+            if (overlay) { overlay.style.display = 'none'; }
+
+            try {
+                // 1. Compress → 200px avatar (เล็กพอสำหรับรูปโปรไฟล์ขนาดเล็ก ~5-15KB)
+                //    ใช้ canvas.toDataURL แทน toBlob เพื่อได้ base64 โดยตรง
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const MAX_PX = 200;
+                            let w = img.width, h = img.height;
+                            // Crop to square from center, then resize
+                            const side = Math.min(w, h);
+                            const sx = (w - side) / 2, sy = (h - side) / 2;
+                            const canvas = document.createElement('canvas');
+                            canvas.width = MAX_PX; canvas.height = MAX_PX;
+                            canvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, MAX_PX, MAX_PX);
+                            resolve(canvas.toDataURL('image/jpeg', 0.82));
+                        };
+                        img.onerror = reject;
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                // 2. ตรวจสอบขนาด base64 ไม่เกิน 500KB เพื่อความปลอดภัยของ Firestore
+                const base64SizeKB = Math.round((base64.length * 3) / 4 / 1024);
+                if (base64SizeKB > 500) {
+                    throw new Error(`รูปหลัง compress ยังใหญ่เกินไป (${base64SizeKB}KB) กรุณาเลือกรูปที่เล็กกว่านี้`);
+                }
+
+                // 3. บันทึกลง Firestore โดยตรง — ไม่ต้องใช้ Firebase Storage
+                const uid = currentUser.lineUserId;
+                if (!uid) throw new Error('ไม่พบข้อมูลผู้ใช้ กรุณา reload');
+                const userRef = doc(db, 'users', uid);
+                await updateDoc(userRef, {
+                    customPhotoURL: base64,
+                    lastProfileUpdate: serverTimestamp()
+                });
+
+                // 4. Update local state — LINE photo ยังเป็น primary
+                //    base64 จะใช้เป็น onerror fallback เมื่อ LINE URL หมดอายุ
+                currentUser.customPhotoURL = base64;
+                currentUser.lastProfileUpdate = { toDate: () => new Date() };
+
+                const imgEl = document.getElementById('mainProfileImg');
+                if (imgEl) {
+                    imgEl.onerror = () => {
+                        imgEl.onerror = null;
+                        imgEl.src = base64;
+                    };
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'บันทึกรูปสำรองสำเร็จ!',
+                    html: `รูปโปรไฟล์สำรองถูกบันทึกแล้ว (~${base64SizeKB}KB)<br>
+                           <small class="text-muted">รูปจาก LINE จะยังแสดงเป็นหลักครับ<br>
+                           รูปนี้จะใช้เมื่อ LINE photo โหลดไม่ได้</small>`,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+
+            } catch (err) {
+                console.error('Profile upload error:', err);
+                Swal.fire('เกิดข้อผิดพลาด', err.message || 'ไม่สามารถบันทึกรูปได้', 'error');
+            } finally {
+                if (spinner) { spinner.style.display = 'none'; }
+                if (overlay) { overlay.style.display = 'flex'; }
+                event.target.value = '';
+            }
+        };
+
         // Start the application when both DOM and Module are ready
         window.log('Module Loaded');
         main();
