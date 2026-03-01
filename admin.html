@@ -700,8 +700,8 @@
                             </div>
                         </div>
 
-                        <!-- Status Switch -->
-                        <div class="d-flex flex-column align-items-center">
+                        <!-- Status & Department Column -->
+                        <div class="d-flex flex-column align-items-center" style="min-width: 150px;">
                             <label class="small text-muted mb-2 fw-bold">สถานะพนักงาน</label>
                             <div class="form-check form-switch fs-4 mb-0 d-flex align-items-center justify-content-center"
                                 style="margin-left: -5px;">
@@ -712,8 +712,43 @@
                                     txt.className = this.checked ? 'badge bg-success mt-1' : 'badge bg-danger mt-1';
                                 ">
                             </div>
-                            <span id="editUserStatusText" class="badge bg-success mt-1"
+                            <span id="editUserStatusText" class="badge bg-success mt-1 mb-3"
                                 style="font-size: 0.7rem;">Active</span>
+
+                            <!-- Department Input -->
+                            <div class="w-100 mt-1">
+                                <div class="input-group input-group-sm shadow-sm"
+                                    style="border-radius: 8px; overflow: visible; border: 1px solid #e9ecef;">
+                                    <!-- Dropdown button inside input group -->
+                                    <button class="btn btn-light dropdown-toggle border-0 text-muted" type="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false" style="background: #f8f9fa;">
+                                    </button>
+                                    <ul class="dropdown-menu shadow"
+                                        style="font-size: 0.85rem; min-width: 160px; border-radius: 12px; z-index: 1060;">
+                                        <li><a class="dropdown-item py-2" href="#"
+                                                onclick="event.preventDefault(); document.getElementById('editUserDept').value='General'">General</a>
+                                        </li>
+                                        <li><a class="dropdown-item py-2" href="#"
+                                                onclick="event.preventDefault(); document.getElementById('editUserDept').value='Pharmacy'">Pharmacy</a>
+                                        </li>
+                                        <li><a class="dropdown-item py-2" href="#"
+                                                onclick="event.preventDefault(); document.getElementById('editUserDept').value='IT'">IT</a>
+                                        </li>
+                                        <li><a class="dropdown-item py-2" href="#"
+                                                onclick="event.preventDefault(); document.getElementById('editUserDept').value='Admin'">Admin</a>
+                                        </li>
+                                        <li><a class="dropdown-item py-2" href="#"
+                                                onclick="event.preventDefault(); document.getElementById('editUserDept').value='Sales'">Sales</a>
+                                        </li>
+                                        <li><a class="dropdown-item py-2" href="#"
+                                                onclick="event.preventDefault(); document.getElementById('editUserDept').value='Pharmacist Extern'">Pharmacist
+                                                Extern</a></li>
+                                    </ul>
+                                    <input type="text" id="editUserDept"
+                                        class="form-control text-center border-0 bg-light" placeholder="ระบุแผนก"
+                                        style="font-size: 0.85rem;" autocomplete="off">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -729,19 +764,6 @@
                     </div>
                     <div class="form-floating mb-3"><input type="text" id="editUserName" class="form-control"
                             placeholder="ชื่อ"><label>ชื่อ-นามสกุล</label></div>
-                    <div class="form-floating mb-3">
-                        <input type="text" id="editUserDept" class="form-control" list="deptOptions"
-                            placeholder="ระบุแผนก">
-                        <datalist id="deptOptions">
-                            <option value="General">
-                            <option value="Pharmacy">
-                            <option value="IT">
-                            <option value="Admin">
-                            <option value="Sales">
-                            <option value="Pharmacist Extern">
-                        </datalist>
-                        <label>แผนก</label>
-                    </div>
 
                     <div class="form-floating mb-3"><input type="text" id="editTaskClockIn" class="form-control"
                             placeholder="ข้อความ"><label>แจ้งเตือนเมื่อเข้างาน</label></div>
