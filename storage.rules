@@ -1,14 +1,19 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+
+    // ✅ Allow anyone (LIFF users) to read & write their own profile picture
+    match /profile_pics/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 3 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // 🔒 Everything else: admin only
     match /{allPaths=**} {
-      // Allow read for authenticated users
       allow read: if request.auth != null;
-      
-      // Allow write only for admins
       allow write: if request.auth != null && (
         request.auth.token.email == 'medlifeplus@gmail.com' ||
-        // Check if UID is in admins collection (via custom logic or simpler if needed)
         firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
       );
     }

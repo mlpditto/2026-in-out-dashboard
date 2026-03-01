@@ -2,7 +2,9 @@ import { getDeptCategoryColor, getDeptPastelColor } from './colors.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+const IMGBB_API_KEY = "7281ddf275fac5c420395c1c56f3739c"; // ⚠️ แทนที่ด้วย Key ของคุณจาก https://api.imgbb.com/
+
 
 // --- 🔴 CONFIG (Public) ---
 const firebaseConfig = {
@@ -19,8 +21,7 @@ const FALLBACK_ADMIN = "medlifeplus@gmail.com";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
-
+const provider = new GoogleAuthProvider();
 let calendarObj, editModal, barChart, editAttendanceModalObj;
 let userProfileMap = {};
 window.allUserData = {};
@@ -93,34 +94,47 @@ document.addEventListener('change', async (e) => {
         progressBar.style.width = '10%'; // initial width
 
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `profiles/${userId}_${Date.now()}.${fileExt}`;
-            const storageRef = ref(storage, fileName);
+            Swal.fire({
+                title: 'กำลังอัพโหลดไปที่ ImgBB...',
+                text: 'กรุณารอสักครู่',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
 
-            // Using await instead of observers for better error handling
-            const uploadTask = uploadBytesResumable(storageRef, file);
-            await uploadTask;
-            progressBar.style.width = '100%';
+            // Prepare FormData for ImgBB
+            const formData = new FormData();
+            formData.append('image', file);
 
-            const downloadURL = await getDownloadURL(storageRef);
+            // Upload via ImgBB API
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: 'POST',
+                body: formData
+            });
 
-            // Update UI
-            document.getElementById('editUserPicUrl').value = downloadURL;
-            document.getElementById('editUserImg').src = downloadURL;
+            const result = await response.json();
 
-            progressContainer.classList.add('d-none');
-            Toast.fire({ icon: 'success', title: 'อัพโหลดรูปสำเร็จ (อย่าลืมกดบันทึก)' });
+            if (result.success) {
+                const downloadURL = result.data.url;
+
+                // Update UI
+                document.getElementById('editUserPicUrl').value = downloadURL;
+                document.getElementById('editUserImg').src = downloadURL;
+
+                Swal.close();
+                Toast.fire({ icon: 'success', title: 'อัพโหลดรูปสำเร็จ (อย่าลืมกดบันทึก)' });
+            } else {
+                throw new Error(result.error ? result.error.message : 'Upload failed');
+            }
         } catch (err) {
-            console.error("Upload error:", err);
-            progressContainer.classList.add('d-none');
+            console.error("ImgBB Upload error:", err);
             Swal.fire({
                 icon: 'error',
                 title: 'อัพโหลดไม่สำเร็จ',
-                text: 'กรุณาตรวจสอบการตั้งค่า Firebase Storage (หรือ CORS)',
-                footer: err.message
+                html: `เกิดปัญหาในการส่งรูปไปที่ ImgBB<br><small class="text-danger">${err.message}</small>`,
             });
         } finally {
-            inputElement.value = ''; // Reset input to allow re-upload
+            progressContainer.classList.add('d-none');
+            inputElement.value = '';
         }
     }
 });
