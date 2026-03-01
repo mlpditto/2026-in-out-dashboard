@@ -1601,7 +1601,16 @@ window.openEditUser = (id) => {
     document.getElementById('editEmpId').value = u.empId || '';
     document.getElementById('editUserPhone').value = u.phone || '';
     document.getElementById('editUserDept').value = u.dept;
-    document.getElementById('editUserStatus').value = u.status || 'Approved';
+
+    // Status handling
+    const statusVal = u.status || 'Approved';
+    const statusToggle = document.getElementById('editUserStatusToggle');
+    const statusText = document.getElementById('editUserStatusText');
+    if (statusToggle && statusText) {
+        statusToggle.checked = (statusVal === 'Approved');
+        statusText.innerText = statusToggle.checked ? 'Active' : 'Inactive';
+        statusText.className = statusToggle.checked ? 'badge bg-success mt-1' : 'badge bg-danger mt-1';
+    }
     document.getElementById('editTaskClockIn').value = u.taskClockIn || '';
     document.getElementById('editTaskClockOut').value = u.taskClockOut || '';
     document.getElementById('editEnableCash').checked = u.enableCash || false;
@@ -1621,7 +1630,7 @@ window.saveEditUser = async () => {
             empId: document.getElementById('editEmpId').value,
             phone: document.getElementById('editUserPhone').value,
             dept: document.getElementById('editUserDept').value,
-            status: document.getElementById('editUserStatus').value,
+            status: document.getElementById('editUserStatusToggle').checked ? 'Approved' : 'Inactive',
             taskClockIn: document.getElementById('editTaskClockIn').value,
             taskClockOut: document.getElementById('editTaskClockOut').value,
             enableCash: document.getElementById('editEnableCash').checked,
