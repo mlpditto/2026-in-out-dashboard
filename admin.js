@@ -258,6 +258,23 @@ window.createSchedule = async (e) => {
 let schedAllData = [];
 let schedCurrentPage = 1;
 const SCHED_PAGE_SIZE = 20;
+let nurseRosterSelectedShift = 'M';
+let nurseRosterDraft = new Map();
+let nurseRosterReady = false;
+
+const NURSE_ROSTER_SHIFTS = [
+    { key: 'M', label: 'ช', name: 'เช้า', detail: '☀️ เช้า (08:00 - 16:00)', color: '#fff7b8', text: '#7a4d00' },
+    { key: 'E', label: 'บ', name: 'บ่าย', detail: '🌤️ บ่าย (16:00 - 00:00)', color: '#a9e7fb', text: '#075985' },
+    { key: 'N', label: 'ด', name: 'ดึก', detail: '🌙 ดึก (00:00 - 08:00)', color: '#9ee7ef', text: '#0f6674' },
+    { key: 'ME', label: 'ชบ', name: 'เช้า+บ่าย', detail: '☀️🌤️ เช้า+บ่าย (08:00 - 00:00)', color: '#ffd54a', text: '#6b4300' },
+    { key: 'EN', label: 'บด', name: 'บ่าย+ดึก', detail: '🌤️🌙 บ่าย+ดึก (16:00 - 08:00)', color: '#5ee1cf', text: '#064e3b' },
+    { key: 'DN', label: 'DN', name: 'Day+Night', detail: 'DN Day+Night', color: '#bda7f3', text: '#3b246b' },
+    { key: 'OFF', label: 'O', name: 'OFF', detail: '🚫 หยุด (Day Off)', color: '#e2e8f0', text: '#475569' },
+    { key: 'LEAVE', label: 'ล', name: 'ลา', detail: '📋 ลา', color: '#ffdede', text: '#9f1239' }
+];
+
+const TH_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+const TH_DAY_SHORT = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
 window.changeSchedMonth = (delta) => {
     const el = document.getElementById('schedMonthFilter');
@@ -273,6 +290,314 @@ window.schedChangePage = (delta) => {
     schedCurrentPage = Math.max(1, Math.min(totalPages, schedCurrentPage + delta));
     renderSchedPage();
 };
+
+function getRosterShiftByKey(key) {
+    return NURSE_ROSTER_SHIFTS.find(s => s.key === key) || NURSE_ROSTER_SHIFTS[0];
+}
+
+function inferRosterShiftKey(detail = '') {
+    const d = String(detail || '').toLowerCase();
+    if (!d) return '';
+    if (d.includes('day+night') || d.includes('dn')) return 'DN';
+    if ((d.includes('เช้า') && d.includes('บ่าย')) || d.includes('ชบ')) return 'ME';
+    if ((d.includes('บ่าย') && d.includes('ดึก')) || d.includes('บด')) return 'EN';
+    if (d.includes('หยุด') || d.includes('off')) return 'OFF';
+    if (d.includes('ลา') || d.includes('ป่วย') || d.includes('พักร้อน') || d.includes('กิจ')) return 'LEAVE';
+    if (d.includes('ดึก') || d.includes('night') || d.includes('00:00')) return 'N';
+    if (d.includes('บ่าย') || d.includes('16:00')) return 'E';
+    if (d.includes('เช้า') || d.includes('08:00') || d.includes('09:00')) return 'M';
+    return 'M';
+}
+
+function getRosterDateKey(year, month, day) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function getRosterMonthParts() {
+    const monthEl = document.getElementById('nurseRosterMonth');
+    const yearEl = document.getElementById('nurseRosterYear');
+    const now = new Date();
+    const month = monthEl?.value ? Number(monthEl.value) : now.getMonth();
+    const buddhistYear = yearEl?.value ? Number(yearEl.value) : now.getFullYear() + 543;
+    return { year: buddhistYear - 543, buddhistYear, month };
+}
+
+function syncLegacyScheduleMonth() {
+    const mf = document.getElementById('schedMonthFilter');
+    if (!mf) return;
+    const { year, month } = getRosterMonthParts();
+    mf.value = `${year}-${String(month + 1).padStart(2, '0')}`;
+}
+
+function initNurseRosterControls() {
+    if (nurseRosterReady || !document.getElementById('nurseRosterMonth')) return;
+    const now = new Date();
+    const monthEl = document.getElementById('nurseRosterMonth');
+    const yearEl = document.getElementById('nurseRosterYear');
+    monthEl.innerHTML = TH_MONTHS.map((m, i) => `<option value="${i}" ${i === now.getMonth() ? 'selected' : ''}>${m}</option>`).join('');
+    const currentBe = now.getFullYear() + 543;
+    yearEl.innerHTML = Array.from({ length: 7 }, (_, i) => currentBe - 3 + i)
+        .map(y => `<option value="${y}" ${y === currentBe ? 'selected' : ''}>${y}</option>`).join('');
+    renderNurseRosterPalette();
+    nurseRosterReady = true;
+}
+
+function renderNurseRosterPalette() {
+    const el = document.getElementById('nurseRosterPalette');
+    if (!el) return;
+    el.innerHTML = NURSE_ROSTER_SHIFTS.map(s => `
+        <button type="button" class="roster-shift-btn ${s.key === nurseRosterSelectedShift ? 'active' : ''}"
+            style="background:${s.color};color:${s.text}" onclick="selectNurseRosterShift('${s.key}')">
+            ${s.label}<small>${s.name}</small>
+        </button>`).join('');
+}
+
+function getRosterUsers() {
+    const users = Object.entries(window.allUserData || {})
+        .map(([id, u]) => ({ id: u.lineUserId || u._docId || id, ...u }))
+        .filter(u => (u.status || 'Approved') === 'Approved');
+    const knownIds = new Set(users.map(u => u.id));
+    schedAllData.forEach(s => {
+        if (s.userId && !knownIds.has(s.userId)) {
+            knownIds.add(s.userId);
+            users.push({ id: s.userId, name: s.name || 'ไม่ทราบชื่อ', dept: s.dept || '' });
+        }
+    });
+    return users.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
+}
+
+function getRosterExistingMap() {
+    const map = new Map();
+    schedAllData.forEach(v => {
+        if (!v.userId || !v.date) return;
+        map.set(`${v.userId}_${v.date}`, { id: v.id, key: inferRosterShiftKey(v.shiftDetail), detail: v.shiftDetail || '' });
+    });
+    nurseRosterDraft.forEach((v, k) => map.set(k, v));
+    return map;
+}
+
+function buildRosterStats(users, days, rosterMap) {
+    return users.map(u => {
+        const counts = { M: 0, E: 0, N: 0, ME: 0, EN: 0, DN: 0, OFF: 0, LEAVE: 0 };
+        for (let d = 1; d <= days; d++) {
+            const date = getRosterDateKey(getRosterMonthParts().year, getRosterMonthParts().month, d);
+            const key = rosterMap.get(`${u.id}_${date}`)?.key;
+            if (key && counts[key] !== undefined) counts[key]++;
+        }
+        return { user: u, counts, total: counts.M + counts.E + counts.N + counts.ME + counts.EN + counts.DN };
+    });
+}
+
+function roleLabelForUser(u) {
+    return u.position || u.role || u.department || u.dept || 'พยาบาล';
+}
+
+function renderNurseRoster() {
+    initNurseRosterControls();
+    const head = document.getElementById('nurseRosterHead');
+    const body = document.getElementById('nurseRosterBody');
+    if (!head || !body) return;
+
+    const { year, month } = getRosterMonthParts();
+    const days = new Date(year, month + 1, 0).getDate();
+    const users = getRosterUsers();
+    const rosterMap = getRosterExistingMap();
+
+    document.getElementById('rosterDayCount').innerText = days;
+    head.innerHTML = `<tr>
+        <th class="roster-sticky">ที่</th>
+        <th class="roster-sticky roster-name-col">ชื่อ-นามสกุล</th>
+        <th class="roster-sticky roster-role-col">ตำแหน่ง</th>
+        ${Array.from({ length: days }, (_, i) => {
+            const day = i + 1;
+            const dt = new Date(year, month, day);
+            const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
+            return `<th class="${isWeekend ? 'day-weekend' : ''}"><div>${day}</div><small>${TH_DAY_SHORT[dt.getDay()]}</small></th>`;
+        }).join('')}
+        <th>ช<br><small>รวม</small></th><th>บ<br><small>รวม</small></th><th>ด<br><small>รวม</small></th><th>O<br><small>รวม</small></th>
+    </tr>`;
+
+    body.innerHTML = users.map((u, index) => {
+        let m = 0, e = 0, n = 0, off = 0;
+        const cells = Array.from({ length: days }, (_, i) => {
+            const date = getRosterDateKey(year, month, i + 1);
+            const docKey = `${u.id}_${date}`;
+            const cell = rosterMap.get(docKey) || {};
+            const shift = cell.key ? getRosterShiftByKey(cell.key) : null;
+            if (['M', 'ME', 'DN'].includes(cell.key)) m++;
+            if (['E', 'ME', 'EN'].includes(cell.key)) e++;
+            if (['N', 'EN', 'DN'].includes(cell.key)) n++;
+            if (cell.key === 'OFF') off++;
+            const style = shift ? `background:${shift.color};color:${shift.text}` : '';
+            return `<td class="roster-cell" style="${style}" title="${cell.detail || shift?.detail || ''}"
+                onclick="setNurseRosterCell('${u.id}', '${date}')">${shift?.label || ''}</td>`;
+        }).join('');
+        const role = roleLabelForUser(u);
+        const color = getDeptCategoryColor(role);
+        return `<tr>
+            <td class="roster-sticky">${index + 1}</td>
+            <td class="roster-sticky roster-name-col fw-semibold">${u.name || u.displayName || 'ไม่ทราบชื่อ'}</td>
+            <td class="roster-sticky roster-role-col"><span class="roster-role-badge" style="background:${color}">${role}</span></td>
+            ${cells}
+            <td class="fw-bold text-primary">${m}</td><td class="fw-bold text-primary">${e}</td><td class="fw-bold text-primary">${n}</td><td class="fw-bold text-muted">${off}</td>
+        </tr>`;
+    }).join('') || `<tr><td colspan="${days + 7}" class="text-center text-muted py-4">ยังไม่มีข้อมูลพนักงานสำหรับจัดตารางเวร</td></tr>`;
+
+    renderNurseRosterSummary();
+}
+
+function renderNurseRosterSummary() {
+    const { year, month } = getRosterMonthParts();
+    const days = new Date(year, month + 1, 0).getDate();
+    const users = getRosterUsers();
+    const rosterMap = getRosterExistingMap();
+    const stats = buildRosterStats(users, days, rosterMap);
+    const summary = document.getElementById('nurseRosterSummary');
+    const ot = document.getElementById('nurseRosterOt');
+    if (summary) {
+        summary.innerHTML = stats.map(r => `
+            <div class="roster-summary-card">
+                <strong>${r.user.name || 'ไม่ทราบชื่อ'}</strong>
+                <div class="small text-muted">${roleLabelForUser(r.user)}</div>
+                <div class="d-flex flex-wrap gap-2 mt-2 small">
+                    <span>ช ${r.counts.M + r.counts.ME + r.counts.DN}</span>
+                    <span>บ ${r.counts.E + r.counts.ME + r.counts.EN}</span>
+                    <span>ด ${r.counts.N + r.counts.EN + r.counts.DN}</span>
+                    <span>OFF ${r.counts.OFF}</span>
+                </div>
+            </div>`).join('') || '<div class="text-muted">ยังไม่มีข้อมูล</div>';
+    }
+    const otRows = stats.filter(r => r.counts.ME || r.counts.EN || r.counts.DN);
+    document.getElementById('rosterOtCount').innerText = otRows.length;
+    if (ot) {
+        ot.innerHTML = otRows.map(r => `
+            <div class="roster-summary-card">
+                <strong>${r.user.name || 'ไม่ทราบชื่อ'}</strong>
+                <div class="small text-muted">OT รวม ${r.counts.ME + r.counts.EN + r.counts.DN} วัน</div>
+            </div>`).join('') || '<div class="text-muted">ยังไม่มีรายการ OT</div>';
+    }
+}
+
+window.selectNurseRosterShift = (key) => {
+    nurseRosterSelectedShift = key;
+    renderNurseRosterPalette();
+};
+
+window.clearNurseRosterSelection = () => {
+    nurseRosterSelectedShift = '';
+    renderNurseRosterPalette();
+};
+
+window.setNurseRosterCell = (userId, date) => {
+    if (!nurseRosterSelectedShift) return;
+    const shift = getRosterShiftByKey(nurseRosterSelectedShift);
+    nurseRosterDraft.set(`${userId}_${date}`, { key: shift.key, detail: shift.detail, id: `${userId}_${date}` });
+    renderNurseRoster();
+};
+
+window.changeNurseRosterMonth = () => {
+    nurseRosterDraft.clear();
+    syncLegacyScheduleMonth();
+    loadSchedules();
+};
+
+window.switchNurseRosterPanel = (btn) => {
+    document.querySelectorAll('.roster-tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.roster-panel').forEach(p => p.classList.add('d-none'));
+    const panel = document.getElementById(`nurseRosterPanel${btn.dataset.rosterPanel.charAt(0).toUpperCase()}${btn.dataset.rosterPanel.slice(1)}`);
+    if (panel) panel.classList.remove('d-none');
+};
+
+window.autoFillNurseRoster = () => {
+    const users = getRosterUsers();
+    if (!users.length) return Swal.fire('ยังไม่มีพนักงาน', 'กรุณาโหลดข้อมูลพนักงานก่อนจัดเวรอัตโนมัติ', 'warning');
+    const { year, month } = getRosterMonthParts();
+    const days = new Date(year, month + 1, 0).getDate();
+    const limits = {
+        weekday: ['M', 'E', 'N'].map((_, i) => Number([document.getElementById('rosterWeekdayMorning')?.value, document.getElementById('rosterWeekdayEvening')?.value, document.getElementById('rosterWeekdayNight')?.value][i] || 0)),
+        holiday: ['M', 'E', 'N'].map((_, i) => Number([document.getElementById('rosterHolidayMorning')?.value, document.getElementById('rosterHolidayEvening')?.value, document.getElementById('rosterHolidayNight')?.value][i] || 0))
+    };
+    for (let day = 1; day <= days; day++) {
+        const date = getRosterDateKey(year, month, day);
+        const isHoliday = [0, 6].includes(new Date(year, month, day).getDay());
+        const counts = isHoliday ? limits.holiday : limits.weekday;
+        let cursor = day - 1;
+        ['M', 'E', 'N'].forEach((key, shiftIndex) => {
+            for (let i = 0; i < counts[shiftIndex] && i < users.length; i++) {
+                const user = users[(cursor + i) % users.length];
+                const shift = getRosterShiftByKey(key);
+                nurseRosterDraft.set(`${user.id}_${date}`, { key, detail: shift.detail, id: `${user.id}_${date}` });
+            }
+            cursor += counts[shiftIndex];
+        });
+        users.forEach(u => {
+            const docKey = `${u.id}_${date}`;
+            if (!nurseRosterDraft.has(docKey) && !getRosterExistingMap().has(docKey)) {
+                const shift = getRosterShiftByKey('OFF');
+                nurseRosterDraft.set(docKey, { key: 'OFF', detail: shift.detail, id: docKey });
+            }
+        });
+    }
+    renderNurseRoster();
+    Toast.fire({ icon: 'success', title: 'จัดเวรอัตโนมัติในหน้าจอแล้ว กดบันทึกเพื่อยืนยัน' });
+};
+
+window.saveNurseRosterDraft = async () => {
+    if (!nurseRosterDraft.size) return Toast.fire({ icon: 'info', title: 'ยังไม่มีรายการที่เปลี่ยนแปลง' });
+    const users = getRosterUsers();
+    const userMap = new Map(users.map(u => [u.id, u]));
+    try {
+        const writes = [];
+        nurseRosterDraft.forEach((v, docKey) => {
+            const cut = docKey.lastIndexOf('_');
+            const userId = docKey.slice(0, cut);
+            const date = docKey.slice(cut + 1);
+            const user = userMap.get(userId) || {};
+            writes.push(setDoc(doc(db, "schedules", docKey), {
+                userId,
+                name: user.name || user.displayName || '',
+                date,
+                shiftDetail: v.detail,
+                timestamp: new Date(),
+                startDate: date,
+                endDate: date,
+                reason: v.key === 'OFF' || v.key === 'LEAVE' ? v.detail : ''
+            }));
+        });
+        await Promise.all(writes);
+        nurseRosterDraft.clear();
+        Toast.fire({ icon: 'success', title: 'บันทึกตารางเวรแล้ว' });
+        loadSchedules();
+        if (calendarObj) calendarObj.refetchEvents();
+    } catch (err) {
+        Swal.fire('Error', err.message, 'error');
+    }
+};
+
+window.exportNurseRosterCsv = () => {
+    const { year, month } = getRosterMonthParts();
+    const days = new Date(year, month + 1, 0).getDate();
+    const users = getRosterUsers();
+    const map = getRosterExistingMap();
+    const rows = [['name', 'role', ...Array.from({ length: days }, (_, i) => String(i + 1))]];
+    users.forEach(u => {
+        rows.push([u.name || u.displayName || '', roleLabelForUser(u), ...Array.from({ length: days }, (_, i) => {
+            const date = getRosterDateKey(year, month, i + 1);
+            const cellKey = map.get(`${u.id}_${date}`)?.key;
+            return cellKey ? getRosterShiftByKey(cellKey).label : '';
+        })]);
+    });
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `nurse-roster-${year}-${String(month + 1).padStart(2, '0')}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+};
+
+window.printNurseRoster = () => window.print();
 
 function renderSchedPage() {
     const t = document.getElementById('schedTableBody');
@@ -366,6 +691,7 @@ window.loadSchedules = async () => {
 
         schedCurrentPage = 1;
         renderSchedPage();
+        renderNurseRoster();
     } catch (err) {
         console.error("Error loading schedules:", err);
         t.innerHTML = '<tr><td colspan="4" class="text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
