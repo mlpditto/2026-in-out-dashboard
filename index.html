@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.57</title>
+    <title>MLP Time Attendance v3.58</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -204,6 +204,88 @@
             border: 4px solid white;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
             object-fit: cover;
+        }
+
+        .dashboard-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 58px;
+            align-items: start;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .dashboard-identity {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .dashboard-title-row {
+            width: 100%;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #showName,
+        #showEmpId {
+            max-width: 100%;
+            border-radius: 4px;
+            line-height: 1.12;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
+        }
+
+        #showName {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 2px 4px;
+            font-size: clamp(1.25rem, 5.2vw, 1.85rem);
+        }
+
+        #showEmpId {
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 1px 3px;
+            font-size: 0.78rem;
+        }
+
+        .app-version-badge {
+            flex: 0 0 auto;
+            align-self: flex-start;
+            margin-top: 3px;
+        }
+
+        .profile-photo-button {
+            position: relative;
+            width: 55px;
+            height: 55px;
+            justify-self: end;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        @media (max-width: 380px) {
+            .container {
+                padding: 18px;
+            }
+
+            .dashboard-header {
+                grid-template-columns: minmax(0, 1fr) 52px;
+                gap: 9px;
+            }
+
+            .profile-photo-button {
+                width: 52px;
+                height: 52px;
+            }
         }
 
         /* Buttons */
@@ -465,16 +547,16 @@
         <!-- Main Dashboard -->
         <div id="mainPage" class="hidden">
             <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div style="flex:1;">
-                    <div class="d-flex align-items-center gap-2">
+            <div class="dashboard-header">
+                <div class="dashboard-identity">
+                    <div class="dashboard-title-row">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50" style="font-size: 10px;">v3.57</span>
+                        <span class="badge bg-secondary opacity-50 app-version-badge" style="font-size: 10px;">v3.58</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
                 <!-- Clickable Profile Picture -->
-                <div style="position:relative; width:55px; height:55px; flex-shrink:0; cursor:pointer;"
+                <div class="profile-photo-button"
                     onclick="document.getElementById('profileFileInput').click()" title="แตะเพื่อเปลี่ยนรูปโปรไฟล์">
                     <img id="mainProfileImg" src="" class="profile-img"
                         style="width:55px;height:55px;margin:0;object-fit:cover;">
