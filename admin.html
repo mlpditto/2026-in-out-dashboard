@@ -61,7 +61,7 @@
                         </li>
                     </ul>
                 </div>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.54</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.55</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -280,6 +280,107 @@
                                         <tbody id="scheduleApprovedTableBody"></tbody>
                                     </table>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card nurse-roster-card shadow-sm border-0 mb-4">
+                    <div class="nurse-roster-hero">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <h4 class="fw-bold mb-0 text-white">ระบบจัดตารางเวรพยาบาล</h4>
+                                <span class="badge rounded-pill bg-white bg-opacity-25 text-white">MLP Edition</span>
+                            </div>
+                            <div class="text-white-50 small mt-1">มุมมองรายเดือน เลือกกะแล้วคลิกช่องเพื่อกรอกเวร</div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                            <span class="roster-status"><span></span> พร้อมใช้งาน</span>
+                            <button type="button" class="btn btn-light btn-sm roster-action" onclick="autoFillNurseRoster()">
+                                <i class="bi bi-magic me-1"></i>จัดเวรอัตโนมัติ
+                            </button>
+                            <button type="button" class="btn btn-success btn-sm roster-action" onclick="saveNurseRosterDraft()">
+                                <i class="bi bi-save me-1"></i>บันทึก
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm roster-action" onclick="exportNurseRosterCsv()">
+                                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Excel
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm roster-action" onclick="window.printNurseRoster()">
+                                <i class="bi bi-printer me-1"></i>พิมพ์
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body roster-workspace">
+                        <div class="roster-filter-grid mb-3">
+                            <label class="roster-filter">
+                                <span><i class="bi bi-calendar-month me-1"></i>เดือน</span>
+                                <select id="nurseRosterMonth" class="form-select" onchange="changeNurseRosterMonth()"></select>
+                            </label>
+                            <label class="roster-filter">
+                                <span><i class="bi bi-calendar3 me-1"></i>ปี (พ.ศ.)</span>
+                                <select id="nurseRosterYear" class="form-select" onchange="changeNurseRosterMonth()"></select>
+                            </label>
+                            <div class="roster-filter">
+                                <span><i class="bi bi-sun me-1"></i>วันธรรมดา ช/บ/ด</span>
+                                <div class="roster-mini-inputs">
+                                    <input type="number" class="form-control" value="5" min="0" id="rosterWeekdayMorning">
+                                    <input type="number" class="form-control" value="4" min="0" id="rosterWeekdayEvening">
+                                    <input type="number" class="form-control" value="4" min="0" id="rosterWeekdayNight">
+                                </div>
+                            </div>
+                            <div class="roster-filter">
+                                <span><i class="bi bi-moon-stars me-1"></i>วันหยุด ช/บ/ด</span>
+                                <div class="roster-mini-inputs">
+                                    <input type="number" class="form-control" value="4" min="0" id="rosterHolidayMorning">
+                                    <input type="number" class="form-control" value="5" min="0" id="rosterHolidayEvening">
+                                    <input type="number" class="form-control" value="6" min="0" id="rosterHolidayNight">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="roster-tabs mb-3" role="tablist">
+                            <button type="button" class="active" data-roster-panel="grid" onclick="switchNurseRosterPanel(this)">
+                                <i class="bi bi-calendar2-week"></i>ตารางเวร <span id="rosterDayCount">0</span>
+                            </button>
+                            <button type="button" data-roster-panel="summary" onclick="switchNurseRosterPanel(this)">
+                                <i class="bi bi-bar-chart"></i>สรุป
+                            </button>
+                            <button type="button" data-roster-panel="ot" onclick="switchNurseRosterPanel(this)">
+                                <i class="bi bi-wallet2"></i>OT <span id="rosterOtCount">0</span>
+                            </button>
+                            <button type="button" data-roster-panel="guide" onclick="switchNurseRosterPanel(this)">
+                                <i class="bi bi-question-circle"></i>คู่มือ
+                            </button>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                            <span class="small text-muted fw-bold">เลือกเวรเพื่อกรอก:</span>
+                            <div id="nurseRosterPalette" class="roster-palette"></div>
+                            <button type="button" class="btn btn-sm btn-light border ms-auto" onclick="clearNurseRosterSelection()">
+                                <i class="bi bi-cursor me-1"></i>ยกเลิกเลือก
+                            </button>
+                        </div>
+
+                        <div id="nurseRosterPanelGrid" class="roster-panel">
+                            <div class="roster-table-shell">
+                                <table class="nurse-roster-table">
+                                    <thead id="nurseRosterHead"></thead>
+                                    <tbody id="nurseRosterBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="roster-scroll-hint"></div>
+                        </div>
+                        <div id="nurseRosterPanelSummary" class="roster-panel d-none">
+                            <div id="nurseRosterSummary" class="roster-summary-grid"></div>
+                        </div>
+                        <div id="nurseRosterPanelOt" class="roster-panel d-none">
+                            <div id="nurseRosterOt" class="roster-summary-grid"></div>
+                        </div>
+                        <div id="nurseRosterPanelGuide" class="roster-panel d-none">
+                            <div class="roster-guide">
+                                <div><strong>วิธีใช้</strong> เลือกกะจากแถบสี แล้วคลิกช่องวันที่ของพนักงานเพื่อใส่/เปลี่ยนเวร</div>
+                                <div><strong>บันทึก</strong> ระบบจะบันทึกลง collection schedules ด้วยรูปแบบเดิมของระบบ</div>
+                                <div><strong>อัตโนมัติ</strong> ใช้จำนวนคนต่อกะด้านบนและกระจายเวรแบบหมุนเวียนตามวัน</div>
                             </div>
                         </div>
                     </div>
@@ -1089,7 +1190,7 @@
         };
     </script>
 
-    <script type="module" src="admin.js?v=3.54"></script>
+    <script type="module" src="admin.js?v=3.55"></script>
 </body>
 
 </html>
