@@ -541,7 +541,11 @@ function renderNurseRosterSummary() {
 }
 
 window.selectNurseRosterShift = (key) => {
-    nurseRosterSelectedShift = key;
+    if (nurseRosterSelectedShift === key) {
+        nurseRosterSelectedShift = ''; // Toggle off if clicked again
+    } else {
+        nurseRosterSelectedShift = key;
+    }
     renderNurseRosterPalette();
 };
 
