@@ -258,7 +258,7 @@ window.createSchedule = async (e) => {
 let schedAllData = [];
 let schedCurrentPage = 1;
 const SCHED_PAGE_SIZE = 20;
-let nurseRosterSelectedShift = 'M';
+let nurseRosterSelectedShift = '';
 let nurseRosterDraft = new Map();
 let nurseRosterReady = false;
 
@@ -541,11 +541,7 @@ function renderNurseRosterSummary() {
 }
 
 window.selectNurseRosterShift = (key) => {
-    if (nurseRosterSelectedShift === key) {
-        nurseRosterSelectedShift = ''; // Toggle off if clicked again
-    } else {
-        nurseRosterSelectedShift = key;
-    }
+    nurseRosterSelectedShift = key;
     renderNurseRosterPalette();
 };
 
