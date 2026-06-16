@@ -1513,7 +1513,24 @@
                     });
 
                     if (liff.isInClient()) {
-                        liff.sendMessages([{ type: 'text', text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}` }]).catch(e => console.error(e));
+                        const context = liff.getContext();
+                        if (context && context.type !== 'none') {
+                            try {
+                                await liff.sendMessages([{
+                                    type: 'text',
+                                    text: `${type === 'เข้างาน' ? '🟢' : '🔴'} ลงเวลา: ${type}\nโดย: ${currentUser.name}\nเวลา: ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`
+                                }]);
+                            } catch (e) {
+                                console.error('LIFF sendMessages error:', e);
+                                // If it fails (likely permission denied), notify the user
+                                Swal.fire({
+                                    title: 'บันทึกสำเร็จ แต่ส่งข้อความไม่ขึ้น',
+                                    text: 'ระบบไม่สามารถส่งข้อความเข้ากลุ่มอัตโนมัติได้ กรุณาตรวจสอบว่าท่านได้อนุญาตสิทธิ์ "ส่งข้อความ" ให้กับแอปใน LINE หรือไม่',
+                                    icon: 'warning',
+                                    confirmButtonText: 'รับทราบ'
+                                });
+                            }
+                        }
                     }
                     if (!isAuto) {
                         if (type === 'ออกงาน') {
@@ -2463,10 +2480,18 @@
                         calcCash();
 
                         if (liff.isInClient()) {
-                            try {
-                                await liff.sendMessages([{ type: 'text', text: msgText }]);
-                            } catch (e) {
-                                console.error('LIFF Error: ', e);
+                            const context = liff.getContext();
+                            if (context && context.type !== 'none') {
+                                try {
+                                    await liff.sendMessages([{ type: 'text', text: msgText }]);
+                                } catch (e) {
+                                    console.error('LIFF Error: ', e);
+                                    Swal.fire({
+                                        title: 'บันทึกสำเร็จ แต่ส่งข้อความไม่ได้',
+                                        text: 'ระบบไม่สามารถส่งสรุปยอดเงินเข้ากลุ่มได้ กรุณาตรวจสอบสิทธิ์ของแอปใน LINE',
+                                        icon: 'warning'
+                                    });
+                                }
                             }
                         }
 
