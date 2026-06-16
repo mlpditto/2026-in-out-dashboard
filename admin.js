@@ -492,7 +492,7 @@ function renderNurseRoster() {
                     <span class="text-truncate" style="max-width:140px;" title="${u.name || u.displayName || 'ไม่ทราบชื่อ'}">${u.name || u.displayName || 'ไม่ทราบชื่อ'}</span>
                 </div>
             </td>
-            <td class="roster-sticky roster-role-col"><span class="roster-role-badge" style="background:${color}">${role}</span></td>
+            <td class="roster-sticky roster-role-col cursor-pointer" onclick="editUserRoleDirectly('${u.id}')" title="คลิกเพื่อแก้ไขตำแหน่ง"><span class="roster-role-badge" style="background:${color}">${role}</span></td>
             ${cells}
             <td class="fw-bold text-primary">${m}</td><td class="fw-bold text-primary">${e}</td><td class="fw-bold text-primary">${e10p}</td><td class="fw-bold text-primary">${e11}</td><td class="fw-bold text-primary">${n}</td><td class="fw-bold text-muted">${off}</td>
         </tr>`;
@@ -2095,6 +2095,48 @@ window.rejectUser = async (id) => {
     }
 };
 window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
+window.editUserRoleDirectly = async (uid) => {
+    const u = window.allUserData ? (window.allUserData[uid] || Object.values(window.allUserData).find(usr => usr.lineUserId === uid || usr._docId === uid || usr.id === uid)) : null;
+    if (!u) {
+        return Swal.fire({
+            title: 'ไม่พบข้อมูลพนักงาน',
+            text: `ไม่พบรายชื่อสำหรับ ID: ${uid} ในฐานข้อมูล`,
+            icon: 'error'
+        });
+    }
+
+    const { value: newRole } = await Swal.fire({
+        title: `แก้ไขตำแหน่งของ ${u.name}`,
+        input: 'text',
+        inputLabel: 'ระบุตำแหน่ง/แผนกใหม่ (เช่น Pharmacy, Intern เภสัช, General, IT)',
+        inputValue: u.dept || '',
+        showCancelButton: true,
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ยกเลิก',
+        inputValidator: (value) => {
+            if (!value || !value.trim()) {
+                return 'กรุณาระบุชื่อตำแหน่ง!';
+            }
+        }
+    });
+
+    if (newRole) {
+        try {
+            const docId = u._docId || uid;
+            await updateDoc(doc(db, "users", docId), { dept: newRole.trim() });
+            Toast.fire({ icon: 'success', title: 'แก้ไขตำแหน่งสำเร็จ' });
+            
+            await cacheUserProfiles();
+            renderNurseRoster();
+            
+            if (typeof loadUsersList === 'function') {
+                loadUsersList();
+            }
+        } catch (e) {
+            Swal.fire('Error', e.message, 'error');
+        }
+    }
+};
 window.openEditUser = (id) => {
     const u = window.allUserData[id]; if (!u) { console.warn('User not found:', id); return; }
     // Store the Firestore docId for saving, not the lineUserId key
