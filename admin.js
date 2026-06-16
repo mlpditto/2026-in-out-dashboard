@@ -258,16 +258,17 @@ window.createSchedule = async (e) => {
 let schedAllData = [];
 let schedCurrentPage = 1;
 const SCHED_PAGE_SIZE = 20;
-let nurseRosterSelectedShift = '';
+let nurseRosterSelectedShift = 'M';
 let nurseRosterDraft = new Map();
 let nurseRosterReady = false;
 
 const NURSE_ROSTER_SHIFTS = [
-    { key: 'M', label: 'ช', name: '8-17', detail: '☀️ เช้า (08:00 - 17:00)', color: '#fff7b8', text: '#7a4d00' },
-    { key: 'E', label: 'บ10', name: '10-19', detail: '🌤️ บ่าย (10:00 - 19:00)', color: '#ffdca8', text: '#7d3c00' },
-    { key: 'E10P', label: 'บ10+', name: '10-20', detail: '☀️ บ่ายพิเศษ (10:00 - 20:00)', color: '#c3fae8', text: '#096345' },
-    { key: 'E11', label: 'บ11', name: '11-20', detail: '🕛 เที่ยง (11:00 - 20:00)', color: '#a9e7fb', text: '#075985' },
-    { key: 'N', label: 'ด', name: '12-21', detail: '🌙 ดึก (12:00 - 21:00)', color: '#e5dbff', text: '#4c2596' },
+    { key: 'M', label: 'ช', name: 'เช้า', detail: '☀️ เช้า (08:00 - 16:00)', color: '#fff7b8', text: '#7a4d00' },
+    { key: 'E', label: 'บ', name: 'บ่าย', detail: '🌤️ บ่าย (16:00 - 00:00)', color: '#a9e7fb', text: '#075985' },
+    { key: 'N', label: 'ด', name: 'ดึก', detail: '🌙 ดึก (00:00 - 08:00)', color: '#9ee7ef', text: '#0f6674' },
+    { key: 'ME', label: 'ชบ', name: 'เช้า+บ่าย', detail: '☀️🌤️ เช้า+บ่าย (08:00 - 00:00)', color: '#ffd54a', text: '#6b4300' },
+    { key: 'EN', label: 'บด', name: 'บ่าย+ดึก', detail: '🌤️🌙 บ่าย+ดึก (16:00 - 08:00)', color: '#5ee1cf', text: '#064e3b' },
+    { key: 'DN', label: 'DN', name: 'Day+Night', detail: 'DN Day+Night', color: '#bda7f3', text: '#3b246b' },
     { key: 'OFF', label: 'O', name: 'OFF', detail: '🚫 หยุด (Day Off)', color: '#e2e8f0', text: '#475569' },
     { key: 'LEAVE', label: 'ล', name: 'ลา', detail: '📋 ลา', color: '#ffdede', text: '#9f1239' }
 ];
@@ -302,11 +303,9 @@ function inferRosterShiftKey(detail = '') {
     if ((d.includes('บ่าย') && d.includes('ดึก')) || d.includes('บด')) return 'EN';
     if (d.includes('หยุด') || d.includes('off')) return 'OFF';
     if (d.includes('ลา') || d.includes('ป่วย') || d.includes('พักร้อน') || d.includes('กิจ')) return 'LEAVE';
-    if (d.includes('10-20') || d.includes('บ10+')) return 'E10P';
-    if (d.includes('11:00') || d.includes('11-20') || d.includes('บ11')) return 'E11';
-    if (d.includes('ดึก') || d.includes('night') || d.includes('12:00') || d.includes('12-21') || d.includes('21:00') || d.includes('00:00')) return 'N';
-    if (d.includes('บ่าย') || d.includes('10:00') || d.includes('10-19') || d.includes('19:00') || d.includes('16:00') || d.includes('บ10')) return 'E';
-    if (d.includes('เช้า') || d.includes('08:00') || d.includes('08-17') || d.includes('17:00') || d.includes('09:00') || d.includes('09-18')) return 'M';
+    if (d.includes('ดึก') || d.includes('night') || d.includes('00:00')) return 'N';
+    if (d.includes('บ่าย') || d.includes('16:00')) return 'E';
+    if (d.includes('เช้า') || d.includes('08:00') || d.includes('09:00')) return 'M';
     return 'M';
 }
 
@@ -356,44 +355,12 @@ function renderNurseRosterPalette() {
 function getRosterUsers() {
     const users = Object.entries(window.allUserData || {})
         .map(([id, u]) => ({ id: u.lineUserId || u._docId || id, ...u }))
-        .filter(u => {
-            if ((u.status || 'Approved') !== 'Approved') return false;
-            
-            const uid = u.id;
-            
-            // Check if active in last 15 days
-            const isActive = window.activeUserIdsInLast15Days && window.activeUserIdsInLast15Days.has(uid);
-            
-            // Check if scheduled in current month
-            const hasSchedule = schedAllData.some(s => s.userId === uid);
-            
-            // Check if has draft changes
-            const hasDraft = [...nurseRosterDraft.keys()].some(k => k.startsWith(uid + "_"));
-            
-            // Check if registration date is within last 15 days
-            const regDate = u.registrationDate || u.createdAt;
-            let isNew = false;
-            if (regDate) {
-                const regDateObj = regDate.toDate ? regDate.toDate() : new Date(regDate);
-                const fifteenDaysAgo = new Date();
-                fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-                fifteenDaysAgo.setHours(0, 0, 0, 0);
-                if (regDateObj >= fifteenDaysAgo) isNew = true;
-            }
-            
-            return isActive || hasSchedule || hasDraft || isNew;
-        });
-        
+        .filter(u => (u.status || 'Approved') === 'Approved');
     const knownIds = new Set(users.map(u => u.id));
     schedAllData.forEach(s => {
         if (s.userId && !knownIds.has(s.userId)) {
             knownIds.add(s.userId);
-            const userProfile = window.allUserData?.[s.userId] || Object.values(window.allUserData || {}).find(usr => usr.lineUserId === s.userId || usr._docId === s.userId);
-            if (userProfile) {
-                users.push({ id: s.userId, ...userProfile });
-            } else {
-                users.push({ id: s.userId, name: s.name || 'ไม่ทราบชื่อ', dept: s.dept || '' });
-            }
+            users.push({ id: s.userId, name: s.name || 'ไม่ทราบชื่อ', dept: s.dept || '' });
         }
     });
     return users.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
@@ -410,31 +377,19 @@ function getRosterExistingMap() {
 }
 
 function buildRosterStats(users, days, rosterMap) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     return users.map(u => {
-        const counts = { M: 0, E: 0, E10P: 0, E11: 0, N: 0, ME: 0, EN: 0, DN: 0, OFF: 0, LEAVE: 0 };
+        const counts = { M: 0, E: 0, N: 0, ME: 0, EN: 0, DN: 0, OFF: 0, LEAVE: 0 };
         for (let d = 1; d <= days; d++) {
             const date = getRosterDateKey(getRosterMonthParts().year, getRosterMonthParts().month, d);
-            const cellDate = new Date(getRosterMonthParts().year, getRosterMonthParts().month, d);
-            let key = rosterMap.get(`${u.id}_${date}`)?.key;
-            if (!key && cellDate <= today) key = 'OFF';
+            const key = rosterMap.get(`${u.id}_${date}`)?.key;
             if (key && counts[key] !== undefined) counts[key]++;
         }
-        return { user: u, counts, total: counts.M + counts.E + counts.E10P + counts.E11 + counts.N + counts.ME + counts.EN + counts.DN };
+        return { user: u, counts, total: counts.M + counts.E + counts.N + counts.ME + counts.EN + counts.DN };
     });
 }
 
 function roleLabelForUser(u) {
-    const raw = u.position || u.role || u.department || u.dept || 'พยาบาล';
-    const clean = raw.trim();
-    if (clean.toLowerCase().includes('junior pharmacy trainee')) {
-        const deptPart = clean.replace(/junior pharmacy trainee/gi, '').trim();
-        return `Trainee เภสัช${deptPart ? ' ' + deptPart : ''}`;
-    }
-    if (clean.toLowerCase() === 'pharmacist intern') return 'Intern เภสัช';
-    if (clean.toLowerCase() === 'pharmacist') return 'เภสัชกร';
-    return clean;
+    return u.position || u.role || u.department || u.dept || 'พยาบาล';
 }
 
 function renderNurseRoster() {
@@ -459,49 +414,34 @@ function renderNurseRoster() {
             const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
             return `<th class="${isWeekend ? 'day-weekend' : ''}"><div>${day}</div><small>${TH_DAY_SHORT[dt.getDay()]}</small></th>`;
         }).join('')}
-        <th>ช<br><small>รวม</small></th><th>บ10<br><small>รวม</small></th><th>บ10+<br><small>รวม</small></th><th>บ11<br><small>รวม</small></th><th>ด<br><small>รวม</small></th><th>O<br><small>รวม</small></th>
+        <th>ช<br><small>รวม</small></th><th>บ<br><small>รวม</small></th><th>ด<br><small>รวม</small></th><th>O<br><small>รวม</small></th>
     </tr>`;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     body.innerHTML = users.map((u, index) => {
-        let m = 0, e = 0, e10p = 0, e11 = 0, n = 0, off = 0;
+        let m = 0, e = 0, n = 0, off = 0;
         const cells = Array.from({ length: days }, (_, i) => {
             const date = getRosterDateKey(year, month, i + 1);
-            const cellDate = new Date(year, month, i + 1);
-            const isFuture = cellDate > today;
             const docKey = `${u.id}_${date}`;
-            
-            const cell = rosterMap.get(docKey) || (isFuture ? {} : { key: 'OFF', detail: getRosterShiftByKey('OFF').detail });
-            const shiftKey = cell.key || (isFuture ? '' : 'OFF');
-            const shift = shiftKey ? getRosterShiftByKey(shiftKey) : null;
-            
-            if (shiftKey === 'M') m++;
-            if (shiftKey === 'E') e++;
-            if (shiftKey === 'E10P') e10p++;
-            if (shiftKey === 'E11') e11++;
-            if (shiftKey === 'N') n++;
-            if (shiftKey === 'OFF') off++;
+            const cell = rosterMap.get(docKey) || {};
+            const shift = cell.key ? getRosterShiftByKey(cell.key) : null;
+            if (['M', 'ME', 'DN'].includes(cell.key)) m++;
+            if (['E', 'ME', 'EN'].includes(cell.key)) e++;
+            if (['N', 'EN', 'DN'].includes(cell.key)) n++;
+            if (cell.key === 'OFF') off++;
             const style = shift ? `background:${shift.color};color:${shift.text}` : '';
             return `<td class="roster-cell" style="${style}" title="${cell.detail || shift?.detail || ''}"
                 onclick="setNurseRosterCell('${u.id}', '${date}')">${shift?.label || ''}</td>`;
         }).join('');
         const role = roleLabelForUser(u);
         const color = getDeptCategoryColor(role);
-        const profileImgHtml = window.getProfileImgHtml(u.id, 24, 'rounded-circle', 'width:24px;height:24px;object-fit:cover;flex-shrink:0;');
         return `<tr>
             <td class="roster-sticky">${index + 1}</td>
-            <td class="roster-sticky roster-name-col fw-semibold">
-                <div class="d-flex align-items-center gap-2">
-                    ${profileImgHtml}
-                    <span class="text-truncate" style="max-width:140px;" title="${u.name || u.displayName || 'ไม่ทราบชื่อ'}">${u.name || u.displayName || 'ไม่ทราบชื่อ'}</span>
-                </div>
-            </td>
-            <td class="roster-sticky roster-role-col cursor-pointer" onclick="editUserRoleDirectly('${u.id}')" title="คลิกเพื่อแก้ไขตำแหน่ง"><span class="roster-role-badge" style="background:${color}">${role}</span></td>
+            <td class="roster-sticky roster-name-col fw-semibold">${u.name || u.displayName || 'ไม่ทราบชื่อ'}</td>
+            <td class="roster-sticky roster-role-col"><span class="roster-role-badge" style="background:${color}">${role}</span></td>
             ${cells}
-            <td class="fw-bold text-primary">${m}</td><td class="fw-bold text-primary">${e}</td><td class="fw-bold text-primary">${e10p}</td><td class="fw-bold text-primary">${e11}</td><td class="fw-bold text-primary">${n}</td><td class="fw-bold text-muted">${off}</td>
+            <td class="fw-bold text-primary">${m}</td><td class="fw-bold text-primary">${e}</td><td class="fw-bold text-primary">${n}</td><td class="fw-bold text-muted">${off}</td>
         </tr>`;
-    }).join('') || `<tr><td colspan="${days + 9}" class="text-center text-muted py-4">ยังไม่มีข้อมูลพนักงานสำหรับจัดตารางเวร</td></tr>`;
+    }).join('') || `<tr><td colspan="${days + 7}" class="text-center text-muted py-4">ยังไม่มีข้อมูลพนักงานสำหรับจัดตารางเวร</td></tr>`;
 
     renderNurseRosterSummary();
 }
@@ -520,11 +460,9 @@ function renderNurseRosterSummary() {
                 <strong>${r.user.name || 'ไม่ทราบชื่อ'}</strong>
                 <div class="small text-muted">${roleLabelForUser(r.user)}</div>
                 <div class="d-flex flex-wrap gap-2 mt-2 small">
-                    <span>ช ${r.counts.M}</span>
-                    <span>บ10 ${r.counts.E}</span>
-                    <span>บ10+ ${r.counts.E10P}</span>
-                    <span>บ11 ${r.counts.E11}</span>
-                    <span>ด ${r.counts.N}</span>
+                    <span>ช ${r.counts.M + r.counts.ME + r.counts.DN}</span>
+                    <span>บ ${r.counts.E + r.counts.ME + r.counts.EN}</span>
+                    <span>ด ${r.counts.N + r.counts.EN + r.counts.DN}</span>
                     <span>OFF ${r.counts.OFF}</span>
                 </div>
             </div>`).join('') || '<div class="text-muted">ยังไม่มีข้อมูล</div>';
@@ -550,46 +488,11 @@ window.clearNurseRosterSelection = () => {
     renderNurseRosterPalette();
 };
 
-window.setNurseRosterCell = async (userId, date) => {
-    if (nurseRosterSelectedShift) {
-        const shift = getRosterShiftByKey(nurseRosterSelectedShift);
-        nurseRosterDraft.set(`${userId}_${date}`, { key: shift.key, detail: shift.detail, id: `${userId}_${date}` });
-        renderNurseRoster();
-    } else {
-        const user = window.allUserData?.[userId] || getRosterUsers().find(u => u.id === userId);
-        const userName = user ? user.name : 'พนักงาน';
-        const dateParts = date.split('_'); // yyyy_mm_dd
-        const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : date;
-
-        const inputOptions = {};
-        NURSE_ROSTER_SHIFTS.forEach(s => {
-            inputOptions[s.key] = `${s.label} (${s.name})`;
-        });
-
-        const { value: selectedKey } = await Swal.fire({
-            title: `เลือกเวรสำหรับ ${userName}`,
-            html: `<div class="text-muted small mb-2">วันที่ ${formattedDate}</div>`,
-            input: 'select',
-            inputOptions: inputOptions,
-            inputPlaceholder: '--- เลือกเวร ---',
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#0ea5c6',
-            cancelButtonColor: '#6c757d',
-            inputValidator: (value) => {
-                if (!value) {
-                    return 'กรุณาเลือกเวรก่อนตกลง!';
-                }
-            }
-        });
-
-        if (selectedKey) {
-            const shift = getRosterShiftByKey(selectedKey);
-            nurseRosterDraft.set(`${userId}_${date}`, { key: shift.key, detail: shift.detail, id: `${userId}_${date}` });
-            renderNurseRoster();
-        }
-    }
+window.setNurseRosterCell = (userId, date) => {
+    if (!nurseRosterSelectedShift) return;
+    const shift = getRosterShiftByKey(nurseRosterSelectedShift);
+    nurseRosterDraft.set(`${userId}_${date}`, { key: shift.key, detail: shift.detail, id: `${userId}_${date}` });
+    renderNurseRoster();
 };
 
 window.changeNurseRosterMonth = () => {
@@ -641,27 +544,6 @@ window.autoFillNurseRoster = () => {
 };
 
 window.saveNurseRosterDraft = async () => {
-    // Automatically fill all remaining empty slots in the grid as OFF (skipping future dates)
-    const existingMap = getRosterExistingMap();
-    const { year, month } = getRosterMonthParts();
-    const days = new Date(year, month + 1, 0).getDate();
-    const allUsers = getRosterUsers();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    allUsers.forEach(u => {
-        for (let d = 1; d <= days; d++) {
-            const cellDate = new Date(year, month, d);
-            if (cellDate > today) continue; // Skip future dates
-            const date = getRosterDateKey(year, month, d);
-            const docKey = `${u.id}_${date}`;
-            if (!existingMap.has(docKey) && !nurseRosterDraft.has(docKey)) {
-                const shift = getRosterShiftByKey('OFF');
-                nurseRosterDraft.set(docKey, { key: 'OFF', detail: shift.detail, id: docKey });
-            }
-        }
-    });
-
     if (!nurseRosterDraft.size) return Toast.fire({ icon: 'info', title: 'ยังไม่มีรายการที่เปลี่ยนแปลง' });
     const users = getRosterUsers();
     const userMap = new Map(users.map(u => [u.id, u]));
@@ -788,19 +670,6 @@ window.loadSchedules = async () => {
     t.innerHTML = '<tr><td colspan="4" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
 
     try {
-        // Fetch active users in the last 15 days
-        const fifteenDaysAgo = new Date();
-        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-        fifteenDaysAgo.setHours(0, 0, 0, 0);
-        
-        const qAtt = query(collection(db, "attendance"), where("timestamp", ">=", fifteenDaysAgo));
-        const attSnap = await getDocs(qAtt);
-        window.activeUserIdsInLast15Days = new Set();
-        attSnap.forEach(d => {
-            const data = d.data();
-            if (data.userId) window.activeUserIdsInLast15Days.add(data.userId);
-        });
-
         const q = query(collection(db, "schedules"), orderBy("date", "desc"));
         const s = await getDocs(q);
 
@@ -933,8 +802,6 @@ window.loadLeaveRequests = async () => {
             const sReason = safeString(v.reason || 'ไม่ได้ระบุเหตุผล');
             const sLink = safeString(v.attachLink);
 
-            const profileImgHtml = window.getProfileImgHtml(v.userId, 24, 'rounded-circle', 'width:24px;height:24px;object-fit:cover;flex-shrink:0;');
-
             if (v.status === 'Pending') {
                 const acts = `
                              <button onclick="openEditLeaveModal('${v.id}')" class="btn btn-sm btn-outline-warning me-1"><i class="bi bi-pencil"></i></button>
@@ -942,15 +809,7 @@ window.loadLeaveRequests = async () => {
                              <button onclick="updLeave('${v.id}','Rejected')" class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button>`;
 
                 hPending += `<tr class="table-warning">
-                     <td class="ps-3">
-                         <div class="user-cell">
-                             ${profileImgHtml}
-                             <div>
-                                 <div class="fw-bold">${v.name}</div>
-                                 <small class="text-muted">${subInfo}</small>
-                             </div>
-                         </div>
-                     </td>
+                     <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${subInfo}</small></td>
                      <td>${leaveBadge}${timeBadge}</td>
                      <td>${v.startDate} ถึง ${v.endDate}</td>
                      <td>${v.reason || '-'}</td>
@@ -962,15 +821,7 @@ window.loadLeaveRequests = async () => {
                 if (v.status === 'Rejected') statusBadge = `<span class="badge bg-danger">ไม่อนุมัติ</span>`;
 
                 const rowHtml = `<tr>
-                     <td class="ps-3">
-                         <div class="user-cell">
-                             ${profileImgHtml}
-                             <div>
-                                 <div class="fw-bold">${v.name}</div>
-                                 <small class="text-muted">${subInfo}</small>
-                             </div>
-                         </div>
-                     </td>
+                     <td class="ps-3"><div class="fw-bold">${v.name}</div><small class="text-muted">${subInfo}</small></td>
                      <td>${leaveBadge}${timeBadge}</td>
                      <td>${v.startDate} ถึง ${v.endDate}</td>
                      <td>${statusBadge}</td>
@@ -998,11 +849,7 @@ window.loadLeaveRequests = async () => {
             usersApprovedYear.forEach(uid => {
                 if (window.allUserData && window.allUserData[uid]) uList.push(window.allUserData[uid]);
             });
-            lp.innerHTML = uList.slice(0, 5).map(u => {
-                const uid = u.lineUserId || u.id;
-                const imgHtml = window.getProfileImgHtml(uid, 20, '', 'width:20px;height:20px;border-radius:50%;margin-right:-5px;border:1px solid #fff;');
-                return imgHtml.replace('<img ', `<img title="${u.name}" `);
-            }).join('') + (uList.length > 5 ? `<span class="small ms-2 text-muted">+${uList.length - 5}</span>` : '');
+            lp.innerHTML = uList.slice(0, 5).map(u => `<img src="${u.pictureUrl || 'https://via.placeholder.com/20'}" title="${u.name}" style="width:20px;height:20px;border-radius:50%;margin-right:-5px;border:1px solid #fff;">`).join('') + (uList.length > 5 ? `<span class="small ms-2 text-muted">+${uList.length - 5}</span>` : '');
         }
 
         // Store docs globally for edit access
@@ -1158,23 +1005,11 @@ async function calcHours(uid, startDate, endDate) {
     return calcHoursFromLogs(logs);
 }
 
-function getHoursHtml(row, todayHours = 0) {
+async function getHoursHtml(row, todayHours = 0) {
     const uid = row.userId;
     if (!uid) return '';
-    return `<div id="hours-container-${row.id}" class="text-muted small">
-        วันนี้: <span class="fw-bold text-primary">${todayHours.toFixed(2)}</span> ชม.
-        <div id="hours-detail-${row.id}" class="hours-progressive-detail text-muted" style="font-size: 0.72rem; opacity: 0.65;">
-            <span class="spinner-border spinner-border-sm" style="width: 8px; height: 8px; border-width: 1px;"></span> กำลังคำนวณสะสม...
-        </div>
-    </div>`;
-}
-
-async function getHoursDetailHtmlOnly(row, todayHours = 0) {
-    const uid = row.userId;
-    if (!uid) return '';
-
-    const filterDate = document.getElementById('filterDate')?.value || new Date().toISOString().slice(0, 10);
-    const cacheKey = `${uid}_${filterDate}_${todayHours.toFixed(2)}`;
+    // We don't cache todayHours because it changes as data loads
+    const cacheKey = `${uid}_${todayHours.toFixed(2)}`;
     if (workHoursCache[cacheKey]) return workHoursCache[cacheKey];
 
     const isExtern = getUserDept(uid, row.dept) === 'Pharmacist Extern';
@@ -1190,7 +1025,8 @@ async function getHoursDetailHtmlOnly(row, todayHours = 0) {
     const monthHours = await calcHours(uid, monthStart, end);
     const mTotal = monthHours + todayHours; // Add today to month total
 
-    let html = `เดือนนี้: <span class="fw-bold">${mTotal.toFixed(2)}</span> ชม.`;
+    let html = todayHours > 0 ? `<div class="text-muted small">วันนี้: <span class="fw-bold text-primary">${todayHours.toFixed(2)}</span> ชม.</div>` : '';
+    html += `<div class="text-muted small">เดือนนี้: <span class="fw-bold">${mTotal.toFixed(2)}</span> ชม.</div>`;
 
     if (isExtern) {
         const user = window.allUserData?.[uid];
@@ -1200,12 +1036,12 @@ async function getHoursDetailHtmlOnly(row, todayHours = 0) {
             regStart.setHours(0, 0, 0, 0);
             const histHours = await calcHours(uid, regStart, end);
             const totalHours = histHours + todayHours;
-            html = `สะสม: <span class="fw-bold">${totalHours.toFixed(2)}</span> ชม. | ` + html;
+            html = `<div class="text-muted small">สะสม: <span class="fw-bold">${totalHours.toFixed(2)}</span> ชม.</div>` + html;
         }
     } else {
         const yearHours = await calcHours(uid, yearStart, end);
         const yTotal = yearHours + todayHours;
-        html = html + ` | ปีนี้: <span class="fw-bold">${yTotal.toFixed(2)}</span> ชม.`;
+        html = html + `<div class="text-muted small">ปีนี้: <span class="fw-bold">${yTotal.toFixed(2)}</span> ชม.</div>`;
     }
 
     workHoursCache[cacheKey] = html;
@@ -1277,10 +1113,11 @@ window.openManualEntry = (uid, name, type) => {
         let h = '';
         for (const u of filtered) {
             const uId = u.lineUserId || u.id;
+            const pic = u.pictureUrl || 'https://via.placeholder.com/28';
             h += `
             <div class="user-pick-item ${hiddenUser.value === uId ? 'active' : ''}" 
                  data-uid="${uId}" onclick="selectManualUserPick(this)">
-                ${window.getProfileImgHtml(uId, 28, '')}
+                <img src="${pic}" onerror="this.src='https://via.placeholder.com/28'">
                 <div style="overflow:hidden">
                     <div class="user-pick-name">${u.name}</div>
                     ${u.dept ? `<div class="user-pick-dept">${u.dept}</div>` : ''}
@@ -1434,7 +1271,7 @@ window.loadData = async () => {
         const deptText = getUserDept(v.userId, v.dept);
         const bg = v.type === 'เข้างาน' ? 'bg-success' : 'bg-danger';
         const map = v.mapUrl ? `<a href="${v.mapUrl}" target="_blank" class="btn btn-sm btn-light border text-primary"><i class="bi bi-geo-alt-fill"></i></a>` : '-';
-        const hoursHtml = getHoursHtml(v, userTodayHours[v.userId]);
+        const hoursHtml = await getHoursHtml(v, userTodayHours[v.userId]);
 
         // Highlight row if user is currently IN
         const isStillIn = (v.type === 'เข้างาน' && currentStatusMap[v.userId] === 'เข้างาน');
@@ -1475,27 +1312,6 @@ window.loadData = async () => {
 
     t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
 
-    // Load accumulative hours asynchronously in background
-    if (window.currentData && window.currentData.length > 0) {
-        window.currentData.forEach(async (v) => {
-            const containerId = `hours-detail-${v.id}`;
-            const el = document.getElementById(containerId);
-            if (!el) return;
-            try {
-                const detailHtml = await getHoursDetailHtmlOnly(v, userTodayHours[v.userId] || 0);
-                const updatedEl = document.getElementById(containerId);
-                if (updatedEl) {
-                    updatedEl.innerHTML = detailHtml;
-                    updatedEl.classList.add('fade-in-hours');
-                }
-            } catch (err) {
-                console.error("Error loading hours details for", v.id, err);
-                const updatedEl = document.getElementById(containerId);
-                if (updatedEl) updatedEl.innerHTML = '<span class="text-danger">error</span>';
-            }
-        });
-    }
-
     // STATS CALCULATION
     const uniqueUsersToday = new Set();
     let currentlyInCount = 0;
@@ -1517,39 +1333,22 @@ window.loadData = async () => {
     const profileContainer = document.getElementById('activeUserProfiles');
     if (profileContainer) {
         profileContainer.innerHTML = activeProfiles.slice(0, 8).map(u => {
-            const uid = u.lineUserId || u.id;
             const dColor = getDeptCategoryColor(u.dept);
-            const imgHtml = window.getProfileImgHtml(uid, 22, '', `width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid ${dColor};margin-left:-6px;box-shadow:0 1px 3px rgba(0,0,0,0.1);`);
-            return imgHtml.replace('<img ', `<img title="${u.name} (${u.dept || ''})" `);
+            const pic = window.getSafeProfileSrc(u.pictureUrl, 22);
+            return `<img src="${pic}" 
+                  title="${u.name} (${u.dept || ''})" 
+                  onerror="this.src='https://via.placeholder.com/22'"
+                  style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid ${dColor};margin-left:-6px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">`;
         }).join('') + (activeProfiles.length > 8 ? `<span class="small text-white-50 ms-1">+${activeProfiles.length - 8}</span>` : '');
     }
 };
 
 // Global helper for profile image source with cache buster
 window.getSafeProfileSrc = (src, size = 45) => {
-    if (!src || src.includes('placeholder') || src.includes('dicebear') || src.startsWith('data:')) return src || `https://via.placeholder.com/${size}`;
+    if (!src || src.includes('placeholder') || src.includes('dicebear')) return src || `https://via.placeholder.com/${size}`;
     // Use per-minute cache buster to ensure "current" pictures
     const cacheBuster = `v_ref=${Math.floor(Date.now() / 60000)}`;
     return src + (src.includes('?') ? '&' : '?') + cacheBuster;
-};
-
-// Global helper for profile image rendering with nested error fallbacks
-window.getProfileImgHtml = (uid, size = 45, classNames = 'profile-thumb', extraStyles = '') => {
-    const u = window.allUserData ? (window.allUserData[uid] || Object.values(window.allUserData).find(usr => usr.lineUserId === uid || usr._docId === uid || usr.id === uid)) : null;
-    const primary = u ? (u.pictureUrl || '') : '';
-    const fallback = u ? (u.customPhotoURL || '') : '';
-    
-    const primarySrc = window.getSafeProfileSrc(primary, size);
-    const fallbackSrc = window.getSafeProfileSrc(fallback, size);
-    
-    let onerrorStr = '';
-    if (fallback) {
-        onerrorStr = `this.onerror=function(){ this.onerror=null; this.src='https://via.placeholder.com/${size}'; }; this.src='${fallbackSrc}';`;
-    } else {
-        onerrorStr = `this.onerror=null; this.src='https://via.placeholder.com/${size}';`;
-    }
-    
-    return `<img src="${primarySrc || `https://via.placeholder.com/${size}`}" class="${classNames}" onerror="${onerrorStr}" style="${extraStyles}">`;
 };
 
 async function cacheUserProfiles() {
@@ -1564,7 +1363,6 @@ async function cacheUserProfiles() {
         const u = d.data();
         const uid = u.lineUserId || d.id;
         if (uid) {
-            u._docId = d.id; // Store actual Firestore document ID
             userProfileMap[uid] = u.pictureUrl;
             window.allUserData[uid] = u;
 
@@ -1596,9 +1394,8 @@ function renderDeptBreakdown(byDept) {
     el.innerHTML = entries.map(([dept, list]) => {
         const color = getDeptCategoryColor(dept);
         const thumbs = list.slice(0, 8).map(u => {
-            const uid = u.uid;
-            const imgHtml = window.getProfileImgHtml(uid, 18, '', `width:18px;height:18px;border-radius:50%;object-fit:cover;border:1.5px solid ${color};box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;`);
-            return imgHtml.replace('<img ', `<img title="${u.name || ''}" `);
+            const src = window.getSafeProfileSrc(u.pictureUrl, 18);
+            return `<img src="${src}" title="${u.name || ''}" onerror="this.src='https://via.placeholder.com/18'" style="width:18px;height:18px;border-radius:50%;object-fit:cover;border:1.5px solid ${color};box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;">`;
         }).join('');
         const more = list.length > 8 ? `<span class="text-muted" style="margin-left:6px;">+${list.length - 8}</span>` : '';
         return `
@@ -1616,7 +1413,9 @@ function renderDeptBreakdown(byDept) {
 }
 
 function getProfileImg(uid) {
-    return window.getProfileImgHtml(uid, 45, 'profile-thumb');
+    const src = userProfileMap[uid];
+    const finalSrc = window.getSafeProfileSrc(src, 45);
+    return `<img src="${finalSrc}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'">`;
 }
 
 function loadInitialData() {
@@ -1715,7 +1514,7 @@ window.loadPendingUsers = async () => {
             <tr>
                 <td class="ps-3">
                     <div class="user-cell">
-                        ${window.getProfileImgHtml(d.id, 45, 'profile-thumb')}
+                        <img src="${window.getSafeProfileSrc(v.pictureUrl, 45)}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'">
                         <div>
                             <h6 class="mb-0 fw-bold">${v.name}</h6>
                             <small class="text-muted">${v.empId || 'No ID'}</small>
@@ -2024,7 +1823,7 @@ window.renderMainUserList = async () => {
             }
 
             return `<tr class="${op}" style="${rowStyle}">
-                <td class="ps-3"><div class="user-cell" title="${u.name}${u.displayName ? ' (' + u.displayName + ')' : ''}">${window.getProfileImgHtml(u.id, 45, 'profile-thumb')}<div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.displayName && u.displayName !== u.name ? `<small class="text-muted d-block" style="font-size:0.7rem;">(${u.displayName})</small>` : ''}${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
+                <td class="ps-3"><div class="user-cell" title="${u.name}${u.displayName ? ' (' + u.displayName + ')' : ''}"><img src="${window.getSafeProfileSrc(img, 45)}" class="profile-thumb" onerror="this.src='https://via.placeholder.com/45'"><div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.displayName && u.displayName !== u.name ? `<small class="text-muted d-block" style="font-size:0.7rem;">(${u.displayName})</small>` : ''}${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
                 <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;" title="แผนก: ${dept}">${dept}</span></td>
                 <td class="text-end pe-3">
                     <button onclick="viewUserStats('${u.id}')" class="btn btn-sm btn-light border me-1" title="สถิติ"><i class="bi bi-bar-chart"></i></button>
@@ -2136,48 +1935,6 @@ window.rejectUser = async (id) => {
     }
 };
 window.delUser = async (id) => { if ((await Swal.fire({ title: 'ลบพนักงาน?', icon: 'warning', showCancelButton: true })).isConfirmed) { await deleteDoc(doc(db, "users", id)); loadAllUsers(); Toast.fire('ลบสำเร็จ', '', 'success') } };
-window.editUserRoleDirectly = async (uid) => {
-    const u = window.allUserData ? (window.allUserData[uid] || Object.values(window.allUserData).find(usr => usr.lineUserId === uid || usr._docId === uid || usr.id === uid)) : null;
-    if (!u) {
-        return Swal.fire({
-            title: 'ไม่พบข้อมูลพนักงาน',
-            text: `ไม่พบรายชื่อสำหรับ ID: ${uid} ในฐานข้อมูล`,
-            icon: 'error'
-        });
-    }
-
-    const { value: newRole } = await Swal.fire({
-        title: `แก้ไขตำแหน่งของ ${u.name}`,
-        input: 'text',
-        inputLabel: 'ระบุตำแหน่ง/แผนกใหม่ (เช่น Pharmacy, Intern เภสัช, General, IT)',
-        inputValue: u.dept || '',
-        showCancelButton: true,
-        confirmButtonText: 'บันทึก',
-        cancelButtonText: 'ยกเลิก',
-        inputValidator: (value) => {
-            if (!value || !value.trim()) {
-                return 'กรุณาระบุชื่อตำแหน่ง!';
-            }
-        }
-    });
-
-    if (newRole) {
-        try {
-            const docId = u._docId || uid;
-            await updateDoc(doc(db, "users", docId), { dept: newRole.trim() });
-            Toast.fire({ icon: 'success', title: 'แก้ไขตำแหน่งสำเร็จ' });
-            
-            await cacheUserProfiles();
-            renderNurseRoster();
-            
-            if (typeof loadUsersList === 'function') {
-                loadUsersList();
-            }
-        } catch (e) {
-            Swal.fire('Error', e.message, 'error');
-        }
-    }
-};
 window.openEditUser = (id) => {
     const u = window.allUserData[id]; if (!u) { console.warn('User not found:', id); return; }
     // Store the Firestore docId for saving, not the lineUserId key
@@ -2203,20 +1960,8 @@ window.openEditUser = (id) => {
     document.getElementById('editEndDate').value = u.endDate || '';
     const picUrlEl = document.getElementById('editUserPicUrl');
     const imgEl = document.getElementById('editUserImg');
-    const primaryImg = u.pictureUrl || '';
-    const fallbackImg = u.customPhotoURL || '';
-    if (picUrlEl) picUrlEl.value = primaryImg;
-    if (imgEl) {
-        imgEl.src = primaryImg || fallbackImg || "https://via.placeholder.com/80";
-        imgEl.onerror = () => {
-            imgEl.onerror = null;
-            if (fallbackImg) {
-                imgEl.src = fallbackImg;
-            } else {
-                imgEl.src = "https://via.placeholder.com/80";
-            }
-        };
-    }
+    if (picUrlEl) picUrlEl.value = u.pictureUrl || '';
+    if (imgEl) imgEl.src = u.pictureUrl || "https://via.placeholder.com/80";
     editModal.show();
 };
 window.saveEditUser = async () => {
@@ -2289,8 +2034,9 @@ window.loadUsersList = async () => {
         const filtered = users.filter(u => u.name.toLowerCase().includes(q) || u.dept.toLowerCase().includes(q));
         let h = '';
         for (const u of filtered) {
+            const pic = u.pic || 'https://via.placeholder.com/28';
             h += `<div class="user-pick-item" data-uid="${u.uid}" data-name="${u.name}" onclick="selectUserPick(this)">
-                ${window.getProfileImgHtml(u.uid, 28, '')}
+                <img src="${pic}" onerror="this.src='https://via.placeholder.com/28'">
                 <div style="overflow:hidden">
                     <div class="user-pick-name">${u.name}</div>
                     ${u.dept ? `<div class="user-pick-dept">${u.dept}</div>` : ''}
@@ -2433,7 +2179,7 @@ window.renderCharts = async () => {
                  </div>
                  <div style="position: absolute; left: ${Math.max(percent, 2)}%; top: 50%; transform: translateY(-50%); display:flex; align-items:center; margin-left: 8px; white-space:nowrap;">
                     <span class="fw-bold me-2 small">${x.hrs.toFixed(2)}</span>
-                    ${window.getProfileImgHtml(x.uid, 25, 'rounded-circle shadow-sm', 'width:25px; height:25px; border:1px solid white;')}
+                    <img src="${u.pictureUrl || 'https://via.placeholder.com/25'}" class="rounded-circle shadow-sm" style="width:25px; height:25px; border:1px solid white;" onerror="this.src='https://via.placeholder.com/25'">
                  </div>
             </div>
         </div>
@@ -2499,7 +2245,7 @@ function initCalendar() {
         eventContent: function (arg) {
             const props = arg.event.extendedProps;
             const type = props.type;
-            const imgHtml = window.getProfileImgHtml(props.uid, 20, '', 'width:20px;height:20px;border-radius:50%;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,0.1);');
+            const img = props.image || 'https://via.placeholder.com/20';
             const name = props.name || arg.event.title;
             const detail = props.detail || '';
 
@@ -2519,7 +2265,7 @@ function initCalendar() {
                 html: `
                 <div class="calendar-event-card ${statusClass}" style="${customStyle}" title="${tooltip.replace(/"/g, '&quot;')}">
                     <div class="calendar-event-header">
-                        ${imgHtml}
+                        <img src="${img}" onerror="this.src='https://via.placeholder.com/20'">
                         <div class="calendar-event-title" style="${type === 'attendance' ? 'color: #333;' : ''}">${name}</div>
                     </div>
                     <div class="calendar-event-subtitle" style="${type === 'attendance' ? `color: ${props.deptColor};` : ''}">${detail || arg.event.title}</div>
@@ -2552,13 +2298,13 @@ function initCalendar() {
                             extendedProps: {
                                 id: d.id,
                                 type: 'schedule',
-                                uid: uid,
                                 name: v.name,
                                 detail: v.shiftDetail,
                                 reason: v.reason,
                                 startDate: v.startDate,
                                 endDate: v.endDate,
-                                link: v.attachLink
+                                link: v.attachLink,
+                                image: window.getSafeProfileSrc(prof.pictureUrl, 20)
                             }
                         })
                     });
@@ -2598,12 +2344,12 @@ function initCalendar() {
                                 borderColor: baseColor,      // Use solid for left border
                                 extendedProps: {
                                     type: 'attendance',
-                                    uid: i.uid,
                                     name: i.n,
                                     detail: hrsStr,
                                     reason: `สรุปเวลาเข้างาน: ${hrsStr}`, // Add reason for attendance
                                     startDate: k.split('_')[1], // Add startDate for attendance
                                     endDate: k.split('_')[1],   // Add endDate for attendance
+                                    image: window.getSafeProfileSrc(prof.pictureUrl || i.pictureUrl, 45),
                                     deptColor: baseColor,
                                     pastelColor: pastelColor
                                 }
@@ -2678,11 +2424,6 @@ window.openEditSchedModal = async (id) => {
 
     const data = docSnap.data();
     const shifts = [
-        { v: "☀️ เช้า (08:00 - 17:00)", t: "☀️ เช้า (08:00 - 17:00)" },
-        { v: "🌤️ บ่าย (10:00 - 19:00)", t: "🌤️ บ่าย (10:00 - 19:00)" },
-        { v: "☀️ บ่ายพิเศษ (10:00 - 20:00)", t: "☀️ บ่ายพิเศษ (10:00 - 20:00)" },
-        { v: "🕛 เที่ยง (11:00 - 20:00)", t: "🕛 เที่ยง (11:00 - 20:00)" },
-        { v: "🌙 ดึก (12:00 - 21:00)", t: "🌙 ดึก (12:00 - 21:00)" },
         { v: "⏰ 08:00 - 17:00", t: "☀️ เช้า (08:00 - 17:00)" },
         { v: "⏰ 09:00 - 18:00", t: "☀️ เช้า (09:00 - 18:00)" },
         { v: "⏰ 10:00 - 19:00", t: "🕙 สาย (10:00 - 19:00)" },
@@ -3013,6 +2754,7 @@ window.loadFairnessReport = async () => {
         report.forEach(r => {
             const scoreColor = r.score < 10 ? 'text-danger' : (r.score < 40 ? 'text-warning' : 'text-success');
             const avgBadgeCol = r.avg > 8 ? 'bg-success' : 'bg-secondary';
+            const safePic = window.getSafeProfileSrc(r.pictureUrl, 32);
 
             const shiftDetails = Object.entries(r.shiftCounts)
                 .sort((a, b) => {
@@ -3035,7 +2777,7 @@ window.loadFairnessReport = async () => {
             if (r.anomaliesCount > 0) flags += `<i class="bi bi-exclamation-triangle-fill text-danger me-1" title="ชั่วโมงทำงานผิดปกติ ${r.anomaliesCount} วัน"></i>`;
             if (r.outOfRangeCount > 0) flags += `<i class="bi bi-geo-alt-fill text-warning" title="ลงเวลานอกสถานที่ ${r.outOfRangeCount} ครั้ง"></i>`;
 
-            h += `<tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}"><td class="ps-3"><div class="user-cell">${window.getProfileImgHtml(r.uid, 32, 'profile-thumb', 'width:32px; height:32px;')}<div><div class="fw-bold" style="font-size:0.85rem;">${flags}${r.name}</div><small class="text-muted" style="font-size:0.7rem;">${r.dept}</small></div></div></td><td class="text-center"><div class="fw-bold">${r.days} วัน</div><div class="d-flex flex-wrap justify-content-center gap-1 mt-1">${shiftDetails || '<small class="text-muted" style="font-size:0.6rem;">ไม่มีข้อมูลกะ</small>'}</div></td><td class="text-center text-primary fw-bold" title="ชั่วโมงถ่วงน้ำหนักและจำกัดเพดาน">${r.hours.toFixed(2)}</td><td class="text-center"><span class="badge ${avgBadgeCol}">${r.avg.toFixed(2)}</span></td><td class="text-center ${r.lateCount > 0 ? 'text-danger fw-bold' : 'text-muted'}">${r.lateCount} ครั้ง</td><td class="text-center text-muted">${r.lateMins} น.</td><td class="text-end pe-3"><div class="fw-bold ${scoreColor}">${r.score.toFixed(1)}</div></td></tr>`;
+            h += `<tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}"><td class="ps-3"><div class="user-cell"><img src="${safePic}" class="profile-thumb" style="width:32px; height:32px;" onerror="this.src='https://via.placeholder.com/32'"><div><div class="fw-bold" style="font-size:0.85rem;">${flags}${r.name}</div><small class="text-muted" style="font-size:0.7rem;">${r.dept}</small></div></div></td><td class="text-center"><div class="fw-bold">${r.days} วัน</div><div class="d-flex flex-wrap justify-content-center gap-1 mt-1">${shiftDetails || '<small class="text-muted" style="font-size:0.6rem;">ไม่มีข้อมูลกะ</small>'}</div></td><td class="text-center text-primary fw-bold" title="ชั่วโมงถ่วงน้ำหนักและจำกัดเพดาน">${r.hours.toFixed(2)}</td><td class="text-center"><span class="badge ${avgBadgeCol}">${r.avg.toFixed(2)}</span></td><td class="text-center ${r.lateCount > 0 ? 'text-danger fw-bold' : 'text-muted'}">${r.lateCount} ครั้ง</td><td class="text-center text-muted">${r.lateMins} น.</td><td class="text-end pe-3"><div class="fw-bold ${scoreColor}">${r.score.toFixed(1)}</div></td></tr>`;
         });
         tbody.innerHTML = h.trim() || '<tr><td colspan="7" class="text-center py-5">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>';
 
@@ -3294,7 +3036,10 @@ style="background: #fff; border-radius: 12px; border-left: 5px solid ${borderCol
                 <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${percentWidth}%; background: ${pastel}40; z-index: 0;"></div>
                 
                 <div class="d-flex align-items-center gap-3 w-100" style="position: relative; z-index: 1;">
-                    ${window.getProfileImgHtml(u.uid, 40, 'rounded-circle border border-2 border-white shadow-sm', 'width:40px; height:40px; object-fit: cover;')}
+                    <img src="${window.getSafeProfileSrc(pictureUrl, 40)}" 
+                         onerror="this.src='https://via.placeholder.com/40'"
+                         class="rounded-circle border border-2 border-white shadow-sm"
+                         style="width:40px; height:40px; object-fit: cover;">
                          
                     <div class="flex-grow-1">
                         <div class="fw-bold text-dark" style="font-size: 0.95rem;">${u.n}</div>
@@ -3394,7 +3139,7 @@ window.viewUserStats = async (uid) => {
         }
 
         Swal.fire({
-            title: `<div class="d-flex align-items-center gap-2 text-start">${window.getProfileImgHtml(uid, 40, '', 'width:40px;height:40px;border-radius:50%;object-fit:cover;')} <div><div style="font-size:1.1rem;">${u.name}</div><div class="text-muted" style="font-size:0.8rem;">${uid}</div></div></div>`,
+            title: `<div class="d-flex align-items-center gap-2 text-start"><img src="${window.getSafeProfileSrc(u.pictureUrl, 40)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"> <div><div style="font-size:1.1rem;">${u.name}</div><div class="text-muted" style="font-size:0.8rem;">${uid}</div></div></div>`,
             html: `
     <div class="text-start mt-3">
                 <h6 class="fw-bold border-bottom pb-1">สถิติการทำงาน</h6>
@@ -3519,7 +3264,7 @@ function processSurveyData(responses) {
     <div class="p-3 border-bottom">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div class="fw-bold text-primary small d-flex align-items-center gap-2">
-                        ${window.getProfileImgHtml(r.userId, 24, 'rounded-circle')}
+                        <img src="${window.getSafeProfileSrc(userProfileMap[r.userId]?.pictureUrl, 24)}" class="rounded-circle" width="24" height="24">
                         ${r.name} <span class="badge bg-light text-dark fw-normal">${r.dept}</span>
                     </div>
                     <small class="text-muted">${r.timestamp?.toDate().toLocaleDateString('th-TH')}</small>
