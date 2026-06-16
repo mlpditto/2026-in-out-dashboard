@@ -1188,8 +1188,11 @@
           const parentData = window.parent.allUserData;
           if (parentData) {
             const match = Object.values(parentData).find(u => u.name && u.name.includes(st.meta.studentName));
-            if (match && match.pictureUrl) {
-              picHtml = `<img src="${match.pictureUrl}" class="student-pic" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid var(--line); margin-right:8px;">`;
+            if (match) {
+              const pic = match.pictureUrl || match.customPhotoURL || '';
+              if (pic) {
+                picHtml = `<img src="${pic}" class="student-pic" style="width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid var(--line); margin-right:8px;" onerror="this.src='https://via.placeholder.com/28'">`;
+              }
             }
           }
         } catch (e) { }

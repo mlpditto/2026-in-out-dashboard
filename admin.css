@@ -714,21 +714,21 @@ thead th {
     position: sticky;
     top: 0;
     z-index: 5;
-    background: #0787bf;
+    background: #0787bf !important;
     color: #fff;
     font-weight: 800;
 }
 
 .nurse-roster-table .day-weekend {
-    background: #db3f87;
+    background: #db3f87 !important;
 }
 
-.nurse-roster-table .roster-sticky {
+.nurse-roster-table thead .roster-sticky {
     position: sticky;
     left: 0;
     z-index: 7;
     min-width: 54px;
-    background: #0b83b5;
+    background: #0b83b5 !important;
 }
 
 .nurse-roster-table .roster-name-col {
@@ -738,7 +738,7 @@ thead th {
 
 .nurse-roster-table .roster-role-col {
     left: 244px;
-    min-width: 130px;
+    min-width: 160px;
 }
 
 .nurse-roster-table tbody .roster-sticky {
@@ -843,5 +843,45 @@ thead th {
     .roster-table-shell {
         max-height: none;
         overflow: visible;
+    }
+}
+
+/* Custom scrollbar for nav-tabs to look elegant and sleek */
+.nav-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+.nav-tabs::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+.nav-tabs::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+.nav-tabs::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+.nav-tabs {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+/* Progressive loading styles for accumulative hours in table */
+.hours-progressive-detail {
+    transition: opacity 0.5s ease-in-out, transform 0.3s ease-out;
+    opacity: 0.65;
+}
+.hours-progressive-detail.fade-in-hours {
+    opacity: 1 !important;
+    animation: fadeInLight 0.5s forwards;
+}
+@keyframes fadeInLight {
+    from {
+        opacity: 0.5;
+        transform: translateY(2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
