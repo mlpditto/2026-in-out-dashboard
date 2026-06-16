@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบลงเวลา - Login</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0;}
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        .btn { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background-color: #0056b3; }
+        .hidden { display: none; }
+        #message { margin-top: 15px; color: green; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="login-screen">
+            <h2>ลงชื่อเข้าใช้</h2>
+            <p>กรอกอีเมลเพื่อรับลิงก์ล็อกอิน</p>
+            <input type="email" id="email" placeholder="example@email.com">
+            <button class="btn" onclick="sendLoginLink()">ส่งลิงก์เข้าอีเมล</button>
+            <div id="message"></div>
+        </div>
+
+        <div id="app-screen" class="hidden">
+            <h2>ยินดีต้อนรับ</h2>
+            <p id="user-email"></p>
+            <hr>
+            <h3>บันทึกเวลา</h3>
+            <div id="clock" style="font-size: 1.5em; margin: 20px 0;">00:00:00</div>
+            <button class="btn" style="background-color: #28a745;" onclick="alert('Clock In เรียบร้อย!')">Clock In</button>
+            <br><br>
+            <button class="btn" style="background-color: #dc3545;" onclick="alert('Clock Out เรียบร้อย!')">Clock Out</button>
+            <br><br>
+            <button class="btn" style="background-color: #6c757d;" onclick="logout()">ออกจากระบบ</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // 1. นำเข้า Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, onAuthStateChanged } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // 2. ใส่ค่า Config จาก Firebase Console ของคุณตรงนี้
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        // เริ่มต้นใช้งาน Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // ตั้งค่า URL ที่จะให้เด้งกลับมาหลังจากกดลิงก์ในเมล (เปลี่ยนตาม URL จริงของ GitHub Pages)
+        const actionCodeSettings = {
+            // ถ้าเทสในเครื่องใช้ http://localhost... ถ้าขึ้น GitHub ใช้ https://ชื่อคุณ.github.io/...
+            url: window.location.href, 
+            handleCodeInApp: true
+        };
+
+        // --- ฟังก์ชัน 1: ส่งลิงก์เข้าเมล ---
+        window.sendLoginLink = () => {
+            const email = document.getElementById('email').value;
+            if(!email) return alert("กรุณากรอกอีเมล");
+
+            sendSignInLinkToEmail(auth, email, actionCodeSettings)
+            .then(() => {
+                window.localStorage.setItem('emailForSignIn', email); // จำอีเมลไว้
+                document.getElementById('message').innerText = "ส่งลิงก์ไปแล้ว! โปรดเช็คใน Inbox หรือ Junk";
+            })
+            .catch((error) => {
+                console.error(error);
+                document.getElementById('message').innerText = "เกิดข้อผิดพลาด: " + error.message;
+                document.getElementById('message').style.color = "red";
+            });
+        };
+
+        // --- ฟังก์ชัน 2: ตรวจสอบเมื่อกดลิงก์กลับมา ---
+        if (isSignInWithEmailLink(auth, window.location.href)) {
+            let email = window.localStorage.getItem('emailForSignIn');
+            if (!email) {
+                // กรณีผู้ใช้กดลิงก์จากเครื่องอื่น ต้องถามอีเมลซ้ำเพื่อความชัวร์
+                email = window.prompt('เพื่อความปลอดภัย กรุณายืนยันอีเมลของคุณอีกครั้ง:');
+            }
+            
+            signInWithEmailLink(auth, email, window.location.href)
+            .then((result) => {
+                window.localStorage.removeItem('emailForSignIn');
+                // ลบ URL parameter ทิ้ง เพื่อให้ URL สะอาด
+                window.history.replaceState({}, document.title, window.location.pathname);
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("ลิงก์หมดอายุหรือมีปัญหา");
+            });
+        }
+
+        // --- ฟังก์ชัน 3: เช็คสถานะ (Logged In หรือยัง?) ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // ถ้าล็อกอินแล้ว ให้โชว์หน้าแอพ ซ่อนหน้าล็อกอิน
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                document.getElementById('user-email').innerText = "ผู้ใช้งาน: " + user.email;
+                startClock();
+            } else {
+                // ถ้ายังไม่ล็อกอิน
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('hidden');
+            }
+        });
+
+        window.logout = () => {
+            signOut(auth);
+        };
+
+        function startClock() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
