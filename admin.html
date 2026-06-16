@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="admin.css?v=3.62">
 </head>
 
 <body>
@@ -80,8 +80,8 @@
             <!-- Global Pastel Stats Cards -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3 col-6">
-                    <div class="card p-3 border-0 shadow-sm h-100 card-hover"
-                        style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); cursor:pointer; color: #1b5e20;"
+                    <div class="card p-3 border-0 h-100 card-hover stat-card-glass stat-card-in"
+                        style="cursor:pointer; color: #065f46;"
                         onclick="switchTab('attendance')">
                         <div class="d-flex justify-content-between align-items-start">
                             <div><small style="opacity: 0.8;">เข้างานวันนี้</small>
@@ -95,8 +95,8 @@
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="card p-3 border-0 shadow-sm h-100 card-hover"
-                        style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); cursor:pointer; color: #e65100;"
+                    <div class="card p-3 border-0 h-100 card-hover stat-card-glass stat-card-leave"
+                        style="cursor:pointer; color: #9a3412;"
                         onclick="switchTab('manage')">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div><small style="opacity: 0.8;">รออนุมัติ</small>
@@ -115,8 +115,8 @@
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="card p-3 border-0 shadow-sm h-100 card-hover"
-                        style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); cursor:pointer; color: #0d47a1;"
+                    <div class="card p-3 border-0 h-100 card-hover stat-card-glass stat-card-users"
+                        style="cursor:pointer; color: #1e3a8a;"
                         onclick="switchTab('users')">
                         <div class="d-flex justify-content-between align-items-start">
                             <div><small style="opacity: 0.8;">พนักงานทั้งหมด</small>
@@ -127,8 +127,8 @@
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="card p-3 border-0 shadow-sm h-100 card-hover"
-                        style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); cursor:pointer; color: #b71c1c;"
+                    <div class="card p-3 border-0 h-100 card-hover stat-card-glass stat-card-new"
+                        style="cursor:pointer; color: #9f1239;"
                         onclick="openPendingModal()">
                         <div class="d-flex justify-content-between align-items-start">
                             <div><small style="opacity: 0.8;">สมาชิกใหม่</small>
@@ -289,7 +289,7 @@
                     <div class="nurse-roster-hero">
                         <div>
                             <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <h4 class="fw-bold mb-0 text-white">ระบบจัดตารางเวรพยาบาล</h4>
+                                <h4 class="fw-bold mb-0 text-white">ระบบจัดตารางเวร</h4>
                                 <span class="badge rounded-pill bg-white bg-opacity-25 text-white">MLP Edition</span>
                             </div>
                             <div class="text-white-50 small mt-1">มุมมองรายเดือน เลือกกะแล้วคลิกช่องเพื่อกรอกเวร</div>
@@ -426,6 +426,8 @@
                                                 onclick="selectShiftChip(this)">🕛 เที่ยง 12-21</button>
                                             <button type="button" class="shift-chip" data-value="🕙 สาย (10:00 - 19:00)"
                                                 onclick="selectShiftChip(this)">🕙 สาย 10-19</button>
+                                            <button type="button" class="shift-chip" data-value="☀️ บ่ายพิเศษ (10:00 - 20:00)"
+                                                onclick="selectShiftChip(this)">☀️ บ่ายพิเศษ 10-20</button>
                                             <button type="button" class="shift-chip" data-value="🚫 หยุด (Day Off)"
                                                 onclick="selectShiftChip(this)">🚫 หยุด</button>
                                             <button type="button" class="shift-chip" data-value="🤒 ลาป่วย"
@@ -1173,9 +1175,15 @@
                 let html = '<li><h6 class="dropdown-header">เลือกดูมุมมองพนักงาน (LIFF)</h6></li>';
                 users.forEach(u => {
                     const uid = u.lineUserId || u._docId || u.id;
-                    const img = u.pictureUrl ? u.pictureUrl : 'https://api.dicebear.com/7.x/avataaars/svg?seed=MLP';
+                    const primary = u.pictureUrl || '';
+                    const fallback = u.customPhotoURL || '';
+                    const getSafe = window.getSafeProfileSrc || ((s, sz) => s || `https://via.placeholder.com/${sz}`);
+                    const primarySrc = getSafe(primary, 24);
+                    const fallbackSrc = getSafe(fallback, 24);
+                    const onerrorStr = fallback ? `this.onerror=function(){ this.onerror=null; this.src='https://via.placeholder.com/24'; }; this.src='${fallbackSrc}';` : `this.onerror=null; this.src='https://via.placeholder.com/24';`;
+
                     html += `<li><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" onclick="event.preventDefault(); document.getElementById('previewUserDropdown').parentElement.querySelector('button').click(); window.previewSpecificUser('${uid}')">
-                        <img src="${img}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">
+                        <img src="${primarySrc || 'https://via.placeholder.com/24'}" onerror="${onerrorStr}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">
                         <span class="text-truncate" style="max-width:200px;font-size:0.85rem;">${u.name} ${u.displayName && u.displayName !== u.name ? `<small class="text-muted">(${u.displayName})</small>` : ''}</span>
                     </a></li>`;
                 });
@@ -1190,7 +1198,7 @@
         };
     </script>
 
-    <script type="module" src="admin.js?v=3.55"></script>
+    <script type="module" src="admin.js?v=3.64"></script>
 </body>
 
 </html>
