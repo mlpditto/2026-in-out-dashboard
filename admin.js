@@ -545,11 +545,46 @@ window.clearNurseRosterSelection = () => {
     renderNurseRosterPalette();
 };
 
-window.setNurseRosterCell = (userId, date) => {
-    if (!nurseRosterSelectedShift) return;
-    const shift = getRosterShiftByKey(nurseRosterSelectedShift);
-    nurseRosterDraft.set(`${userId}_${date}`, { key: shift.key, detail: shift.detail, id: `${userId}_${date}` });
-    renderNurseRoster();
+window.setNurseRosterCell = async (userId, date) => {
+    if (nurseRosterSelectedShift) {
+        const shift = getRosterShiftByKey(nurseRosterSelectedShift);
+        nurseRosterDraft.set(`${userId}_${date}`, { key: shift.key, detail: shift.detail, id: `${userId}_${date}` });
+        renderNurseRoster();
+    } else {
+        const user = window.allUserData?.[userId] || getRosterUsers().find(u => u.id === userId);
+        const userName = user ? user.name : 'พนักงาน';
+        const dateParts = date.split('_'); // yyyy_mm_dd
+        const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : date;
+
+        const inputOptions = {};
+        NURSE_ROSTER_SHIFTS.forEach(s => {
+            inputOptions[s.key] = `${s.label} (${s.name})`;
+        });
+
+        const { value: selectedKey } = await Swal.fire({
+            title: `เลือกเวรสำหรับ ${userName}`,
+            html: `<div class="text-muted small mb-2">วันที่ ${formattedDate}</div>`,
+            input: 'select',
+            inputOptions: inputOptions,
+            inputPlaceholder: '--- เลือกเวร ---',
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#0ea5c6',
+            cancelButtonColor: '#6c757d',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'กรุณาเลือกเวรก่อนตกลง!';
+                }
+            }
+        });
+
+        if (selectedKey) {
+            const shift = getRosterShiftByKey(selectedKey);
+            nurseRosterDraft.set(`${userId}_${date}`, { key: shift.key, detail: shift.detail, id: `${userId}_${date}` });
+            renderNurseRoster();
+        }
+    }
 };
 
 window.changeNurseRosterMonth = () => {
