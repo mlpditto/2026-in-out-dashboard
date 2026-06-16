@@ -1,24 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700;800&display=swap');
-
 :root {
-    --color-in: #10b981;
-    --color-out: #f43f5e;
-    --color-leave: #64748b;
-    --bg-body: #f8fafc;
-    --color-primary: #3b82f6;
-    --color-primary-glow: rgba(59, 130, 246, 0.15);
-    --color-accent-amber: #f59e0b;
-    --border-radius-card: 16px;
-    --border-radius-btn: 10px;
-    --font-sans: 'Sarabun', 'Inter', system-ui, -apple-system, sans-serif;
-    --font-mono: 'Roboto Mono', monospace;
+    --color-in: #198754;
+    --color-out: #dc3545;
+    --color-leave: #6c757d;
+    --bg-body: #f4f6f9;
+    --color-primary: #0d6efd;
+    --color-shift-am: #0d6efd;
+    --color-shift-pm: #fd7e14;
+    --color-shift-night: #6f42c1;
+    --color-work-actual: #157347;
 }
 
 body {
     background-color: var(--bg-body);
-    font-family: var(--font-sans);
+    font-family: 'Sarabun', sans-serif;
     font-size: 0.95rem;
-    color: #1e293b;
 }
 
 .hidden {
@@ -106,44 +101,31 @@ thead th {
 }
 
 .nav-tabs {
-    border-bottom: none;
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    border-radius: 14px;
-    padding: 6px;
-    display: inline-flex;
-    gap: 4px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-    margin-bottom: 24px;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 20px;
     flex-wrap: nowrap;
     overflow-x: auto;
-    width: max-content;
-    max-width: 100%;
 }
 
 .nav-tabs .nav-link {
-    border: none !important;
-    border-radius: 9px;
-    color: #64748b;
+    border: none;
+    color: #6c757d;
     font-weight: 600;
-    padding: 0.6rem 1.25rem;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1rem 1.5rem;
+    transition: 0.2s;
     cursor: pointer;
     white-space: nowrap;
-    background: transparent;
 }
 
 .nav-tabs .nav-link:hover {
-    color: #0f172a;
-    background: rgba(15, 23, 42, 0.04);
+    color: var(--color-primary);
+    background: rgba(13, 110, 253, 0.05);
 }
 
 .nav-tabs .nav-link.active {
-    color: #fff !important;
-    background: var(--color-primary) !important;
-    box-shadow: 0 4px 12px var(--color-primary-glow) !important;
+    color: var(--color-primary);
+    border-bottom: 3px solid var(--color-primary);
+    background: transparent;
 }
 
 .login-card {
@@ -185,42 +167,14 @@ thead th {
 }
 
 .card-hover {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
 }
 
 .card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
 }
-
-/* Glassmorphic Stats Cards */
-.stat-card-glass {
-    background: rgba(255, 255, 255, 0.7) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(226, 232, 240, 0.8) !important;
-    border-radius: var(--border-radius-card);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.02) !important;
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card-glass::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: transparent;
-    transition: all 0.3s ease;
-}
-
-.stat-card-in::after { background: var(--color-in) !important; }
-.stat-card-leave::after { background: var(--color-accent-amber) !important; }
-.stat-card-users::after { background: var(--color-primary) !important; }
-.stat-card-new::after { background: var(--color-out) !important; }
 
 /* Calendar Custom Styles */
 .fc-theme-standard {
@@ -590,7 +544,7 @@ thead th {
     gap: 16px;
     align-items: center;
     padding: 18px 20px;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    background: linear-gradient(120deg, #0baec8 0%, #0b7fd1 55%, #3b82f6 100%);
 }
 
 .roster-status {
@@ -760,24 +714,21 @@ thead th {
     position: sticky;
     top: 0;
     z-index: 5;
-    background: #1e293b !important;
+    background: #0787bf;
     color: #fff;
-    font-weight: 700;
-    border-bottom: 2px solid #0f172a !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    font-weight: 800;
 }
 
 .nurse-roster-table .day-weekend {
-    background: #f43f5e !important;
-    color: #fff !important;
+    background: #db3f87;
 }
 
-.nurse-roster-table thead .roster-sticky {
+.nurse-roster-table .roster-sticky {
     position: sticky;
     left: 0;
     z-index: 7;
     min-width: 54px;
-    background: #1e293b !important;
+    background: #0b83b5;
 }
 
 .nurse-roster-table .roster-name-col {
@@ -787,13 +738,12 @@ thead th {
 
 .nurse-roster-table .roster-role-col {
     left: 244px;
-    min-width: 160px;
+    min-width: 130px;
 }
 
 .nurse-roster-table tbody .roster-sticky {
-    background: #ffffff !important;
+    background: #fff;
     color: #334155;
-    border-right: 1px solid rgba(226, 232, 240, 0.8) !important;
 }
 
 .nurse-roster-table tbody .roster-name-col,
@@ -893,45 +843,5 @@ thead th {
     .roster-table-shell {
         max-height: none;
         overflow: visible;
-    }
-}
-
-/* Custom scrollbar for nav-tabs to look elegant and sleek */
-.nav-tabs::-webkit-scrollbar {
-    height: 4px;
-}
-.nav-tabs::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-.nav-tabs::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-.nav-tabs::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-.nav-tabs {
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-}
-
-/* Progressive loading styles for accumulative hours in table */
-.hours-progressive-detail {
-    transition: opacity 0.5s ease-in-out, transform 0.3s ease-out;
-    opacity: 0.65;
-}
-.hours-progressive-detail.fade-in-hours {
-    opacity: 1 !important;
-    animation: fadeInLight 0.5s forwards;
-}
-@keyframes fadeInLight {
-    from {
-        opacity: 0.5;
-        transform: translateY(2px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
