@@ -388,7 +388,12 @@ function getRosterUsers() {
     schedAllData.forEach(s => {
         if (s.userId && !knownIds.has(s.userId)) {
             knownIds.add(s.userId);
-            users.push({ id: s.userId, name: s.name || 'ไม่ทราบชื่อ', dept: s.dept || '' });
+            const userProfile = window.allUserData?.[s.userId] || Object.values(window.allUserData || {}).find(usr => usr.lineUserId === s.userId || usr._docId === s.userId);
+            if (userProfile) {
+                users.push({ id: s.userId, ...userProfile });
+            } else {
+                users.push({ id: s.userId, name: s.name || 'ไม่ทราบชื่อ', dept: s.dept || '' });
+            }
         }
     });
     return users.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
@@ -1559,6 +1564,7 @@ async function cacheUserProfiles() {
         const u = d.data();
         const uid = u.lineUserId || d.id;
         if (uid) {
+            u._docId = d.id; // Store actual Firestore document ID
             userProfileMap[uid] = u.pictureUrl;
             window.allUserData[uid] = u;
 
