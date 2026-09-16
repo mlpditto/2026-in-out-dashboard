@@ -1037,6 +1037,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
         // Firebase Storage not used — profile photos stored as Base64 in Firestore
 
         // --- 🔴 CONFIG (Public) ---
@@ -1053,7 +1055,30 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+        // Keep this region in step with REGION in functions/index.js
+        const functions = getFunctions(app, 'asia-southeast1');
         let currentUser = {};
+
+        // Layer 2: trade the LINE login for a Firebase one, so the security rules can
+        // tell who is asking. The uid that comes back IS the LINE user id, which is the
+        // value every record in the database already stores as userId.
+        //
+        // Until the lineLogin function is deployed this fails softly and the page keeps
+        // working under the current rules. Once firestore.rules.layer2 is live a failure
+        // here means no data loads at all, so the warning below is what to look for.
+        async function signInWithLine() {
+            try {
+                const idToken = liff.getIDToken();
+                if (!idToken) throw new Error('LIFF returned no id token');
+                const { data } = await httpsCallable(functions, 'lineLogin')({ idToken });
+                await signInWithCustomToken(auth, data.token);
+                window.log('ยืนยันตัวตนกับระบบเรียบร้อย');
+            } catch (err) {
+                console.warn('Firebase sign-in unavailable:', err);
+                window.log('⚠️ ยังไม่ได้ยืนยันตัวตนกับ Firebase (ใช้งานต่อได้ตามปกติ)');
+            }
+        }
 
         // MAIN
         async function main() {
@@ -1181,6 +1206,7 @@
                     displayName: profile.displayName || ""
                 };
                 window.log('สวัสดีคุณ ' + currentUser.displayName);
+                await signInWithLine();
                 await checkUser();
             } catch (err) {
                 window.log('LIFF ERROR: ' + err.message);
