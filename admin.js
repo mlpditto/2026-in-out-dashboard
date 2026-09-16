@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.70';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.71';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -2715,7 +2715,9 @@ function initCalendar() {
                     let map = {};
                     att.forEach(d => {
                         const data = d.data();
-                        const k = `${data.userId}_${new Date(data.timestamp.seconds * 1000).toISOString().split('T')[0]}`;
+                        // Local date, not UTC - otherwise an early clock-in is grouped under the
+                        // previous day and the calendar card lands on the wrong date
+                        const k = `${data.userId}_${new Date(data.timestamp.seconds * 1000).toLocaleDateString('sv')}`;
                         if (!map[k]) map[k] = { n: data.name, d: data.dept, uid: data.userId, l: [] };
                         map[k].l.push({ t: data.type, ts: data.timestamp.seconds })
                     });
