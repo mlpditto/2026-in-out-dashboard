@@ -1,4 +1,4 @@
-# 🚀 Features - MLP Time Attendance Dashboard (v3.68)
+# 🚀 Features - MLP Time Attendance Dashboard (v3.69)
 
 ### 🌟 New in v3.64: Nurse Roster Board & Premium UI
 *   🩺 **Nurse Roster Board:** บอร์ดจัดตารางเวรรายเดือนสำหรับทีมพยาบาล/เภสัช — แถวละพนักงาน คอลัมน์ละวัน พร้อมคอลัมน์ชื่อและตำแหน่งแบบ Sticky
@@ -31,7 +31,7 @@
 
 ### 🌟 New in v3.51: Hover Details & Quick Inspection
 *   🖱️ **Hover Details (Tooltips):** Mouse over any "Card" in the calendar or "Badge" in management tables to instantly see the full name, shift details, or reasons. No more repetitive clicking!
-*   📸 **Admin Profile Upload (v3.50):** Direct image uploads to Firebase Storage via the user edit modal.
+*   📸 **Admin Profile Upload (v3.69):** อัพโหลดรูปพนักงานจากหน้าแก้ไขสมาชิก โดย crop + ย่อเป็น 200px แล้วเก็บเป็น base64 ใน Firestore (ไม่ใช้ Firebase Storage และไม่ใช้ image host ภายนอกแล้ว)
 *   ⏳ **Visual Progress Tracking (v3.50):** Real-time feedback during profile photo uploads.
 *   ✏️ **Edit Before Approval (v3.49):** Correct mistakes in staff requests before they become official.
 

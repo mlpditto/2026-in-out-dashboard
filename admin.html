@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="admin.css?v=3.68">
+    <link rel="stylesheet" href="admin.css?v=3.69">
 </head>
 
 <body>
@@ -61,7 +61,7 @@
                         </li>
                     </ul>
                 </div>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.68</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.69</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -799,7 +799,12 @@
                                 <label class="small text-muted d-block mb-1">รูปโปรไฟล์ (URL)</label>
                                 <input type="text" id="editUserPicUrl" class="form-control form-control-sm text-center"
                                     placeholder="https://example.com/photo.jpg"
-                                    oninput="document.getElementById('editUserImg').src = this.value || 'https://via.placeholder.com/80'">
+                                    oninput="onProfileUrlInput(this)">
+                                <input type="hidden" id="editUserPicData">
+                                <div id="editUserPicNote" class="small text-success mt-1 d-none"
+                                    style="font-size: 0.65rem; line-height: 1.2;">
+                                    <i class="bi bi-image me-1"></i>ใช้รูปที่อัพโหลดไว้ (เก็บในระบบ)
+                                </div>
                             </div>
                         </div>
 
@@ -1198,7 +1203,7 @@
         };
     </script>
 
-    <script type="module" src="admin.js?v=3.68"></script>
+    <script type="module" src="admin.js?v=3.69"></script>
 </body>
 
 </html>
