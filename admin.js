@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.64';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.65';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -558,7 +558,7 @@ window.setNurseRosterCell = async (userId, date) => {
     } else {
         const user = window.allUserData?.[userId] || getRosterUsers().find(u => u.id === userId);
         const userName = user ? user.name : 'พนักงาน';
-        const dateParts = date.split('_'); // yyyy_mm_dd
+        const dateParts = date.split('-'); // yyyy-mm-dd (getRosterDateKey format)
         const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : date;
 
         const inputOptions = {};

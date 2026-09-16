@@ -2,7 +2,7 @@
 
 ระบบลงเวลาพนักงานผ่าน LINE LIFF + Firebase Firestore พร้อมหน้า Admin สำหรับดูรายงาน/จัดการข้อมูล
 
-**Current Version**: `v3.64 - Nurse Roster Board` | **Last Updated**: 2026-09-16
+**Current Version**: `v3.65 - Roster Date Format Fix` | **Last Updated**: 2026-09-16
 
 ---
 
@@ -364,6 +364,10 @@
 ---
 
 ## 📝 Changelog
+
+### v3.65 — 2026-09-16
+- 🗓️ **Roster Dialog Date Fix**: แก้ Popup เลือกเวรที่แสดงวันที่เป็น `2026-06-01` แทนที่จะเป็น `01/06/2026` (แยกสตริงด้วย `-` ให้ตรงกับรูปแบบ key ที่ `getRosterDateKey()` สร้าง)
+- 🧹 **Repo Hygiene**: เลิก track ไฟล์ cache ของ Firebase (`.firebase/hosting.*.cache`) ที่ทำให้ `git status` รกทุกครั้งที่ deploy
 
 ### v3.64 — 2026-06-16 (Roster UX Polish)
 - 🗂️ **Inline Shift Dropdown**: คลิกช่องวันที่ในตารางเวรโดยยังไม่ได้เลือกกะจาก Palette ระบบจะเปิด Dropdown (SweetAlert2) ให้เลือกกะได้ทันที
