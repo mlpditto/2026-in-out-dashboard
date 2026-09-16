@@ -1,7 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
     // Helper functions
     function isAdmin() {
       return request.auth != null && (
@@ -10,36 +10,79 @@ service cloud.firestore {
       );
     }
 
+    // The LIFF page has no Firebase Auth, so an employee writes as an anonymous caller.
+    // These are the only user fields that path is allowed to touch (profile picture sync
+    // and the employee's own uploaded avatar) - everything else stays admin-only.
+    function selfEditableUserKeys() {
+      return ['pictureUrl', 'displayName', 'customPhotoURL', 'lastProfileUpdate', 'lastPhotoUploadAt'];
+    }
+
     // 1. GLOBAL ADMIN OVERRIDE
     match /{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // 2. USERS (Public Read/Create for LIFF)
+    // 2. USERS (LIFF reads its own doc by id and registers itself)
     match /users/{userId} {
-      allow read, create: if true; 
-      allow update, delete: if isAdmin();
+      // A single document can be fetched by whoever knows the LINE user id, but the
+      // directory itself cannot be enumerated by anyone except an admin.
+      allow get: if true;
+      allow list: if isAdmin();
+
+      // Self registration must land as Pending - nobody approves themselves - and the
+      // document id has to match the lineUserId inside it.
+      allow create: if request.resource.data.status == 'Pending'
+                    && request.resource.data.lineUserId == userId;
+
+      // Profile picture sync / avatar upload only. Blocks editing name, empId, phone,
+      // dept, status, tasks or dates through the public API.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(selfEditableUserKeys());
+
+      allow delete: if isAdmin();
     }
 
-    // 3. ATTENDANCE (Public Create/Read for Records)
+    // 3. ATTENDANCE (clock in / clock out records)
     match /attendance/{id} {
-      allow read, create: if true;
+      allow read: if true;
+
+      // Only the two real record types, and no future-dated stamps. serverTimestamp()
+      // evaluates to request.time, and the 23:00 auto checkout writes a past time.
+      allow create: if request.resource.data.userId is string
+                    && request.resource.data.type in ['เข้างาน', 'ออกงาน']
+                    && request.resource.data.timestamp is timestamp
+                    && request.resource.data.timestamp <= request.time;
+
       allow update, delete: if isAdmin();
     }
 
     // 4. LEAVE REQUESTS
     match /leave_requests/{id} {
-      allow read, create: if true;
-      allow update, delete: if isAdmin(); 
+      allow read: if true;
+
+      // Leave has to be requested as Pending. The only self-approving type is the work
+      // schedule notice, which the admin panel treats as auto-approved by design.
+      allow create: if request.resource.data.userId is string
+                    && (request.resource.data.status == 'Pending'
+                        || (request.resource.data.status == 'Approved'
+                            && request.resource.data.type == 'แจ้งเวลาปฏิบัติงาน'));
+
+      allow update, delete: if isAdmin();
     }
 
-    // 5. SCHEDULES
-    match /schedules/{id} {
+    // 5. SCHEDULES (written by the admin roster and by the LIFF work schedule notice)
+    match /schedules/{schedId} {
       allow read: if true;
-      allow create, update: if true;
+
+      // The document id is userId_date everywhere in the app; requiring it to match the
+      // payload stops arbitrary documents being injected into the roster.
+      allow create, update: if request.resource.data.userId is string
+                            && request.resource.data.date is string
+                            && request.resource.data.userId + '_' + request.resource.data.date == schedId;
+
       allow delete: if isAdmin();
     }
-    
+
     // 6. ADMINS
     match /admins/{id} {
       allow read: if isAdmin();

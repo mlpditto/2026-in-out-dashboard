@@ -17,3 +17,6 @@ Thumbs.db
 
 # Firebase deploy cache
 .firebase/
+
+# Emulator logs
+*-debug.log

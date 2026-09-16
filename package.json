@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "if not exist dist mkdir dist && xcopy /Y /I *.html dist\\ && if exist *.css xcopy /Y /I *.css dist\\ && if exist *.js xcopy /Y /I *.js dist\\ && if exist images xcopy /Y /E /I images dist\\images",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "test:rules": "firebase emulators:exec --only firestore \"node --test test/firestore.rules.test.mjs\""
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,8 @@
   },
   "homepage": "https://mlpditto.github.io/2026-in-out-dashboard",
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
     "gh-pages": "^4.0.0"
   }
 }
