@@ -1,7 +1,7 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.65';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.66';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const IMGBB_API_KEY = "7281ddf275fac5c420395c1c56f3739c"; // ⚠️ แทนที่ด้วย Key ของคุณจาก https://api.imgbb.com/
 
@@ -330,6 +330,23 @@ function syncLegacyScheduleMonth() {
     mf.value = `${year}-${String(month + 1).padStart(2, '0')}`;
 }
 
+// Mirror of syncLegacyScheduleMonth: pull the month back from the legacy filter so the
+// grid never renders a month that schedAllData was not loaded for.
+function syncRosterMonthFromLegacy() {
+    const mf = document.getElementById('schedMonthFilter');
+    const monthEl = document.getElementById('nurseRosterMonth');
+    const yearEl = document.getElementById('nurseRosterYear');
+    if (!mf || !mf.value || !monthEl || !yearEl) return;
+    const [year, month] = mf.value.split('-').map(Number);
+    if (!year || !month) return;
+    const buddhistYear = String(year + 543);
+    if (!Array.from(yearEl.options).some(o => o.value === buddhistYear)) {
+        yearEl.add(new Option(buddhistYear, buddhistYear));
+    }
+    monthEl.value = String(month - 1);
+    yearEl.value = buddhistYear;
+}
+
 function initNurseRosterControls() {
     if (nurseRosterReady || !document.getElementById('nurseRosterMonth')) return;
     const now = new Date();
@@ -439,6 +456,7 @@ function roleLabelForUser(u) {
 
 function renderNurseRoster() {
     initNurseRosterControls();
+    syncRosterMonthFromLegacy();
     const head = document.getElementById('nurseRosterHead');
     const body = document.getElementById('nurseRosterBody');
     if (!head || !body) return;
@@ -641,51 +659,48 @@ window.autoFillNurseRoster = () => {
 };
 
 window.saveNurseRosterDraft = async () => {
-    // Automatically fill all remaining empty slots in the grid as OFF (skipping future dates)
-    const existingMap = getRosterExistingMap();
-    const { year, month } = getRosterMonthParts();
-    const days = new Date(year, month + 1, 0).getDate();
-    const allUsers = getRosterUsers();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    allUsers.forEach(u => {
-        for (let d = 1; d <= days; d++) {
-            const cellDate = new Date(year, month, d);
-            if (cellDate > today) continue; // Skip future dates
-            const date = getRosterDateKey(year, month, d);
-            const docKey = `${u.id}_${date}`;
-            if (!existingMap.has(docKey) && !nurseRosterDraft.has(docKey)) {
-                const shift = getRosterShiftByKey('OFF');
-                nurseRosterDraft.set(docKey, { key: 'OFF', detail: shift.detail, id: docKey });
-            }
-        }
-    });
-
+    // Only the cells the admin actually painted are written. Filling every untouched past
+    // day with OFF here used to create (users x past days) documents on a single click.
     if (!nurseRosterDraft.size) return Toast.fire({ icon: 'info', title: 'ยังไม่มีรายการที่เปลี่ยนแปลง' });
-    const users = getRosterUsers();
-    const userMap = new Map(users.map(u => [u.id, u]));
+
+    const confirm = await Swal.fire({
+        title: 'บันทึกตารางเวร?',
+        text: `จะบันทึก ${nurseRosterDraft.size} ช่องที่แก้ไขลงระบบ`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#0ea5c6',
+        cancelButtonColor: '#6c757d'
+    });
+    if (!confirm.isConfirmed) return;
+
+    const userMap = new Map(getRosterUsers().map(u => [u.id, u]));
     try {
-        const writes = [];
-        nurseRosterDraft.forEach((v, docKey) => {
-            const cut = docKey.lastIndexOf('_');
-            const userId = docKey.slice(0, cut);
-            const date = docKey.slice(cut + 1);
-            const user = userMap.get(userId) || {};
-            writes.push(setDoc(doc(db, "schedules", docKey), {
-                userId,
-                name: user.name || user.displayName || '',
-                date,
-                shiftDetail: v.detail,
-                timestamp: new Date(),
-                startDate: date,
-                endDate: date,
-                reason: v.key === 'OFF' || v.key === 'LEAVE' ? v.detail : ''
-            }));
-        });
-        await Promise.all(writes);
+        const entries = [...nurseRosterDraft.entries()];
+        const CHUNK = 450; // Firestore allows 500 writes per batch
+        for (let i = 0; i < entries.length; i += CHUNK) {
+            const batch = writeBatch(db);
+            entries.slice(i, i + CHUNK).forEach(([docKey, v]) => {
+                const cut = docKey.lastIndexOf('_');
+                const userId = docKey.slice(0, cut);
+                const date = docKey.slice(cut + 1);
+                const user = userMap.get(userId) || {};
+                batch.set(doc(db, "schedules", docKey), {
+                    userId,
+                    name: user.name || user.displayName || '',
+                    date,
+                    shiftDetail: v.detail,
+                    timestamp: new Date(),
+                    startDate: date,
+                    endDate: date,
+                    reason: v.key === 'OFF' || v.key === 'LEAVE' ? v.detail : ''
+                });
+            });
+            await batch.commit();
+        }
         nurseRosterDraft.clear();
-        Toast.fire({ icon: 'success', title: 'บันทึกตารางเวรแล้ว' });
+        Toast.fire({ icon: 'success', title: `บันทึกตารางเวรแล้ว (${entries.length} ช่อง)` });
         loadSchedules();
         if (calendarObj) calendarObj.refetchEvents();
     } catch (err) {
