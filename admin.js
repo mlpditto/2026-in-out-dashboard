@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.67';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.68';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -261,6 +261,7 @@ const SCHED_PAGE_SIZE = 20;
 let nurseRosterSelectedShift = '';
 let nurseRosterDraft = new Map();
 let nurseRosterReady = false;
+let nurseRosterViewKey = ''; // 'year-month' currently drawn, used to undo a cancelled month switch
 
 const NURSE_ROSTER_SHIFTS = [
     { key: 'M', label: 'ช', name: '8-17', detail: '☀️ เช้า (08:00 - 17:00)', color: '#fff7b8', text: '#7a4d00' },
@@ -271,6 +272,17 @@ const NURSE_ROSTER_SHIFTS = [
     { key: 'OFF', label: 'O', name: 'OFF', detail: '🚫 หยุด (Day Off)', color: '#e2e8f0', text: '#475569' },
     { key: 'LEAVE', label: 'ล', name: 'ลา', detail: '📋 ลา', color: '#ffdede', text: '#9f1239' }
 ];
+
+// Combined/OT shifts. inferRosterShiftKey() can return these from existing shiftDetail
+// text, so they need real labels and colours - without them getRosterShiftByKey() fell
+// back to NURSE_ROSTER_SHIFTS[0] and an OT day was drawn as a plain morning shift.
+const ROSTER_OT_SHIFTS = [
+    { key: 'ME', label: 'ชบ', name: 'ช+บ', detail: '⏱️ ควบเช้า+บ่าย (OT)', color: '#fed7aa', text: '#7c2d12' },
+    { key: 'EN', label: 'บด', name: 'บ+ด', detail: '⏱️ ควบบ่าย+ดึก (OT)', color: '#fbcfe8', text: '#831843' },
+    { key: 'DN', label: 'ชด', name: 'ช+ด', detail: '⏱️ ควบเช้า+ดึก (Day+Night)', color: '#ddd6fe', text: '#5b21b6' }
+];
+
+const ROSTER_ALL_SHIFTS = [...NURSE_ROSTER_SHIFTS, ...ROSTER_OT_SHIFTS];
 
 const TH_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 const TH_DAY_SHORT = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
@@ -291,7 +303,7 @@ window.schedChangePage = (delta) => {
 };
 
 function getRosterShiftByKey(key) {
-    return NURSE_ROSTER_SHIFTS.find(s => s.key === key) || NURSE_ROSTER_SHIFTS[0];
+    return ROSTER_ALL_SHIFTS.find(s => s.key === key) || NURSE_ROSTER_SHIFTS[0];
 }
 
 function inferRosterShiftKey(detail = '') {
@@ -466,6 +478,7 @@ function renderNurseRoster() {
     const users = getRosterUsers();
     const rosterMap = getRosterExistingMap();
 
+    nurseRosterViewKey = `${year}-${month}`;
     document.getElementById('rosterDayCount').innerText = days;
     head.innerHTML = `<tr>
         <th class="roster-sticky">ที่</th>
@@ -477,13 +490,13 @@ function renderNurseRoster() {
             const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
             return `<th class="${isWeekend ? 'day-weekend' : ''}"><div>${day}</div><small>${TH_DAY_SHORT[dt.getDay()]}</small></th>`;
         }).join('')}
-        <th>ช<br><small>รวม</small></th><th>บ10<br><small>รวม</small></th><th>บ10+<br><small>รวม</small></th><th>บ11<br><small>รวม</small></th><th>ด<br><small>รวม</small></th><th>O<br><small>รวม</small></th>
+        <th>ช<br><small>รวม</small></th><th>บ10<br><small>รวม</small></th><th>บ10+<br><small>รวม</small></th><th>บ11<br><small>รวม</small></th><th>ด<br><small>รวม</small></th><th>OT<br><small>รวม</small></th><th>O<br><small>รวม</small></th>
     </tr>`;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     body.innerHTML = users.map((u, index) => {
-        let m = 0, e = 0, e10p = 0, e11 = 0, n = 0, off = 0;
+        let m = 0, e = 0, e10p = 0, e11 = 0, n = 0, ot = 0, off = 0;
         const cells = Array.from({ length: days }, (_, i) => {
             const date = getRosterDateKey(year, month, i + 1);
             const cellDate = new Date(year, month, i + 1);
@@ -499,6 +512,7 @@ function renderNurseRoster() {
             if (shiftKey === 'E10P') e10p++;
             if (shiftKey === 'E11') e11++;
             if (shiftKey === 'N') n++;
+            if (['ME', 'EN', 'DN'].includes(shiftKey)) ot++;
             if (shiftKey === 'OFF') off++;
             const style = shift ? `background:${shift.color};color:${shift.text}` : '';
             return `<td class="roster-cell" style="${style}" title="${cell.detail || shift?.detail || ''}"
@@ -517,9 +531,9 @@ function renderNurseRoster() {
             </td>
             <td class="roster-sticky roster-role-col cursor-pointer" onclick="editUserRoleDirectly('${u.id}')" title="คลิกเพื่อแก้ไขตำแหน่ง"><span class="roster-role-badge" style="background:${color}">${role}</span></td>
             ${cells}
-            <td class="fw-bold text-primary">${m}</td><td class="fw-bold text-primary">${e}</td><td class="fw-bold text-primary">${e10p}</td><td class="fw-bold text-primary">${e11}</td><td class="fw-bold text-primary">${n}</td><td class="fw-bold text-muted">${off}</td>
+            <td class="fw-bold text-primary">${m}</td><td class="fw-bold text-primary">${e}</td><td class="fw-bold text-primary">${e10p}</td><td class="fw-bold text-primary">${e11}</td><td class="fw-bold text-primary">${n}</td><td class="fw-bold text-danger">${ot}</td><td class="fw-bold text-muted">${off}</td>
         </tr>`;
-    }).join('') || `<tr><td colspan="${days + 9}" class="text-center text-muted py-4">ยังไม่มีข้อมูลพนักงานสำหรับจัดตารางเวร</td></tr>`;
+    }).join('') || `<tr><td colspan="${days + 10}" class="text-center text-muted py-4">ยังไม่มีข้อมูลพนักงานสำหรับจัดตารางเวร</td></tr>`;
 
     renderNurseRosterSummary();
 }
@@ -543,6 +557,7 @@ function renderNurseRosterSummary() {
                     <span>บ10+ ${r.counts.E10P}</span>
                     <span>บ11 ${r.counts.E11}</span>
                     <span>ด ${r.counts.N}</span>
+                    <span>OT ${r.counts.ME + r.counts.EN + r.counts.DN}</span>
                     <span>OFF ${r.counts.OFF}</span>
                 </div>
             </div>`).join('') || '<div class="text-muted">ยังไม่มีข้อมูล</div>';
@@ -610,7 +625,29 @@ window.setNurseRosterCell = async (userId, date) => {
     }
 };
 
-window.changeNurseRosterMonth = () => {
+function restoreRosterMonthSelects() {
+    const [year, month] = nurseRosterViewKey.split('-').map(Number);
+    const monthEl = document.getElementById('nurseRosterMonth');
+    const yearEl = document.getElementById('nurseRosterYear');
+    if (!monthEl || !yearEl || Number.isNaN(year) || Number.isNaN(month)) return;
+    monthEl.value = String(month);
+    yearEl.value = String(year + 543);
+}
+
+window.changeNurseRosterMonth = async () => {
+    if (nurseRosterDraft.size) {
+        const res = await Swal.fire({
+            title: 'ทิ้งการแก้ไขที่ยังไม่บันทึก?',
+            html: `มีการแก้ไข <b>${nurseRosterDraft.size}</b> ช่องที่ยังไม่ได้บันทึก<br>ถ้าเปลี่ยนเดือนตอนนี้ การแก้ไขทั้งหมดจะหายไป`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ทิ้งและเปลี่ยนเดือน',
+            cancelButtonText: 'กลับไปบันทึกก่อน',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d'
+        });
+        if (!res.isConfirmed) return restoreRosterMonthSelects();
+    }
     nurseRosterDraft.clear();
     syncLegacyScheduleMonth();
     loadSchedules();
