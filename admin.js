@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.73';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.74';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -59,7 +59,7 @@ onAuthStateChanged(auth, async (user) => {
             loadInitialData();
 
             editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-            document.getElementById('chartMonth').value = new Date().toISOString().slice(0, 7);
+            document.getElementById('chartMonth').value = new Date().toLocaleDateString('sv').slice(0, 7);
 
             // Intervals
             if (window.liveClockInterval) clearInterval(window.liveClockInterval);
@@ -919,7 +919,7 @@ window.loadSchedules = async () => {
 
     // Initialize month filter if empty
     const mf = document.getElementById('schedMonthFilter');
-    if (mf && !mf.value) mf.value = new Date().toISOString().slice(0, 7);
+    if (mf && !mf.value) mf.value = new Date().toLocaleDateString('sv').slice(0, 7);
 
     t.innerHTML = '<tr><td colspan="4" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
 
@@ -1309,7 +1309,7 @@ async function getHoursDetailHtmlOnly(row, todayHours = 0) {
     const uid = row.userId;
     if (!uid) return '';
 
-    const filterDate = document.getElementById('filterDate')?.value || new Date().toISOString().slice(0, 10);
+    const filterDate = document.getElementById('filterDate')?.value || new Date().toLocaleDateString('sv');
     const cacheKey = `${uid}_${filterDate}_${todayHours.toFixed(2)}`;
     if (workHoursCache[cacheKey]) return workHoursCache[cacheKey];
 
