@@ -1,9 +1,7 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.68';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.69';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const IMGBB_API_KEY = "7281ddf275fac5c420395c1c56f3739c"; // ⚠️ แทนที่ด้วย Key ของคุณจาก https://api.imgbb.com/
 
 
 // --- 🔴 CONFIG (Public) ---
@@ -74,7 +72,40 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// --- 📸 PROFILE UPLOAD ---
+// --- 📸 PROFILE UPLOAD (base64 into Firestore, same approach as the LIFF page) ---
+// Resizes to a 200px square and hands back a JPEG data URL - no third party upload
+// service, so there is no API key to keep secret.
+function fileToAvatarBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const MAX_PX = 200;
+                const side = Math.min(img.width, img.height);
+                const sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+                const canvas = document.createElement('canvas');
+                canvas.width = MAX_PX; canvas.height = MAX_PX;
+                canvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, MAX_PX, MAX_PX);
+                resolve(canvas.toDataURL('image/jpeg', 0.82));
+            };
+            img.onerror = () => reject(new Error('ไฟล์นี้ไม่ใช่รูปภาพที่อ่านได้'));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('อ่านไฟล์ไม่สำเร็จ'));
+        reader.readAsDataURL(file);
+    });
+}
+
+// Called when the admin types a URL by hand - that wins over a pending upload
+window.onProfileUrlInput = (el) => {
+    const dataEl = document.getElementById('editUserPicData');
+    const noteEl = document.getElementById('editUserPicNote');
+    if (dataEl) dataEl.value = '';
+    if (noteEl) noteEl.classList.add('d-none');
+    document.getElementById('editUserImg').src = el.value || 'https://via.placeholder.com/80';
+};
+
 document.addEventListener('change', async (e) => {
     if (e.target && e.target.id === 'profileUploadInput') {
         const inputElement = e.target;
@@ -87,53 +118,39 @@ document.addEventListener('change', async (e) => {
             return Swal.fire('Error', 'ไม่พบรหัสผู้ใช้', 'error');
         }
 
-        // Show progress UI
         const progressContainer = document.getElementById('profileUploadProgress');
         const progressBar = progressContainer.querySelector('.progress-bar');
         progressContainer.classList.remove('d-none');
-        progressBar.style.width = '10%'; // initial width
+        progressBar.style.width = '30%';
 
         try {
-            Swal.fire({
-                title: 'กำลังอัพโหลดไปที่ ImgBB...',
-                text: 'กรุณารอสักครู่',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
+            if (!file.type.startsWith('image/')) throw new Error('กรุณาเลือกไฟล์รูปภาพ');
+            if (file.size > 5 * 1024 * 1024) throw new Error('ไฟล์ต้นฉบับใหญ่เกิน 5MB');
 
-            // Prepare FormData for ImgBB
-            const formData = new FormData();
-            formData.append('image', file);
+            const base64 = await fileToAvatarBase64(file);
+            progressBar.style.width = '80%';
 
-            // Upload via ImgBB API
-            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                method: 'POST',
-                body: formData
-            });
+            // Firestore caps a document at 1MB - keep one avatar well under that
+            const base64SizeKB = Math.round((base64.length * 3) / 4 / 1024);
+            if (base64SizeKB > 500) throw new Error(`รูปหลังย่อยังใหญ่เกินไป (${base64SizeKB}KB) กรุณาเลือกรูปอื่น`);
 
-            const result = await response.json();
+            document.getElementById('editUserPicData').value = base64;
+            document.getElementById('editUserPicUrl').value = '';
+            document.getElementById('editUserImg').src = base64;
+            document.getElementById('editUserPicNote').classList.remove('d-none');
+            progressBar.style.width = '100%';
 
-            if (result.success) {
-                const downloadURL = result.data.url;
-
-                // Update UI
-                document.getElementById('editUserPicUrl').value = downloadURL;
-                document.getElementById('editUserImg').src = downloadURL;
-
-                Swal.close();
-                Toast.fire({ icon: 'success', title: 'อัพโหลดรูปสำเร็จ (อย่าลืมกดบันทึก)' });
-            } else {
-                throw new Error(result.error ? result.error.message : 'Upload failed');
-            }
+            Toast.fire({ icon: 'success', title: `เตรียมรูปแล้ว (~${base64SizeKB}KB) อย่าลืมกดบันทึก` });
         } catch (err) {
-            console.error("ImgBB Upload error:", err);
+            console.error("Profile image error:", err);
             Swal.fire({
                 icon: 'error',
-                title: 'อัพโหลดไม่สำเร็จ',
-                html: `เกิดปัญหาในการส่งรูปไปที่ ImgBB<br><small class="text-danger">${err.message}</small>`,
+                title: 'ใช้รูปนี้ไม่ได้',
+                html: `<small class="text-danger">${err.message}</small>`
             });
         } finally {
             progressContainer.classList.add('d-none');
+            progressBar.style.width = '0%';
             inputElement.value = '';
         }
     }
@@ -2303,10 +2320,17 @@ window.openEditUser = (id) => {
     document.getElementById('editStartDate').value = u.startDate || '';
     document.getElementById('editEndDate').value = u.endDate || '';
     const picUrlEl = document.getElementById('editUserPicUrl');
+    const picDataEl = document.getElementById('editUserPicData');
+    const picNoteEl = document.getElementById('editUserPicNote');
     const imgEl = document.getElementById('editUserImg');
     const primaryImg = u.pictureUrl || '';
     const fallbackImg = u.customPhotoURL || '';
-    if (picUrlEl) picUrlEl.value = primaryImg;
+    const isUploaded = primaryImg.startsWith('data:');
+    // An uploaded avatar is a ~100KB data URL - keep it out of the text box but hold on
+    // to it so saving the form again does not wipe the picture
+    if (picDataEl) picDataEl.value = isUploaded ? primaryImg : '';
+    if (picNoteEl) picNoteEl.classList.toggle('d-none', !isUploaded);
+    if (picUrlEl) picUrlEl.value = isUploaded ? '' : primaryImg;
     if (imgEl) {
         imgEl.src = primaryImg || fallbackImg || "https://via.placeholder.com/80";
         imgEl.onerror = () => {
@@ -2334,7 +2358,7 @@ window.saveEditUser = async () => {
             enableCash: document.getElementById('editEnableCash').checked,
             startDate: document.getElementById('editStartDate').value,
             endDate: document.getElementById('editEndDate').value,
-            pictureUrl: document.getElementById('editUserPicUrl').value
+            pictureUrl: document.getElementById('editUserPicData').value || document.getElementById('editUserPicUrl').value
         });
         Toast.fire({ icon: 'success', title: 'แก้ไขสำเร็จ' });
         editModal.hide();
