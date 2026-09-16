@@ -238,6 +238,52 @@ describe('admins', () => {
     });
 });
 
+describe('survey responses', () => {
+    const answers = { q1: 4, q2: 5 };
+
+    test('an employee can post their own survey answers', async () => {
+        await assertSucceeds(setDoc(doc(employee(), 'survey_responses', UID), {
+            userId: UID, name: 'สมชาย', dept: 'Pharmacy', answers, timestamp: serverTimestamp()
+        }));
+    });
+
+    test('nobody can post answers under a colleague id', async () => {
+        await assertFails(setDoc(doc(employee(), 'survey_responses', 'U-other'), {
+            userId: UID, name: 'สมชาย', dept: 'Pharmacy', answers, timestamp: serverTimestamp()
+        }));
+    });
+
+    test('survey answers are not readable from the employee page', async () => {
+        await assertFails(getDoc(doc(employee(), 'survey_responses', UID)));
+        await assertFails(getDocs(collection(outsider(), 'survey_responses')));
+        await assertSucceeds(getDocs(collection(admin(), 'survey_responses')));
+    });
+});
+
+describe('cash submissions', () => {
+    const submission = {
+        userId: UID, name: 'สมชาย', dept: 'Pharmacy', date: TODAY,
+        timestamp: serverTimestamp(), entries: [], totalAmount: 5000,
+        drawerType: 'ลิ้นชักบน', targetAmount: 5000, diffAmount: 0
+    };
+
+    test('an employee can post a cash count', async () => {
+        await assertSucceeds(setDoc(doc(employee(), 'cash_submissions', 'c1'), submission));
+    });
+
+    test('a cash count without a numeric total is rejected', async () => {
+        await assertFails(setDoc(doc(employee(), 'cash_submissions', 'c2'), {
+            ...submission, totalAmount: '5000'
+        }));
+    });
+
+    test('cash counts cannot be read or rewritten from the employee page', async () => {
+        await assertFails(getDoc(doc(employee(), 'cash_submissions', 'c1')));
+        await assertFails(updateDoc(doc(employee(), 'cash_submissions', 'c1'), { totalAmount: 1 }));
+        await assertSucceeds(getDoc(doc(admin(), 'cash_submissions', 'c1')));
+    });
+});
+
 test('rules file is the one under test', () => {
     assert.ok(readFileSync(process.env.RULES_FILE || 'firestore.rules', 'utf8').length > 0);
 });

@@ -83,7 +83,22 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // 6. ADMINS
+    // 6. SURVEY RESPONSES (one document per employee, keyed by the LINE user id)
+    match /survey_responses/{userId} {
+      // Written by the LIFF survey, read only by the admin panel through the override
+      // above. Keying the document by the author stops anyone overwriting a colleague.
+      allow create, update: if request.resource.data.userId == userId;
+      allow delete: if isAdmin();
+    }
+
+    // 7. CASH SUBMISSIONS (shift cash count posted from the LIFF page)
+    match /cash_submissions/{id} {
+      allow create: if request.resource.data.userId is string
+                    && request.resource.data.totalAmount is number;
+      allow update, delete: if isAdmin();
+    }
+
+    // 8. ADMINS
     match /admins/{id} {
       allow read: if isAdmin();
       allow write: if isAdmin();
