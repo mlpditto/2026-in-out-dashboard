@@ -551,7 +551,7 @@
                 <div class="dashboard-identity">
                     <div class="dashboard-title-row">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50 app-version-badge" style="font-size: 10px;">v3.71</span>
+                        <span class="badge bg-secondary opacity-50 app-version-badge" style="font-size: 10px;">v3.72</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -1033,7 +1033,7 @@
 
 
     <script type="module">
-        import { getDeptCategoryColor } from './colors.js?v=3.71';
+        import { getDeptCategoryColor } from './colors.js?v=3.72';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -1574,7 +1574,15 @@
                 where("userId", "==", currentUser.lineUserId),
                 where("date", "==", todayStr));
             const schedSnap = await getDocs(schedQuery);
-            const hasSchedule = !schedSnap.empty;
+            // Approving a leave request also writes a schedules doc, so "a doc exists" is not
+            // the same as "there is a shift to work today"
+            const schedToday = schedSnap.empty ? null : schedSnap.docs[0].data();
+            const shiftDetailToday = schedToday?.shiftDetail || '';
+            // strip เวลา first so it cannot be mistaken for ลา
+            const leaveProbe = shiftDetailToday.replace(/เวลา/g, '');
+            const isLeaveDay = /ลา|ป่วย|พักร้อน|กิจ|คลอด|บวช/.test(leaveProbe);
+            const isDayOff = /หยุด/.test(shiftDetailToday) || /day\s*off/i.test(shiftDetailToday);
+            const hasSchedule = !!schedToday && !isLeaveDay && !isDayOff;
 
             const q = query(collection(db, "attendance"), where("userId", "==", currentUser.lineUserId), where("timestamp", ">=", start), orderBy("timestamp"));
             const snap = await getDocs(q);
@@ -1586,14 +1594,23 @@
             const statusMsg = document.getElementById('clockInStatusMsg');
 
             if (!hasSchedule) {
-                // BLOCK CLOCKING IF NO SCHEDULE
+                // BLOCK CLOCKING IF NO SHIFT TO WORK TODAY
                 btnIn.classList.add('hidden');
                 btnOut.classList.add('hidden');
+                let blockTitle = '<i class="bi bi-exclamation-triangle-fill"></i> ยังไม่ได้แจ้งเวรของวันนี้';
+                let blockNote = 'กรุณาแจ้งเวลาปฏิบัติงานก่อนเริ่มลงเวลาครับ';
+                if (isLeaveDay) {
+                    blockTitle = `<i class="bi bi-clipboard2-pulse"></i> วันนี้คุณมีวันลา: ${shiftDetailToday}`;
+                    blockNote = 'ไม่ต้องลงเวลาครับ — ถ้าเข้ามาทำงานจริง กรุณาแจ้งเวลาปฏิบัติงานก่อน';
+                } else if (isDayOff) {
+                    blockTitle = '<i class="bi bi-cup-hot"></i> วันนี้เป็นวันหยุดตามตารางเวร';
+                    blockNote = 'ถ้าเข้ามาทำงานจริง กรุณาแจ้งเวลาปฏิบัติงานก่อนลงเวลาครับ';
+                }
                 if (statusMsg) {
                     statusMsg.classList.remove('hidden');
                     statusMsg.innerHTML = `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 text-start mb-1">
-                        <div class="fw-bold text-warning-emphasis mb-1"><i class="bi bi-exclamation-triangle-fill"></i> ยังไม่ได้แจ้งเวรของวันนี้</div>
-                        <div class="small text-muted mb-2">กรุณาแจ้งเวลาปฏิบัติงานก่อนเริ่มลงเวลาครับ</div>
+                        <div class="fw-bold text-warning-emphasis mb-1">${blockTitle}</div>
+                        <div class="small text-muted mb-2">${blockNote}</div>
                         <button onclick="toggleLeaveForm(); document.getElementById('leaveType').value='แจ้งเวลาปฏิบัติงาน'; toggleTimeInputs();" 
                                 class="btn btn-warning btn-sm w-100 py-2 fw-bold" style="font-size:0.85rem; border-radius:8px;">
                             <i class="bi bi-calendar-plus"></i> แจ้งเวลาทำงาน (อนุมัติทันที)
@@ -1639,8 +1656,7 @@
 
                     // Option 2: Show today's shift info even if they can clock in
                     if (hasSchedule && statusMsg) {
-                        const sched = schedSnap.docs[0].data();
-                        const timeInfo = (sched.shiftDetail || "").replace("⏰", "").trim();
+                        const timeInfo = shiftDetailToday.replace("⏰", "").trim();
                         statusMsg.classList.remove('hidden');
                         statusMsg.innerHTML = `<div class="p-2 bg-success bg-opacity-10 border border-success-subtle rounded-3 text-center mb-1">
                             <span class="text-success fw-bold" style="font-size:0.9rem;"><i class="bi bi-clock-history"></i> วันนี้คุณมีเวร: ${timeInfo}</span>
@@ -2563,11 +2579,13 @@
 
             // ── Policy 3: 30-day cooldown ─────────────────────────────────────
             const COOLDOWN_DAYS = 30;
-            if (currentUser.lastProfileUpdate) {
+            // lastProfileUpdate is stamped by the silent LINE sync too, so the cooldown reads a
+            // field only this upload writes - otherwise a LINE picture change locked the user out
+            if (currentUser.lastPhotoUploadAt) {
                 // Firestore Timestamp → JS Date
-                const lastUpdate = currentUser.lastProfileUpdate.toDate
-                    ? currentUser.lastProfileUpdate.toDate()
-                    : new Date(currentUser.lastProfileUpdate);
+                const lastUpdate = currentUser.lastPhotoUploadAt.toDate
+                    ? currentUser.lastPhotoUploadAt.toDate()
+                    : new Date(currentUser.lastPhotoUploadAt);
                 const diffDays = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24);
                 if (diffDays < COOLDOWN_DAYS) {
                     const daysLeft = Math.ceil(COOLDOWN_DAYS - diffDays);
@@ -2629,12 +2647,14 @@
                 const userRef = doc(db, 'users', uid);
                 await updateDoc(userRef, {
                     customPhotoURL: base64,
+                    lastPhotoUploadAt: serverTimestamp(),
                     lastProfileUpdate: serverTimestamp()
                 });
 
                 // 4. Update local state — LINE photo ยังเป็น primary
                 //    base64 จะใช้เป็น onerror fallback เมื่อ LINE URL หมดอายุ
                 currentUser.customPhotoURL = base64;
+                currentUser.lastPhotoUploadAt = { toDate: () => new Date() };
                 currentUser.lastProfileUpdate = { toDate: () => new Date() };
 
                 const imgEl = document.getElementById('mainProfileImg');
