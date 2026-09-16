@@ -10,6 +10,9 @@
     "ignore": [
       "firebase.json",
       "**/.*",
+      ".git/**",
+      ".github/**",
+      ".firebase/**",
       "**/node_modules/**",
       "dist/**",
       "firestore.rules",
