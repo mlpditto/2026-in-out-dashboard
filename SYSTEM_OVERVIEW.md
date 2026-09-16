@@ -1,6 +1,6 @@
 # 🏗️ System Overview - MLP Time Attendance Dashboard
 
-Detailed technical architecture and system design for the MLP Time Attendance system (v3.48).
+Detailed technical architecture and system design for the MLP Time Attendance system (v3.64).
 
 ## 🧩 System Architecture
 The application follows a **Serverless / Event-driven** architecture using Google Firebase and LINE Developers platform.
@@ -22,7 +22,7 @@ graph TD
 *   **Authentication:**
     *   **Admin:** Firebase Auth (Google Sign-in).
     *   **Employees:** LINE LIFF SDK v2 (OAuth 2.0).
-*   **Hosted on:** Firebase Hosting.
+*   **Hosted on:** Firebase Hosting (Production) + GitHub Pages (Mirror via GitHub Actions).
 *   **UI Libraries:** 
     *   SweetAlert 2 (Popups/Modals)
     *   Chart.js (Reporting Graphs)

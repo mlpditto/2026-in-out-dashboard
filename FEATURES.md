@@ -1,4 +1,23 @@
-# 🚀 Features - MLP Time Attendance Dashboard (v3.53)
+# 🚀 Features - MLP Time Attendance Dashboard (v3.64)
+
+### 🌟 New in v3.64: Nurse Roster Board & Premium UI
+*   🩺 **Nurse Roster Board:** บอร์ดจัดตารางเวรรายเดือนสำหรับทีมพยาบาล/เภสัช — แถวละพนักงาน คอลัมน์ละวัน พร้อมคอลัมน์ชื่อและตำแหน่งแบบ Sticky
+*   🎨 **Shift Palette Painting:** เลือกกะจากแถบสี (ช / บ10 / บ10+ / บ11 / ด / OFF / ลา) แล้วคลิกช่องวันที่เพื่อลงเวร คลิกกะเดิมซ้ำเพื่อยกเลิกการเลือก
+*   🗂️ **Inline Shift Dropdown:** คลิกช่องโดยยังไม่ได้เลือกกะ ระบบจะเปิด Dropdown ให้เลือกกะเฉพาะช่องนั้นทันที
+*   🪄 **Auto Roster Fill:** กำหนดจำนวนคนต่อกะแยกวันธรรมดา/วันหยุด แล้วให้ระบบกระจายเวรแบบหมุนเวียนอัตโนมัติ
+*   📊 **Summary & OT Panels:** แท็บสรุปจำนวนเวรรายคน และแท็บ OT ที่แสดงเฉพาะผู้มีเวรควบ (ตรวจจับจากข้อความเวรเดิม: เช้า+บ่าย / บ่าย+ดึก / Day+Night) พร้อมจำนวนวัน
+*   📤 **Export & Print:** บันทึก Draft ลง `schedules`, ส่งออก CSV หรือสั่งพิมพ์ตารางเวรได้โดยตรง
+*   👔 **Direct Position Editing:** คลิก Badge ตำแหน่งในตารางเวรเพื่อแก้ไขตำแหน่งพนักงาน รองรับแม้พนักงานที่ถูก Archive
+
+### 🌟 New in v3.62: Glassmorphic Design System
+*   💎 **Premium Glass Cards:** การ์ดในหน้า Admin เปลี่ยนเป็นสไตล์ Glassmorphism (โปร่งแสง + เบลอ + เงานุ่ม)
+*   🫧 **Floating Tab Capsule:** แถบแท็บลอยแบบแคปซูล ใช้งานง่ายขึ้นเมื่อเลื่อนหน้าจอ
+*   🖼️ **Profile Pictures in Leave Lists:** แสดงรูปโปรไฟล์พนักงานในรายการคำขอลาและประวัติการลา
+
+### 🌟 New in v3.57 - v3.59: Mobile LIFF Stability
+*   📐 **Mobile Layout Restore:** คืน utility classes ที่หายไป ทำให้หน้าพนักงานบนมือถือแสดงผลถูกต้อง
+*   📱 **Header Overlap Fix:** แก้ปัญหา Header ซ้อนทับเนื้อหาใน LINE LIFF
+*   🔄 **Colors Cache Busting:** เพิ่มเวอร์ชันให้ `colors.js` ทุกหน้า ป้องกันเบราว์เซอร์ใช้ไฟล์สีเก่าค้าง
 
 ### 🌟 New in v3.53: User Managed Profiles
 *   📷 **User Profile Picture Upload (v3.53):** Employees can now upload their own profile pictures via the LINE LIFF interface.
