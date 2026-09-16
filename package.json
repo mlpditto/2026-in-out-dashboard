@@ -6,7 +6,8 @@
   "scripts": {
     "build": "if not exist dist mkdir dist && xcopy /Y /I *.html dist\\ && if exist *.css xcopy /Y /I *.css dist\\ && if exist *.js xcopy /Y /I *.js dist\\ && if exist images xcopy /Y /E /I images dist\\images",
     "deploy": "gh-pages -d dist",
-    "test:rules": "firebase emulators:exec --only firestore \"node --test test/firestore.rules.test.mjs\""
+    "test:rules": "firebase emulators:exec --only firestore \"node --test test/firestore.rules.test.mjs\"",
+    "test:rules:layer2": "firebase emulators:exec --only firestore \"node --test test/firestore.rules.layer2.test.mjs\""
   },
   "repository": {
     "type": "git",

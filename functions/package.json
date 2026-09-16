@@ -1,0 +1,13 @@
+{
+  "name": "in-out-dashboard-functions",
+  "description": "Cloud Functions for the MLP in-out dashboard",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.2",
+    "firebase-functions": "^6.3.0"
+  },
+  "private": true
+}

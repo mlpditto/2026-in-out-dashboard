@@ -10,6 +10,7 @@
 
 *   [🚀 Features List (FEATURES.md)](FEATURES.md) - รายละเอียดฟีเจอร์ทั้งหมด
 *   [🏗️ System Overview (SYSTEM_OVERVIEW.md)](SYSTEM_OVERVIEW.md) - สถาปัตยกรรมทางเทคนิคและโครงสร้างข้อมูล
+*   [🔐 Layer 2 (LAYER2.md)](LAYER2.md) - แผนปิดข้อมูลพนักงานด้วย Firebase Auth (เขียนโค้ดแล้ว รอ deploy)
 
 | หน้า | URL | รายละเอียด |
 |------|-----|-----------|
