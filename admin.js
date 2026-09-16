@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.69';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.70';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -24,6 +24,15 @@ let calendarObj, editModal, barChart, editAttendanceModalObj;
 let userProfileMap = {};
 window.allUserData = {};
 let usersByDeptModal;
+// LINE display names and leave reasons are written by employees and land in innerHTML all
+// over this file - escape them so a name like <img src=x onerror=...> cannot run script in
+// the admin panel, and so a quote cannot break out of a title="..." attribute.
+const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ESC_MAP[c]);
+// For a value that ends up inside a JS string inside an attribute: onclick="f('...')".
+// JS-escape first, then HTML-escape, because the parser decodes entities before JS runs.
+const escJs = (v) => esc(String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+
 const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
 
 // --- 🔓 AUTH ---
@@ -445,6 +454,20 @@ function getRosterUsers() {
     return users.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
 }
 
+// A past day with no record counts as a day off; the future stays blank. The grid, the
+// totals and the CSV export all have to agree on that, so the rule lives here only.
+function getRosterCellKey(rosterMap, userId, date, cellDate, today) {
+    const key = rosterMap.get(`${userId}_${date}`)?.key;
+    if (key) return key;
+    return cellDate > today ? '' : 'OFF';
+}
+
+function rosterTodayStart() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+}
+
 function getRosterExistingMap() {
     const map = new Map();
     schedAllData.forEach(v => {
@@ -456,15 +479,13 @@ function getRosterExistingMap() {
 }
 
 function buildRosterStats(users, days, rosterMap) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = rosterTodayStart();
     return users.map(u => {
         const counts = { M: 0, E: 0, E10P: 0, E11: 0, N: 0, ME: 0, EN: 0, DN: 0, OFF: 0, LEAVE: 0 };
+        const { year, month } = getRosterMonthParts();
         for (let d = 1; d <= days; d++) {
-            const date = getRosterDateKey(getRosterMonthParts().year, getRosterMonthParts().month, d);
-            const cellDate = new Date(getRosterMonthParts().year, getRosterMonthParts().month, d);
-            let key = rosterMap.get(`${u.id}_${date}`)?.key;
-            if (!key && cellDate <= today) key = 'OFF';
+            const date = getRosterDateKey(year, month, d);
+            const key = getRosterCellKey(rosterMap, u.id, date, new Date(year, month, d), today);
             if (key && counts[key] !== undefined) counts[key]++;
         }
         return { user: u, counts, total: counts.M + counts.E + counts.E10P + counts.E11 + counts.N + counts.ME + counts.EN + counts.DN };
@@ -510,18 +531,14 @@ function renderNurseRoster() {
         <th>ช<br><small>รวม</small></th><th>บ10<br><small>รวม</small></th><th>บ10+<br><small>รวม</small></th><th>บ11<br><small>รวม</small></th><th>ด<br><small>รวม</small></th><th>OT<br><small>รวม</small></th><th>O<br><small>รวม</small></th>
     </tr>`;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = rosterTodayStart();
     body.innerHTML = users.map((u, index) => {
         let m = 0, e = 0, e10p = 0, e11 = 0, n = 0, ot = 0, off = 0;
         const cells = Array.from({ length: days }, (_, i) => {
             const date = getRosterDateKey(year, month, i + 1);
-            const cellDate = new Date(year, month, i + 1);
-            const isFuture = cellDate > today;
             const docKey = `${u.id}_${date}`;
-            
-            const cell = rosterMap.get(docKey) || (isFuture ? {} : { key: 'OFF', detail: getRosterShiftByKey('OFF').detail });
-            const shiftKey = cell.key || (isFuture ? '' : 'OFF');
+            const cell = rosterMap.get(docKey) || {};
+            const shiftKey = getRosterCellKey(rosterMap, u.id, date, new Date(year, month, i + 1), today);
             const shift = shiftKey ? getRosterShiftByKey(shiftKey) : null;
             
             if (shiftKey === 'M') m++;
@@ -532,7 +549,7 @@ function renderNurseRoster() {
             if (['ME', 'EN', 'DN'].includes(shiftKey)) ot++;
             if (shiftKey === 'OFF') off++;
             const style = shift ? `background:${shift.color};color:${shift.text}` : '';
-            return `<td class="roster-cell" style="${style}" title="${cell.detail || shift?.detail || ''}"
+            return `<td class="roster-cell" style="${style}" title="${esc(cell.detail || shift?.detail || '')}"
                 onclick="setNurseRosterCell('${u.id}', '${date}')">${shift?.label || ''}</td>`;
         }).join('');
         const role = roleLabelForUser(u);
@@ -543,10 +560,10 @@ function renderNurseRoster() {
             <td class="roster-sticky roster-name-col fw-semibold">
                 <div class="d-flex align-items-center gap-2">
                     ${profileImgHtml}
-                    <span class="text-truncate" style="max-width:140px;" title="${u.name || u.displayName || 'ไม่ทราบชื่อ'}">${u.name || u.displayName || 'ไม่ทราบชื่อ'}</span>
+                    <span class="text-truncate" style="max-width:140px;" title="${esc(u.name || u.displayName || 'ไม่ทราบชื่อ')}">${esc(u.name || u.displayName || 'ไม่ทราบชื่อ')}</span>
                 </div>
             </td>
-            <td class="roster-sticky roster-role-col cursor-pointer" onclick="editUserRoleDirectly('${u.id}')" title="คลิกเพื่อแก้ไขตำแหน่ง"><span class="roster-role-badge" style="background:${color}">${role}</span></td>
+            <td class="roster-sticky roster-role-col cursor-pointer" onclick="editUserRoleDirectly('${u.id}')" title="คลิกเพื่อแก้ไขตำแหน่ง"><span class="roster-role-badge" style="background:${color}">${esc(role)}</span></td>
             ${cells}
             <td class="fw-bold text-primary">${m}</td><td class="fw-bold text-primary">${e}</td><td class="fw-bold text-primary">${e10p}</td><td class="fw-bold text-primary">${e11}</td><td class="fw-bold text-primary">${n}</td><td class="fw-bold text-danger">${ot}</td><td class="fw-bold text-muted">${off}</td>
         </tr>`;
@@ -566,8 +583,8 @@ function renderNurseRosterSummary() {
     if (summary) {
         summary.innerHTML = stats.map(r => `
             <div class="roster-summary-card">
-                <strong>${r.user.name || 'ไม่ทราบชื่อ'}</strong>
-                <div class="small text-muted">${roleLabelForUser(r.user)}</div>
+                <strong>${esc(r.user.name || 'ไม่ทราบชื่อ')}</strong>
+                <div class="small text-muted">${esc(roleLabelForUser(r.user))}</div>
                 <div class="d-flex flex-wrap gap-2 mt-2 small">
                     <span>ช ${r.counts.M}</span>
                     <span>บ10 ${r.counts.E}</span>
@@ -584,7 +601,7 @@ function renderNurseRosterSummary() {
     if (ot) {
         ot.innerHTML = otRows.map(r => `
             <div class="roster-summary-card">
-                <strong>${r.user.name || 'ไม่ทราบชื่อ'}</strong>
+                <strong>${esc(r.user.name || 'ไม่ทราบชื่อ')}</strong>
                 <div class="small text-muted">OT รวม ${r.counts.ME + r.counts.EN + r.counts.DN} วัน</div>
             </div>`).join('') || '<div class="text-muted">ยังไม่มีรายการ OT</div>';
     }
@@ -816,11 +833,12 @@ window.exportNurseRosterCsv = () => {
     const days = new Date(year, month + 1, 0).getDate();
     const users = getRosterUsers();
     const map = getRosterExistingMap();
+    const today = rosterTodayStart();
     const rows = [['name', 'role', ...Array.from({ length: days }, (_, i) => String(i + 1))]];
     users.forEach(u => {
         rows.push([u.name || u.displayName || '', roleLabelForUser(u), ...Array.from({ length: days }, (_, i) => {
             const date = getRosterDateKey(year, month, i + 1);
-            const cellKey = map.get(`${u.id}_${date}`)?.key;
+            const cellKey = getRosterCellKey(map, u.id, date, new Date(year, month, i + 1), today);
             return cellKey ? getRosterShiftByKey(cellKey).label : '';
         })]);
     });
@@ -853,27 +871,27 @@ function renderSchedPage() {
             return `${emoji} ${clean}`;
         };
 
-        const tooltip = (v.reason || v.shiftDetail || '').replace(/"/g, '&quot;');
+        const tooltip = v.reason || v.shiftDetail || '';
         if (sd.includes('ลาป่วย')) {
             const displayShift = getDisplayShift(v.shiftDetail, '🤒');
-            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🤒 ลาป่วย', '#dc3545', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#dc3545;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🤒 ลาป่วย', '#dc3545', '${v.id}')" title="${esc(tooltip)}">${displayShift}</span>`;
         } else if (sd.includes('ลาพักร้อน') || sd.includes('ลาพักผ่อน')) {
             const displayShift = getDisplayShift(v.shiftDetail, '🌴');
-            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🌴 ลาพักร้อน', '#0d9488', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#0d9488;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🌴 ลาพักร้อน', '#0d9488', '${v.id}')" title="${esc(tooltip)}">${displayShift}</span>`;
         } else if (sd.includes('ลากิจ')) {
             const displayShift = getDisplayShift(v.shiftDetail, '📋');
-            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('📋 ลากิจ', '#0d6efd', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#0d6efd;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('📋 ลากิจ', '#0d6efd', '${v.id}')" title="${esc(tooltip)}">${displayShift}</span>`;
         } else if (sd.includes('ลาคลอด')) {
             const displayShift = getDisplayShift(v.shiftDetail, '👶');
-            detailHtml = `<span class="badge" style="background:#e91e8c;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('👶 ลาคลอด', '#e91e8c', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#e91e8c;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('👶 ลาคลอด', '#e91e8c', '${v.id}')" title="${esc(tooltip)}">${displayShift}</span>`;
         } else if (sd.includes('ลาบวช')) {
             const displayShift = getDisplayShift(v.shiftDetail, '🙏');
-            detailHtml = `<span class="badge" style="background:#f59e0b;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🙏 ลาบวช', '#f59e0b', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#f59e0b;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🙏 ลาบวช', '#f59e0b', '${v.id}')" title="${esc(tooltip)}">${displayShift}</span>`;
         } else if (sd.includes('หยุด') || sd.includes('day off')) {
             const displayShift = getDisplayShift(v.shiftDetail, '🚫');
-            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🚫 หยุด', '#6c757d', '${v.id}')" title="${tooltip}">${displayShift}</span>`;
+            detailHtml = `<span class="badge" style="background:#6c757d;color:white;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('🚫 หยุด', '#6c757d', '${v.id}')" title="${esc(tooltip)}">${displayShift}</span>`;
         } else {
-            detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('⏰ เวรทำงาน', '#e9ecef', '${v.id}')" title="${tooltip}">${v.shiftDetail}</span>`;
+            detailHtml = `<span class="badge text-dark" style="background:#e9ecef;border:1px solid #dee2e6;font-weight:600;font-size:0.85rem;cursor:pointer;" onclick="renderDetailModal('⏰ เวรทำงาน', '#e9ecef', '${v.id}')" title="${esc(tooltip)}">${esc(v.shiftDetail)}</span>`;
         }
         const safeReason = (v.reason || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
         const safeLink = (v.attachLink || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
@@ -882,7 +900,7 @@ function renderSchedPage() {
         // But for robustness, let's pass a safe object string or rely on ID lookup which renderDetailModal does.
         // Since schedAllData is now fully populated, ID lookup is reliable.
 
-        h += `<tr><td class="ps-3">${v.date}</td><td>${v.name}</td><td>${detailHtml}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
+        h += `<tr><td class="ps-3">${esc(v.date)}</td><td>${esc(v.name)}</td><td>${detailHtml}</td><td class="text-end pe-3"><button onclick="delSched('${v.id}')" class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button></td></tr>`;
     });
     t.innerHTML = h || '<tr><td colspan="4" class="text-center text-muted py-3">ไม่พบข้อมูลในเดือนนี้</td></tr>';
 
@@ -1038,7 +1056,7 @@ window.loadLeaveRequests = async () => {
                 attachLink: v.attachLink
             }).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
-            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem; cursor:pointer;" onclick="renderDetailModal('${leaveEmoji} ${displayType}', '${leaveColor}', null, '${safeObj}')" title="เหตุผล: ${v.reason || displayType}">${leaveEmoji} ${displayType}</span>`;
+            const leaveBadge = `<span class="badge" style="background:${leaveColor} !important; color:white !important; border:none; font-weight:600; min-width:90px; text-align:center; font-size:0.85rem; cursor:pointer;" onclick="renderDetailModal('${leaveEmoji} ${displayType}', '${leaveColor}', null, '${safeObj}')" title="เหตุผล: ${esc(v.reason || displayType)}">${leaveEmoji} ${displayType}</span>`;
 
             // Get user info for display (empId instead of raw userId)
             const uData = window.allUserData?.[v.userId] || {};
@@ -1064,14 +1082,14 @@ window.loadLeaveRequests = async () => {
                          <div class="user-cell">
                              ${profileImgHtml}
                              <div>
-                                 <div class="fw-bold">${v.name}</div>
+                                 <div class="fw-bold">${esc(v.name)}</div>
                                  <small class="text-muted">${subInfo}</small>
                              </div>
                          </div>
                      </td>
                      <td>${leaveBadge}${timeBadge}</td>
                      <td>${v.startDate} ถึง ${v.endDate}</td>
-                     <td>${v.reason || '-'}</td>
+                     <td>${esc(v.reason || '-')}</td>
                      <td class="text-end pe-3">${acts}</td>
                  </tr>`;
             } else {
@@ -1084,7 +1102,7 @@ window.loadLeaveRequests = async () => {
                          <div class="user-cell">
                              ${profileImgHtml}
                              <div>
-                                 <div class="fw-bold">${v.name}</div>
+                                 <div class="fw-bold">${esc(v.name)}</div>
                                  <small class="text-muted">${subInfo}</small>
                              </div>
                          </div>
@@ -1119,7 +1137,7 @@ window.loadLeaveRequests = async () => {
             lp.innerHTML = uList.slice(0, 5).map(u => {
                 const uid = u.lineUserId || u.id;
                 const imgHtml = window.getProfileImgHtml(uid, 20, '', 'width:20px;height:20px;border-radius:50%;margin-right:-5px;border:1px solid #fff;');
-                return imgHtml.replace('<img ', `<img title="${u.name}" `);
+                return imgHtml.replace('<img ', `<img title="${esc(u.name)}" `);
             }).join('') + (uList.length > 5 ? `<span class="small ms-2 text-muted">+${uList.length - 5}</span>` : '');
         }
 
@@ -1400,8 +1418,8 @@ window.openManualEntry = (uid, name, type) => {
                  data-uid="${uId}" onclick="selectManualUserPick(this)">
                 ${window.getProfileImgHtml(uId, 28, '')}
                 <div style="overflow:hidden">
-                    <div class="user-pick-name">${u.name}</div>
-                    ${u.dept ? `<div class="user-pick-dept">${u.dept}</div>` : ''}
+                    <div class="user-pick-name">${esc(u.name)}</div>
+                    ${u.dept ? `<div class="user-pick-dept">${esc(u.dept)}</div>` : ''}
                 </div>
             </div>`;
         }
@@ -1562,7 +1580,7 @@ window.loadData = async () => {
         actionBtns = `<button onclick="openEditAttendance('${v.id}')" class="btn btn-sm btn-outline-primary border-0 me-1" title="แก้ไขเวลา"><i class="bi bi-pencil-square"></i></button>` + actionBtns;
 
         if (v.type === 'เข้างาน') {
-            actionBtns = `<button onclick="openManualEntry('${v.userId}', '${v.name}', 'ออกงาน')" class="btn btn-sm btn-outline-warning me-1" title="ลงเวลาออกงาน"><i class="bi bi-box-arrow-right"></i></button>` + actionBtns;
+            actionBtns = `<button onclick="openManualEntry('${escJs(v.userId)}', '${escJs(v.name)}', 'ออกงาน')" class="btn btn-sm btn-outline-warning me-1" title="ลงเวลาออกงาน"><i class="bi bi-box-arrow-right"></i></button>` + actionBtns;
         }
 
         // Late indicator
@@ -1579,7 +1597,7 @@ window.loadData = async () => {
         const dColor = getDeptCategoryColor(deptText);
         h += `<tr class="${rowClass}">
             <td class="ps-3 mono-font">${new Date(v.timestamp.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false })}</td>
-            <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${v.name}</h6><small class="text-muted">${v.empId || ''}</small></div></div></td>
+            <td class="col-user"><div class="user-cell">${getProfileImg(v.userId)}<div><h6 class="mb-0">${esc(v.name)}</h6><small class="text-muted">${esc(v.empId || '')}</small></div></div></td>
             <td><span class="badge" style="background:${dColor} !important; color:white !important; border:none; font-weight:600; min-width:80px; text-align:center;">${deptText}</span></td>
             <td>
                 <span class="badge ${bg} bg-opacity-10 text-${bg.split('-')[1]} badge-pill"><span class="status-dot ${bg}"></span>${v.type}</span>
@@ -1638,7 +1656,7 @@ window.loadData = async () => {
             const uid = u.lineUserId || u.id;
             const dColor = getDeptCategoryColor(u.dept);
             const imgHtml = window.getProfileImgHtml(uid, 22, '', `width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid ${dColor};margin-left:-6px;box-shadow:0 1px 3px rgba(0,0,0,0.1);`);
-            return imgHtml.replace('<img ', `<img title="${u.name} (${u.dept || ''})" `);
+            return imgHtml.replace('<img ', `<img title="${esc(u.name)} (${esc(u.dept || '')})" `);
         }).join('') + (activeProfiles.length > 8 ? `<span class="small text-white-50 ms-1">+${activeProfiles.length - 8}</span>` : '');
     }
 };
@@ -1716,13 +1734,13 @@ function renderDeptBreakdown(byDept) {
         const thumbs = list.slice(0, 8).map(u => {
             const uid = u.uid;
             const imgHtml = window.getProfileImgHtml(uid, 18, '', `width:18px;height:18px;border-radius:50%;object-fit:cover;border:1.5px solid ${color};box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:-6px;`);
-            return imgHtml.replace('<img ', `<img title="${u.name || ''}" `);
+            return imgHtml.replace('<img ', `<img title="${esc(u.name || '')}" `);
         }).join('');
         const more = list.length > 8 ? `<span class="text-muted" style="margin-left:6px;">+${list.length - 8}</span>` : '';
         return `
             <div class="d-flex justify-content-between align-items-center" style="gap:8px;">
                 <div class="text-truncate" style="max-width:140px;">
-                    <span class="fw-bold" style="color:${color};">${dept}</span>
+                    <span class="fw-bold" style="color:${color};">${esc(dept)}</span>
                     <span class="text-muted">(${list.length})</span>
                 </div>
                 <div class="d-flex align-items-center" style="padding-left:6px;">
@@ -1835,12 +1853,12 @@ window.loadPendingUsers = async () => {
                     <div class="user-cell">
                         ${window.getProfileImgHtml(d.id, 45, 'profile-thumb')}
                         <div>
-                            <h6 class="mb-0 fw-bold">${v.name}</h6>
-                            <small class="text-muted">${v.empId || 'No ID'}</small>
+                            <h6 class="mb-0 fw-bold">${esc(v.name)}</h6>
+                            <small class="text-muted">${esc(v.empId || 'No ID')}</small>
                         </div>
                     </div>
                 </td>
-                <td><span class="badge" style="background:${deptColor} !important; color:white !important; border:none; font-weight:600; min-width:80px; text-align:center;">${v.department || v.dept || 'N/A'}</span></td>
+                <td><span class="badge" style="background:${deptColor} !important; color:white !important; border:none; font-weight:600; min-width:80px; text-align:center;">${esc(v.department || v.dept || 'N/A')}</span></td>
                 <td class="text-end pe-3">
                     <button onclick="approveUser('${d.id}')" class="btn btn-sm btn-success shadow-sm me-1"><i class="bi bi-check-lg"></i> รับเข้า</button>
                     <button onclick="rejectUser('${d.id}')" class="btn btn-sm btn-outline-danger shadow-sm"><i class="bi bi-x-lg"></i></button>
@@ -2142,8 +2160,8 @@ window.renderMainUserList = async () => {
             }
 
             return `<tr class="${op}" style="${rowStyle}">
-                <td class="ps-3"><div class="user-cell" title="${u.name}${u.displayName ? ' (' + u.displayName + ')' : ''}">${window.getProfileImgHtml(u.id, 45, 'profile-thumb')}<div><h6 class="mb-0">${u.name || ''}${dayCounterHtml}</h6>${u.displayName && u.displayName !== u.name ? `<small class="text-muted d-block" style="font-size:0.7rem;">(${u.displayName})</small>` : ''}${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
-                <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;" title="แผนก: ${dept}">${dept}</span></td>
+                <td class="ps-3"><div class="user-cell" title="${esc(u.name)}${u.displayName ? ' (' + esc(u.displayName) + ')' : ''}">${window.getProfileImgHtml(u.id, 45, 'profile-thumb')}<div><h6 class="mb-0">${esc(u.name || '')}${dayCounterHtml}</h6>${u.displayName && u.displayName !== u.name ? `<small class="text-muted d-block" style="font-size:0.7rem;">(${esc(u.displayName)})</small>` : ''}${u.endDate ? `<small class="text-muted">สิ้นสุด: ${u.endDate}</small>` : ''}</div></div></td>
+                <td><span class="badge" style="background-color:${getDeptCategoryColor(dept)} !important; color:white !important; border:none !important; font-weight:600; min-width:90px; text-align:center; padding: 0.5em 0.8em;" title="แผนก: ${esc(dept)}">${esc(dept)}</span></td>
                 <td class="text-end pe-3">
                     <button onclick="viewUserStats('${u.id}')" class="btn btn-sm btn-light border me-1" title="สถิติ"><i class="bi bi-bar-chart"></i></button>
                     <button onclick="openEditUser('${u.id}')" class="btn btn-sm btn-light border me-1"><i class="bi bi-pencil"></i></button>
@@ -2161,7 +2179,7 @@ window.renderMainUserList = async () => {
     tabsHtml += deptEntries.map(([dept, list], idx) => {
         const safe = `deptTab_${idx}`;
         const color = getDeptCategoryColor(dept);
-        return `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${safe}" type="button"><span class="badge me-1" style="background:${color}">${list.length}</span><span class="fw-bold" style="color:${color};">${dept}</span></button></li>`;
+        return `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#${safe}" type="button"><span class="badge me-1" style="background:${color}">${list.length}</span><span class="fw-bold" style="color:${color};">${esc(dept)}</span></button></li>`;
     }).join('');
 
     if (inactiveUsers.length > 0) {
@@ -2265,7 +2283,7 @@ window.editUserRoleDirectly = async (uid) => {
     }
 
     const { value: newRole } = await Swal.fire({
-        title: `แก้ไขตำแหน่งของ ${u.name}`,
+        title: `แก้ไขตำแหน่งของ ${esc(u.name)}`,
         input: 'text',
         inputLabel: 'ระบุตำแหน่ง/แผนกใหม่ (เช่น Pharmacy, Intern เภสัช, General, IT)',
         inputValue: u.dept || '',
@@ -2414,11 +2432,11 @@ window.loadUsersList = async () => {
         const filtered = users.filter(u => u.name.toLowerCase().includes(q) || u.dept.toLowerCase().includes(q));
         let h = '';
         for (const u of filtered) {
-            h += `<div class="user-pick-item" data-uid="${u.uid}" data-name="${u.name}" onclick="selectUserPick(this)">
+            h += `<div class="user-pick-item" data-uid="${u.uid}" data-name="${esc(u.name)}" onclick="selectUserPick(this)">
                 ${window.getProfileImgHtml(u.uid, 28, '')}
                 <div style="overflow:hidden">
-                    <div class="user-pick-name">${u.name}</div>
-                    ${u.dept ? `<div class="user-pick-dept">${u.dept}</div>` : ''}
+                    <div class="user-pick-name">${esc(u.name)}</div>
+                    ${u.dept ? `<div class="user-pick-dept">${esc(u.dept)}</div>` : ''}
                 </div>
             </div>`;
         }
@@ -2551,7 +2569,7 @@ window.renderCharts = async () => {
         html += `
         <div class="mb-3 d-flex align-items-center" style="font-size: 0.9rem;">
             <div style="width: 200px; min-width: 150px;" class="text-truncate pe-2 text-end small text-muted">
-                ${u.name} <span class="d-none d-md-inline">(${u.empId || ''})</span>
+                ${esc(u.name)} <span class="d-none d-md-inline">(${esc(u.empId || '')})</span>
             </div>
             <div class="flex-grow-1 position-relative" style="height: 28px; background: #f1f3f5; border-radius: 14px; overflow: visible;">
                  <div style="width: ${Math.max(percent, 2)}%; height: 100%; background: ${deptColor}; border-radius: 14px; display:flex; align-items:center; justify-content:flex-end;">
@@ -2642,10 +2660,10 @@ function initCalendar() {
 
             return {
                 html: `
-                <div class="calendar-event-card ${statusClass}" style="${customStyle}" title="${tooltip.replace(/"/g, '&quot;')}">
+                <div class="calendar-event-card ${statusClass}" style="${customStyle}" title="${esc(tooltip)}">
                     <div class="calendar-event-header">
                         ${imgHtml}
-                        <div class="calendar-event-title" style="${type === 'attendance' ? 'color: #333;' : ''}">${name}</div>
+                        <div class="calendar-event-title" style="${type === 'attendance' ? 'color: #333;' : ''}">${esc(name)}</div>
                     </div>
                     <div class="calendar-event-subtitle" style="${type === 'attendance' ? `color: ${props.deptColor};` : ''}">${detail || arg.event.title}</div>
                 </div>`
@@ -2845,7 +2863,7 @@ window.openEditSchedModal = async (id) => {
                     </div>
                 </div>
                 <label class="small text-muted mb-1">เหตุผล / หมายเหตุ</label>
-                <textarea id="swal-reason" class="form-control" rows="2">${data.reason || ''}</textarea>
+                <textarea id="swal-reason" class="form-control" rows="2">${esc(data.reason || '')}</textarea>
             </div>
         `,
         focusConfirm: false,
@@ -2939,7 +2957,7 @@ window.openEditLeaveModal = async (id) => {
                 </div>
 
                 <label class="small text-muted mb-1">เหตุผล / หมายเหตุ</label>
-                <textarea id="swal-reason" class="form-control" rows="2">${data.reason || ''}</textarea>
+                <textarea id="swal-reason" class="form-control" rows="2">${esc(data.reason || '')}</textarea>
             </div>
         `,
         showCancelButton: true,
@@ -3160,7 +3178,7 @@ window.loadFairnessReport = async () => {
             if (r.anomaliesCount > 0) flags += `<i class="bi bi-exclamation-triangle-fill text-danger me-1" title="ชั่วโมงทำงานผิดปกติ ${r.anomaliesCount} วัน"></i>`;
             if (r.outOfRangeCount > 0) flags += `<i class="bi bi-geo-alt-fill text-warning" title="ลงเวลานอกสถานที่ ${r.outOfRangeCount} ครั้ง"></i>`;
 
-            h += `<tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}"><td class="ps-3"><div class="user-cell">${window.getProfileImgHtml(r.uid, 32, 'profile-thumb', 'width:32px; height:32px;')}<div><div class="fw-bold" style="font-size:0.85rem;">${flags}${r.name}</div><small class="text-muted" style="font-size:0.7rem;">${r.dept}</small></div></div></td><td class="text-center"><div class="fw-bold">${r.days} วัน</div><div class="d-flex flex-wrap justify-content-center gap-1 mt-1">${shiftDetails || '<small class="text-muted" style="font-size:0.6rem;">ไม่มีข้อมูลกะ</small>'}</div></td><td class="text-center text-primary fw-bold" title="ชั่วโมงถ่วงน้ำหนักและจำกัดเพดาน">${r.hours.toFixed(2)}</td><td class="text-center"><span class="badge ${avgBadgeCol}">${r.avg.toFixed(2)}</span></td><td class="text-center ${r.lateCount > 0 ? 'text-danger fw-bold' : 'text-muted'}">${r.lateCount} ครั้ง</td><td class="text-center text-muted">${r.lateMins} น.</td><td class="text-end pe-3"><div class="fw-bold ${scoreColor}">${r.score.toFixed(1)}</div></td></tr>`;
+            h += `<tr class="${r.anomaliesCount > 0 ? 'table-light' : ''}"><td class="ps-3"><div class="user-cell">${window.getProfileImgHtml(r.uid, 32, 'profile-thumb', 'width:32px; height:32px;')}<div><div class="fw-bold" style="font-size:0.85rem;">${flags}${esc(r.name)}</div><small class="text-muted" style="font-size:0.7rem;">${esc(r.dept)}</small></div></div></td><td class="text-center"><div class="fw-bold">${r.days} วัน</div><div class="d-flex flex-wrap justify-content-center gap-1 mt-1">${shiftDetails || '<small class="text-muted" style="font-size:0.6rem;">ไม่มีข้อมูลกะ</small>'}</div></td><td class="text-center text-primary fw-bold" title="ชั่วโมงถ่วงน้ำหนักและจำกัดเพดาน">${r.hours.toFixed(2)}</td><td class="text-center"><span class="badge ${avgBadgeCol}">${r.avg.toFixed(2)}</span></td><td class="text-center ${r.lateCount > 0 ? 'text-danger fw-bold' : 'text-muted'}">${r.lateCount} ครั้ง</td><td class="text-center text-muted">${r.lateMins} น.</td><td class="text-end pe-3"><div class="fw-bold ${scoreColor}">${r.score.toFixed(1)}</div></td></tr>`;
         });
         tbody.innerHTML = h.trim() || '<tr><td colspan="7" class="text-center py-5">ไม่มีข้อมูลในช่วงเวลาที่เลือก</td></tr>';
 
@@ -3519,7 +3537,7 @@ window.viewUserStats = async (uid) => {
         }
 
         Swal.fire({
-            title: `<div class="d-flex align-items-center gap-2 text-start">${window.getProfileImgHtml(uid, 40, '', 'width:40px;height:40px;border-radius:50%;object-fit:cover;')} <div><div style="font-size:1.1rem;">${u.name}</div><div class="text-muted" style="font-size:0.8rem;">${uid}</div></div></div>`,
+            title: `<div class="d-flex align-items-center gap-2 text-start">${window.getProfileImgHtml(uid, 40, '', 'width:40px;height:40px;border-radius:50%;object-fit:cover;')} <div><div style="font-size:1.1rem;">${esc(u.name)}</div><div class="text-muted" style="font-size:0.8rem;">${uid}</div></div></div>`,
             html: `
     <div class="text-start mt-3">
                 <h6 class="fw-bold border-bottom pb-1">สถิติการทำงาน</h6>
@@ -3645,7 +3663,7 @@ function processSurveyData(responses) {
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div class="fw-bold text-primary small d-flex align-items-center gap-2">
                         ${window.getProfileImgHtml(r.userId, 24, 'rounded-circle')}
-                        ${r.name} <span class="badge bg-light text-dark fw-normal">${r.dept}</span>
+                        ${esc(r.name)} <span class="badge bg-light text-dark fw-normal">${esc(r.dept)}</span>
                     </div>
                     <small class="text-muted">${r.timestamp?.toDate().toLocaleDateString('th-TH')}</small>
                 </div>
@@ -3665,8 +3683,8 @@ function processSurveyData(responses) {
     <tr>
             <td>${r.timestamp?.toDate().toLocaleDateString('th-TH')}</td>
             <td>
-                <div class="fw-bold">${r.name}</div>
-                <div class="tiny-text text-muted">${r.dept}</div>
+                <div class="fw-bold">${esc(r.name)}</div>
+                <div class="tiny-text text-muted">${esc(r.dept)}</div>
             </td>
             <td>${r.answers['1']?.[0] || '-'}</td>
             <td class="text-center">
@@ -3777,13 +3795,13 @@ window.viewFullSurvey = async (id) => {
     <div class="mb-3 border-bottom pb-2">
             <div class="fw-bold text-muted mb-1">${q}</div>
             <div class="text-dark">${Array.isArray(ans) ? ans.join(', ') : (ans || '-')}</div>
-            ${reason ? `<div class="mt-1 p-2 bg-light rounded text-muted italic">"${reason}"</div>` : ''}
+            ${reason ? `<div class="mt-1 p-2 bg-light rounded text-muted italic">"${esc(reason)}"</div>` : ''}
         </div>`;
     });
     html += `</div>`;
 
     Swal.fire({
-        title: `ผลแบบสำรวจ: ${r.name} `,
+        title: `ผลแบบสำรวจ: ${esc(r.name)} `,
         html: html,
         width: '500px',
         confirmButtonText: 'ปิด'
