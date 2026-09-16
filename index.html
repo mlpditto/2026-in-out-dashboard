@@ -551,7 +551,7 @@
                 <div class="dashboard-identity">
                     <div class="dashboard-title-row">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50 app-version-badge" style="font-size: 10px;">v3.72</span>
+                        <span class="badge bg-secondary opacity-50 app-version-badge" style="font-size: 10px;">v3.73</span>
                     </div>
                     <small id="showEmpId" class="text-muted">ID</small>
                 </div>
@@ -1033,7 +1033,7 @@
 
 
     <script type="module">
-        import { getDeptCategoryColor } from './colors.js?v=3.72';
+        import { getDeptCategoryColor } from './colors.js?v=3.73';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -1851,6 +1851,9 @@
             const startTime = document.getElementById('reqStartTime').value;
             const endTime = document.getElementById('reqEndTime').value;
 
+            const submitBtn = document.getElementById('btnSubmitLeave');
+            if (submitBtn?.disabled) return; // already sending
+
             if (!start || !end) return Swal.fire('ข้อมูลไม่ครบ', 'ระบุวันเริ่มและวันสิ้นสุดให้ครบถ้วน', 'warning');
             if (start > end) return Swal.fire('ข้อมูลผิดพลาด', 'วันเริ่มต้องมาก่อนวันจบ', 'warning');
 
@@ -1863,6 +1866,45 @@
             } else {
                 // For Leave requests, reason might be more important, but let's keep it optional if needed
                 if (!reason && type !== 'อื่น ๆ') finalReason = `ขออนุญาต${type}`;
+            }
+
+            // Submitting a work schedule writes straight into `schedules`, overwriting whatever
+            // the admin rostered for those days - show what would be replaced and ask first.
+            if (isWorkSchedule) {
+                try {
+                    const clashSnap = await getDocs(query(collection(db, "schedules"),
+                        where("userId", "==", currentUser.lineUserId),
+                        where("date", ">=", start),
+                        where("date", "<=", end)));
+                    if (!clashSnap.empty) {
+                        const clashes = clashSnap.docs
+                            .map(d => d.data())
+                            .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+                        const lines = clashes.slice(0, 5)
+                            .map(c => `<li>${c.date} — ${c.shiftDetail || '(ไม่ระบุ)'}</li>`).join('');
+                        const more = clashes.length > 5 ? `<div class="small text-muted">และอีก ${clashes.length - 5} วัน</div>` : '';
+                        const ok = await Swal.fire({
+                            icon: 'warning',
+                            title: 'มีเวรอยู่แล้วในช่วงวันที่เลือก',
+                            html: `<div class="text-start small">ข้อมูลเดิมต่อไปนี้จะถูกแทนที่ด้วย <b>${startTime} - ${endTime}</b>:
+                                   <ul class="mt-2 mb-1 ps-3">${lines}</ul>${more}</div>`,
+                            showCancelButton: true,
+                            confirmButtonText: 'แทนที่เลย',
+                            cancelButtonText: 'ยกเลิก',
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d'
+                        });
+                        if (!ok.isConfirmed) return;
+                    }
+                } catch (err) {
+                    console.error('Schedule clash check failed:', err);
+                }
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.dataset.originalHtml = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังส่ง...';
             }
 
             try {
@@ -1898,7 +1940,14 @@
                 toggleLeaveForm();
                 loadSchedule();
                 loadHistory(); // Re-check buttons after shift is added
-            } catch (e) { Swal.fire('Error', e.message, 'error'); }
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    if (submitBtn.dataset.originalHtml) submitBtn.innerHTML = submitBtn.dataset.originalHtml;
+                }
+            }
         }
 
         async function loadMyLeaves() {
