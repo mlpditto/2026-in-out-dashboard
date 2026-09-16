@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.66';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.67';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -624,38 +624,87 @@ window.switchNurseRosterPanel = (btn) => {
     if (panel) panel.classList.remove('d-none');
 };
 
+// Scale the requested head count per shift down to the people actually available that
+// day, keeping the requested ratio, so no single shift is starved when staff run short.
+function allocateShiftQuota(counts, poolSize) {
+    const needed = counts.reduce((a, b) => a + b, 0);
+    if (!needed || needed <= poolSize) return [...counts];
+    const scaled = counts.map(c => (c * poolSize) / needed);
+    const quota = scaled.map(v => Math.floor(v));
+    let left = poolSize - quota.reduce((a, b) => a + b, 0);
+    const order = scaled
+        .map((v, i) => ({ frac: v - Math.floor(v), i }))
+        .filter(o => counts[o.i] > quota[o.i])
+        .sort((a, b) => b.frac - a.frac);
+    for (let k = 0; left > 0 && k < order.length; k++, left--) quota[order[k].i]++;
+    return quota;
+}
+
 window.autoFillNurseRoster = () => {
     const users = getRosterUsers();
     if (!users.length) return Swal.fire('ยังไม่มีพนักงาน', 'กรุณาโหลดข้อมูลพนักงานก่อนจัดเวรอัตโนมัติ', 'warning');
     const { year, month } = getRosterMonthParts();
     const days = new Date(year, month + 1, 0).getDate();
+    const readCount = (id) => Math.max(0, Number(document.getElementById(id)?.value) || 0);
     const limits = {
-        weekday: ['M', 'E', 'N'].map((_, i) => Number([document.getElementById('rosterWeekdayMorning')?.value, document.getElementById('rosterWeekdayEvening')?.value, document.getElementById('rosterWeekdayNight')?.value][i] || 0)),
-        holiday: ['M', 'E', 'N'].map((_, i) => Number([document.getElementById('rosterHolidayMorning')?.value, document.getElementById('rosterHolidayEvening')?.value, document.getElementById('rosterHolidayNight')?.value][i] || 0))
+        weekday: [readCount('rosterWeekdayMorning'), readCount('rosterWeekdayEvening'), readCount('rosterWeekdayNight')],
+        holiday: [readCount('rosterHolidayMorning'), readCount('rosterHolidayEvening'), readCount('rosterHolidayNight')]
     };
+    const existingMap = getRosterExistingMap();
+    let shortDays = 0, minPool = Infinity, maxNeeded = 0, leaveSkips = 0;
+
     for (let day = 1; day <= days; day++) {
         const date = getRosterDateKey(year, month, day);
         const isHoliday = [0, 6].includes(new Date(year, month, day).getDay());
         const counts = isHoliday ? limits.holiday : limits.weekday;
-        let cursor = day - 1;
+        const needed = counts.reduce((a, b) => a + b, 0);
+
+        // Approved leave is a hard constraint - never roster over it
+        const pool = users.filter(u => existingMap.get(`${u.id}_${date}`)?.key !== 'LEAVE');
+        leaveSkips += users.length - pool.length;
+        if (!pool.length) continue;
+
+        if (needed > pool.length) {
+            shortDays++;
+            minPool = Math.min(minPool, pool.length);
+            maxNeeded = Math.max(maxNeeded, needed);
+        }
+
+        // quota never exceeds pool.length, so every person is used at most once per day
+        const quota = allocateShiftQuota(counts, pool.length);
+        let cursor = (day - 1) % pool.length;
         ['M', 'E', 'N'].forEach((key, shiftIndex) => {
-            for (let i = 0; i < counts[shiftIndex] && i < users.length; i++) {
-                const user = users[(cursor + i) % users.length];
+            for (let i = 0; i < quota[shiftIndex]; i++) {
+                const user = pool[cursor % pool.length];
+                cursor++;
                 const shift = getRosterShiftByKey(key);
                 nurseRosterDraft.set(`${user.id}_${date}`, { key, detail: shift.detail, id: `${user.id}_${date}` });
             }
-            cursor += counts[shiftIndex];
         });
+
         users.forEach(u => {
             const docKey = `${u.id}_${date}`;
-            if (!nurseRosterDraft.has(docKey) && !getRosterExistingMap().has(docKey)) {
+            if (!nurseRosterDraft.has(docKey) && !existingMap.has(docKey)) {
                 const shift = getRosterShiftByKey('OFF');
                 nurseRosterDraft.set(docKey, { key: 'OFF', detail: shift.detail, id: docKey });
             }
         });
     }
     renderNurseRoster();
-    Toast.fire({ icon: 'success', title: 'จัดเวรอัตโนมัติในหน้าจอแล้ว กดบันทึกเพื่อยืนยัน' });
+
+    const notes = [];
+    if (shortDays) notes.push(`⚠️ มี ${shortDays} วันที่คนไม่พอ (ต้องการสูงสุด ${maxNeeded} คน/วัน แต่ว่างน้อยสุด ${minPool} คน) ระบบลดจำนวนแต่ละกะตามสัดส่วนให้แล้ว`);
+    if (leaveSkips) notes.push(`📋 ข้ามการจัดเวรให้คนที่มีวันลาอนุมัติแล้ว ${leaveSkips} ครั้ง`);
+    if (notes.length) {
+        Swal.fire({
+            icon: 'info',
+            title: 'จัดเวรอัตโนมัติในหน้าจอแล้ว',
+            html: `${notes.join('<br>')}<div class="text-muted small mt-2">ตรวจสอบแล้วกดบันทึกเพื่อยืนยัน</div>`,
+            confirmButtonColor: '#0ea5c6'
+        });
+    } else {
+        Toast.fire({ icon: 'success', title: 'จัดเวรอัตโนมัติในหน้าจอแล้ว กดบันทึกเพื่อยืนยัน' });
+    }
 };
 
 window.saveNurseRosterDraft = async () => {
