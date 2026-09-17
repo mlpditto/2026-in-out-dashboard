@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.86';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.87';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -494,11 +494,19 @@ function getRosterUsers() {
 // Every list of people in the app orders names the same way: Latin before Thai, then
 // alphabetically. localeCompare('th') alone puts Thai first, which split the two scripts
 // differently on the roster than on the staff tab.
+// Several departments and nicknames are stored with a leading emoji ("💊 Pharmacy"), and
+// localeCompare ranks emoji ahead of every letter - which is why the roster grouped
+// 💊 Pharmacy above CAFE. Compare the text after any leading symbol instead.
+function sortKey(value) {
+    return (value || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+}
+
 function compareUserNames(a, b) {
-    const startsThai = (s) => /^[\u0E00-\u0E7F]/.test((s || '').trim());
-    const aThai = startsThai(a), bThai = startsThai(b);
+    const ka = sortKey(a), kb = sortKey(b);
+    const startsThai = (s) => /^[\u0E00-\u0E7F]/.test(s);
+    const aThai = startsThai(ka), bThai = startsThai(kb);
     if (aThai !== bThai) return aThai ? 1 : -1;
-    return (a || '').localeCompare(b || '', 'th');
+    return ka.localeCompare(kb, 'th');
 }
 
 // Archive first out of the way, then group by position, then by name inside each group.
@@ -508,7 +516,7 @@ function compareRosterUsers(a, b) {
     const byActivity = Number(isRosterUserActive(b)) - Number(isRosterUserActive(a));
     if (byActivity) return byActivity;
 
-    const byRole = roleLabelForUser(a).localeCompare(roleLabelForUser(b), 'th');
+    const byRole = sortKey(roleLabelForUser(a)).localeCompare(sortKey(roleLabelForUser(b)), 'th');
     if (byRole) return byRole;
 
     return compareUserNames(a.name, b.name);
@@ -2220,7 +2228,7 @@ window.renderMainUserList = async () => {
     const makeUserRows = (list) => {
         // department first so colleagues sit together, then the shared name rule
         const sorted = (list || []).slice().sort((a, b) => {
-            const byDept = (a.dept || '').localeCompare(b.dept || '', 'th');
+            const byDept = sortKey(a.dept).localeCompare(sortKey(b.dept), 'th');
             if (byDept) return byDept;
             return compareUserNames(a.name, b.name);
         });
