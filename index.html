@@ -211,7 +211,7 @@
             grid-template-columns: minmax(0, 1fr) 58px;
             align-items: start;
             gap: 12px;
-            margin-bottom: 18px;
+            margin-bottom: 12px;
         }
 
         .dashboard-identity {
@@ -367,12 +367,34 @@
         }
 
         /* Cards & Lists */
+        .section-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            color: #6c757d;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .section-toggle span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .status-card {
             background: #f8f9fa;
-            padding: 20px;
+            padding: 14px;
             border-radius: 16px;
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 14px;
             border: 1px solid #eee;
         }
 
@@ -406,20 +428,20 @@
 
         /* Time Display */
         .digital-clock {
-            font-size: 3.5rem;
+            font-size: 2.75rem;
             font-weight: 800;
             color: #333;
             letter-spacing: -2px;
             line-height: 1;
-            margin: 10px 0;
+            margin: 4px 0;
             font-variant-numeric: tabular-nums;
         }
 
         .date-display {
             color: #666;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 500;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         /* Loader */
@@ -553,7 +575,16 @@
                         <h2 id="showName" class="text-truncate">User</h2>
                         <span class="badge bg-secondary opacity-50 app-version-badge" style="font-size: 10px;">v3.74</span>
                     </div>
-                    <small id="showEmpId" class="text-muted">ID</small>
+                    <!-- .dashboard-identity stacks its children, so the id and the reload
+                         icon have to share one flex item to stay on the same line -->
+                    <div style="max-width: 100%;">
+                        <small id="showEmpId" class="text-muted">ID</small>
+                        <button onclick="location.reload(true)" title="โหลดหน้าใหม่"
+                            class="btn border-0 p-0 ms-2 text-muted opacity-50"
+                            style="display: inline-flex; width: auto; margin-bottom: 0; line-height: 1; vertical-align: middle;">
+                            <i class="bi bi-arrow-clockwise" style="font-size: 13px;"></i>
+                        </button>
+                    </div>
                 </div>
                 <!-- Clickable Profile Picture -->
                 <div class="profile-photo-button"
@@ -578,10 +609,12 @@
             </div>
 
             <div class="status-card">
-                <div id="currentDate" class="date-display">...</div>
+                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <div id="currentDate" class="date-display">...</div>
+                    <div id="shiftStatus" class="badge rounded-pill bg-light text-dark border px-2 py-1"
+                        style="font-size: 0.7rem;">กะเช้า (08:00 - 17:00)</div>
+                </div>
                 <div id="clock" class="digital-clock">00:00:00</div>
-                <div id="shiftStatus" class="badge rounded-pill bg-light text-dark border px-3 py-1">กะเช้า (08:00 -
-                    17:00)</div>
             </div>
 
             <div class="row g-2">
@@ -593,7 +626,7 @@
                 </button>
             </div>
 
-            <div id="clockInStatusMsg" class="text-center text-muted small mt-2 mb-3 hidden">
+            <div id="clockInStatusMsg" class="text-center text-muted small mt-2 mb-2 hidden">
                 <i class="bi bi-info-circle"></i> คุณเพิ่งลงเวลาเข้างาน (ต้องทำงานอย่างน้อย 1 ชม.)
             </div>
 
@@ -733,12 +766,21 @@
                 <ul id="myLeaveList" class="history-list" style="max-height: 200px; overflow-y: auto;"></ul>
             </div>
 
-            <!-- Working Hours Summary -->
-            <div class="mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-2"
-                    onclick="toggleSection('workingHoursContent')" style="cursor: pointer;">
-                    <h4 class="text-muted m-0"><i class="bi bi-clock-history"></i> สรุปชั่วโมงการทำงาน</h4>
-                    <i class="bi bi-chevron-down text-muted" id="icon-workingHoursContent"></i>
+            <!-- Working hours and the roster share one row of toggles to save a screenful -->
+            <div class="mt-3">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <div class="section-toggle" onclick="toggleSection('workingHoursContent')">
+                            <span><i class="bi bi-clock-history"></i> ชั่วโมงงาน</span>
+                            <i class="bi bi-chevron-down text-muted" id="icon-workingHoursContent"></i>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="section-toggle" onclick="toggleSection('scheduleContent')">
+                            <span><i class="bi bi-calendar-event"></i> ตารางเวร</span>
+                            <i class="bi bi-chevron-down text-muted" id="icon-scheduleContent"></i>
+                        </div>
+                    </div>
                 </div>
                 <!-- Collapsible Content -->
                 <div id="workingHoursContent" style="display: none;">
@@ -818,8 +860,13 @@
                 </div>
             </div>
 
+            <!-- Schedule content - its toggle sits in the row above -->
+            <div id="scheduleContent" class="mb-2" style="display: none;">
+                <div id="scheduleList">กำลังโหลด...</div>
+            </div>
+
             <!-- Cash Submission Prompt -->
-            <div id="cashPrompt" class="mb-3 hidden"
+            <div id="cashPrompt" class="mb-2 hidden"
                 style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #20c997; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
                 onclick="show('cashPage')">
                 <div class="px-3 py-2 d-flex align-items-center gap-3">
@@ -831,28 +878,15 @@
                         <div class="fw-bold text-dark text-truncate"
                             style="font-size: 0.95rem; letter-spacing: -0.2px;">
                             นำส่งยอดเงินประจำกะ</div>
-                        <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
-                            บันทึกการส่งมอบเหรียญและธนบัตร 💰</div>
                     </div>
                     <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
                 </div>
             </div>
 
-            <!-- Schedule -->
-            <div class="mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-2"
-                    onclick="toggleSection('scheduleContent')" style="cursor: pointer;">
-                    <h4 class="text-muted m-0"><i class="bi bi-calendar-event"></i> ตารางเวรของฉัน</h4>
-                    <i class="bi bi-chevron-down text-muted" id="icon-scheduleContent"></i>
-                </div>
-                <div id="scheduleContent" style="display: none;">
-                    <div id="scheduleList">กำลังโหลด...</div>
-                </div>
-            </div>
 
             <!-- History Moved Inside Working Hours Summary -->
             <!-- Satisfaction Survey Card (Premium Balanced) - Moved to bottom -->
-            <div id="surveyPrompt" class="mb-3 mt-4"
+            <div id="surveyPrompt" class="mb-2 mt-3"
                 style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #ff8e71; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
                 onclick="show('surveyPage')">
                 <div class="px-3 py-2 d-flex align-items-center gap-3">
@@ -864,19 +898,11 @@
                         <div class="fw-bold text-dark text-truncate"
                             style="font-size: 0.95rem; letter-spacing: -0.2px;">
                             แบบสำรวจความพึงพอใจประจำกะ</div>
-                        <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
-                            ช่วยเราพัฒนาและปรับปรุงระบบให้ดียิ่งขึ้นครับ ✨</div>
                     </div>
                     <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
                 </div>
             </div>
 
-            <div class="text-center mt-5 mb-4">
-                <button onclick="location.reload(true)" class="btn btn-sm btn-outline-secondary border-0 opacity-50"
-                    style="font-size: 12px; width: auto; margin: 0 auto;">
-                    <i class="bi bi-arrow-clockwise"></i> Force Refresh
-                </button>
-            </div>
         </div>
 
         <!-- --- CASH SUBMISSION PAGE --- -->
@@ -1647,7 +1673,7 @@
                 }
                 if (statusMsg) {
                     statusMsg.classList.remove('hidden');
-                    statusMsg.innerHTML = `<div class="p-3 bg-warning bg-opacity-10 border border-warning rounded-3 text-start mb-1">
+                    statusMsg.innerHTML = `<div class="px-3 py-2 bg-warning bg-opacity-10 border border-warning rounded-3 text-start mb-1">
                         <div class="fw-bold text-warning-emphasis mb-1">${blockTitle}</div>
                         <div class="small text-muted mb-2">${blockNote}</div>
                         <button onclick="toggleLeaveForm(); document.getElementById('leaveType').value='แจ้งเวลาปฏิบัติงาน'; toggleTimeInputs();" 
