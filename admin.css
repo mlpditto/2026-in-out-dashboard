@@ -262,63 +262,88 @@ thead th {
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
-    margin: 1px 4px !important;
+    margin: 2px 4px !important;
     box-shadow: none !important;
 }
 
-.calendar-event-card {
-    display: flex;
-    flex-direction: column;
-    padding: 4px 8px;
-    background: #ffffff;
-    border-radius: 8px;
-    border-left: 4px solid #dee2e6;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-    cursor: pointer;
+.calendar-wrap {
+    position: relative;
 }
 
-.calendar-event-card:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    z-index: 100 !important;
+/* parked over FullCalendar's toolbar row so the two never share a DOM parent */
+#calModeSwitch {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 3;
+}
+
+#calendar .fc-toolbar.fc-header-toolbar {
+    padding-right: 175px;
+}
+
+@media (max-width: 767.98px) {
+    #calModeSwitch {
+        position: static;
+        margin-bottom: 12px;
+    }
+
+    #calendar .fc-toolbar.fc-header-toolbar {
+        padding-right: 0;
+    }
+}
+
+.calendar-event-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 5px;
+    background: #ffffff;
+    border-left: 3px solid #dee2e6;
+    transition: filter 0.15s ease;
+    overflow: hidden;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.calendar-event-row:hover {
+    filter: brightness(0.95);
 }
 
 .cursor-pointer {
     cursor: pointer !important;
 }
 
-.calendar-event-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 2px;
-}
-
-.calendar-event-header img {
-    width: 20px;
-    height: 20px;
+.calendar-event-row img {
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     object-fit: cover;
     border: 1px solid #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    flex: 0 0 18px;
 }
 
-.calendar-event-title {
+.calendar-event-name {
+    flex: 1 1 auto;
+    min-width: 0;
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #212529;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.calendar-event-subtitle {
-    font-size: 0.75rem;
+.calendar-event-value {
+    flex: 0 1 auto;
+    max-width: 60%;
+    font-size: 0.72rem;
     font-weight: 700;
     font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
     letter-spacing: -0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Status variants */
@@ -327,7 +352,7 @@ thead th {
     border-left-color: #0d6efd;
 }
 
-.status-soft-primary .calendar-event-subtitle {
+.status-soft-primary .calendar-event-value {
     color: #0d6efd;
 }
 
@@ -336,7 +361,7 @@ thead th {
     border-left-color: #198754;
 }
 
-.status-soft-success .calendar-event-subtitle {
+.status-soft-success .calendar-event-value {
     color: #198754;
 }
 
@@ -345,7 +370,7 @@ thead th {
     border-left-color: #f59e0b;
 }
 
-.status-soft-warning .calendar-event-subtitle {
+.status-soft-warning .calendar-event-value {
     color: #d97706;
 }
 
@@ -354,7 +379,7 @@ thead th {
     border-left-color: #dc3545;
 }
 
-.status-soft-danger .calendar-event-subtitle {
+.status-soft-danger .calendar-event-value {
     color: #dc3545;
 }
 
@@ -363,7 +388,7 @@ thead th {
     border-left-color: #6c757d;
 }
 
-.status-soft-secondary .calendar-event-subtitle {
+.status-soft-secondary .calendar-event-value {
     color: #6c757d;
 }
 

@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.93';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.94';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -2651,16 +2651,46 @@ window.toggleCalendarMode = (mode) => {
     const btnShift = document.getElementById('btnModeShift');
     const btnActual = document.getElementById('btnModeActual');
 
-    if (mode === 'schedule') {
-        btnShift.className = 'btn btn-primary btn-sm';
-        btnActual.className = 'btn btn-outline-success btn-sm';
-    } else {
-        btnShift.className = 'btn btn-outline-primary btn-sm';
-        btnActual.className = 'btn btn-success btn-sm';
+    if (btnShift && btnActual) {
+        btnShift.className = mode === 'schedule' ? 'btn btn-primary' : 'btn btn-outline-secondary';
+        btnActual.className = mode === 'schedule' ? 'btn btn-outline-secondary' : 'btn btn-success';
     }
 
+    renderCalendarLegend();
     if (calendarObj) calendarObj.refetchEvents();
 };
+
+// The colours in the grid mean different things per mode, so the key has to follow the mode
+function renderCalendarLegend() {
+    const box = document.getElementById('calLegend');
+    if (!box) return;
+
+    const chip = (bg, fg, label) =>
+        `<span class="badge rounded-pill" style="background:${bg};color:${fg};font-weight:600;font-size:0.72rem;">${esc(label)}</span>`;
+
+    let html = '';
+    if (customCalendarMode === 'attendance') {
+        // one chip per colour, not per spelling - Pharmacy and คลังยา share a colour
+        const seen = new Set();
+        Object.values(window.allUserData || {}).forEach(u => {
+            const d = (u.dept || '').trim();
+            if (!d) return;
+            const c = getDeptCategoryColor(d);
+            if (seen.has(c)) return;
+            seen.add(c);
+            html += chip(getDeptPastelColor(d), c, d);
+        });
+        html = '<span class="small text-muted me-1">แผนก · ตัวเลขคือชั่วโมง</span>' + html;
+    } else {
+        html = '<span class="small text-muted me-1">ประเภทเวร</span>'
+            + chip('#f0f7ff', '#0d6efd', 'เช้า')
+            + chip('#fffbeb', '#d97706', 'บ่าย / เที่ยง')
+            + chip('#fef2f2', '#dc3545', 'ลา / หยุด')
+            + chip('#f8f9fa', '#6c757d', 'อื่น ๆ');
+    }
+    box.innerHTML = html;
+}
+window.renderCalendarLegend = renderCalendarLegend;
 
 window.renderCharts = async () => {
     const mStr = document.getElementById('chartMonth').value; // YYYY-MM
@@ -2764,27 +2794,16 @@ function initCalendar() {
     calendarObj = new FullCalendar.Calendar(document.getElementById('calendar'), {
         initialView: 'dayGridMonth',
         locale: 'th',
-        dayMaxEvents: true,
+        // a fixed count, not `true` - `true` fits rows to the cell and stops at two.
+        // Only the locale-aware date formatting comes from Intl; the button strings
+        // need the separate locales bundle, so the few we use are set here instead.
+        dayMaxEvents: 4,
+        buttonText: { today: 'วันนี้' },
+        moreLinkText: (n) => `+${n} คน`,
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'attendanceMode,scheduleMode'
-        },
-        customButtons: {
-            attendanceMode: {
-                text: 'เข้างาน',
-                click: function () {
-                    customCalendarMode = 'attendance';
-                    calendarObj.refetchEvents();
-                }
-            },
-            scheduleMode: {
-                text: 'ตารางเวร',
-                click: function () {
-                    customCalendarMode = 'schedule';
-                    calendarObj.refetchEvents();
-                }
-            }
+            right: ''
         },
         dateClick: function (info) {
             if (customCalendarMode === 'attendance') {
@@ -2811,7 +2830,7 @@ function initCalendar() {
         eventContent: function (arg) {
             const props = arg.event.extendedProps;
             const type = props.type;
-            const imgHtml = window.getProfileImgHtml(props.uid, 20, '', 'width:20px;height:20px;border-radius:50%;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,0.1);');
+            const imgHtml = window.getProfileImgHtml(props.uid, 18, '', 'width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid #fff;flex:0 0 18px;');
             const name = props.name || arg.event.title;
             const detail = props.detail || '';
 
@@ -2827,14 +2846,15 @@ function initCalendar() {
 
             const tooltip = `${name}${detail ? '\n' + detail : ''}${props.reason && props.reason !== detail ? '\nหมายเหตุ: ' + props.reason : ''}`;
 
+            // the unit sits in the legend once, not on every row of every day
+            const value = type === 'attendance' ? (props.hours || '') : (detail || arg.event.title);
+
             return {
                 html: `
-                <div class="calendar-event-card ${statusClass}" style="${customStyle}" title="${esc(tooltip)}">
-                    <div class="calendar-event-header">
-                        ${imgHtml}
-                        <div class="calendar-event-title" style="${type === 'attendance' ? 'color: #333;' : ''}">${esc(name)}</div>
-                    </div>
-                    <div class="calendar-event-subtitle" style="${type === 'attendance' ? `color: ${props.deptColor};` : ''}">${detail || arg.event.title}</div>
+                <div class="calendar-event-row ${statusClass}" style="${customStyle}" title="${esc(tooltip)}">
+                    ${imgHtml}
+                    <span class="calendar-event-name" style="${type === 'attendance' ? 'color: #333;' : ''}">${esc(name)}</span>
+                    <span class="calendar-event-value" style="${type === 'attendance' ? `color: ${props.deptColor};` : ''}">${esc(value)}</span>
                 </div>`
             };
         },
@@ -2904,7 +2924,8 @@ function initCalendar() {
                             let baseColor = getDeptCategoryColor(i.d);
                             let pastelColor = getDeptPastelColor(i.d);
                             let prof = window.allUserData?.[i.uid] || {};
-                            const hrsStr = `${(ms / 3600).toFixed(2)} ชม.`;
+                            const hrsNum = (ms / 3600).toFixed(2);
+                            const hrsStr = `${hrsNum} ชม.`;
                             ev.push({
                                 title: hrsStr,
                                 start: k.split('_')[1],
@@ -2915,6 +2936,7 @@ function initCalendar() {
                                     uid: i.uid,
                                     name: i.n,
                                     detail: hrsStr,
+                                    hours: hrsNum,
                                     reason: `สรุปเวลาเข้างาน: ${hrsStr}`, // Add reason for attendance
                                     startDate: k.split('_')[1], // Add startDate for attendance
                                     endDate: k.split('_')[1],   // Add endDate for attendance
@@ -2931,6 +2953,10 @@ function initCalendar() {
         }
     });
     calendarObj.render();
+
+    // The switch is parked over the toolbar row by CSS, not moved into it -
+    // render() runs again on every tab switch and would drop a foreign child.
+    toggleCalendarMode(customCalendarMode);
 }
 
 // Explicit export to window object to ensure availability
