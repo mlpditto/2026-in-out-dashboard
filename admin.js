@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.84';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.85';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -488,13 +488,20 @@ function getRosterUsers() {
             }
         }
     });
-    // Someone with no clock-in for 15 days still needs a row - they may hold shifts this
-    // month - but they sink below the people actually working.
-    return users.sort((a, b) => {
-        const byActivity = Number(isRosterUserActive(b)) - Number(isRosterUserActive(a));
-        if (byActivity) return byActivity;
-        return (a.name || '').localeCompare(b.name || '', 'th');
-    });
+    return users.sort(compareRosterUsers);
+}
+
+// Archive first out of the way, then group by position, then by name inside each group.
+// Kept separate from getRosterUsers so the ordering can be tested on its own.
+function compareRosterUsers(a, b) {
+    // archived people still need a row - they may hold shifts - but they belong last
+    const byActivity = Number(isRosterUserActive(b)) - Number(isRosterUserActive(a));
+    if (byActivity) return byActivity;
+
+    const byRole = roleLabelForUser(a).localeCompare(roleLabelForUser(b), 'th');
+    if (byRole) return byRole;
+
+    return (a.name || '').localeCompare(b.name || '', 'th');
 }
 
 // Same definition the พนักงาน tab uses to split Active from Archive: status Inactive is
