@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.89';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.90';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -1067,6 +1067,13 @@ window.delSched = async (id) => {
     }
 };
 
+window.openLeaveRequests = () => {
+    const el = document.getElementById('leaveRequestsModal');
+    if (!el) return switchTab('manage');
+    bootstrap.Modal.getOrCreateInstance(el).show();
+    loadLeaveRequests();
+};
+
 window.loadLeaveRequests = async () => {
     const tPending = document.getElementById('leavePendingTableBody');
     const tApproved = document.getElementById('leaveApprovedTableBody');
@@ -1095,6 +1102,7 @@ window.loadLeaveRequests = async () => {
         let hApproved = "";
         let hSchedApproved = "";
         let pendingCount = 0;
+        const pendingByType = {};
         let yCount = 0;
         let mCount = 0;
         const usersApprovedYear = new Set();
@@ -1111,7 +1119,11 @@ window.loadLeaveRequests = async () => {
                 dDate = ts;
             }
 
-            if (v.status === 'Pending') pendingCount++;
+            if (v.status === 'Pending') {
+                pendingCount++;
+                const t = (v.type || 'อื่น ๆ').trim();
+                pendingByType[t] = (pendingByType[t] || 0) + 1;
+            }
             if (v.status === 'Approved') {
                 if (dDate.getFullYear() === thisYear) {
                     yCount++;
@@ -1220,6 +1232,16 @@ window.loadLeaveRequests = async () => {
         if (tSchedApproved) tSchedApproved.innerHTML = hSchedApproved || '<tr><td colspan="4" class="text-center text-muted py-3">ไม่มีรายการแจ้งเวร</td></tr>';
 
         const sl = document.getElementById('statLeave'); if (sl) sl.innerText = pendingCount;
+
+        // The stat card says what is waiting without anyone opening the dialog. Nothing
+        // pending means no chips at all, so the card keeps the height it always had.
+        const chips = document.getElementById('leaveTypeChips');
+        if (chips) {
+            chips.innerHTML = Object.entries(pendingByType)
+                .sort((a, b) => b[1] - a[1])
+                .map(([type, n]) => `<span class="leave-chip">${esc(type)} ${n}</span>`)
+                .join('');
+        }
         const sm = document.getElementById('statLeaveMonth'); if (sm) sm.innerText = mCount;
         const sy = document.getElementById('statLeaveYear'); if (sy) sy.innerText = yCount;
 
