@@ -29,8 +29,7 @@
       "functions/**",
       "test/**",
       "firestore.rules",
-      "storage.rules",
-      "firestore.rules.layer2"
+      "storage.rules"
     ],
     "headers": [
       {

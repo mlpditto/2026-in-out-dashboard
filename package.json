@@ -6,8 +6,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "deploy": "gh-pages -d dist",
-    "test:rules": "firebase emulators:exec --only firestore \"node --test test/firestore.rules.test.mjs\"",
-    "test:rules:layer2": "firebase emulators:exec --only firestore \"node --test test/firestore.rules.layer2.test.mjs\""
+    "test:rules": "firebase emulators:exec --only firestore \"node --test test/firestore.rules.test.mjs\""
   },
   "repository": {
     "type": "git",

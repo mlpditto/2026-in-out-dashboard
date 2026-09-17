@@ -1,8 +1,10 @@
 # 🔐 Layer 2 — ยืนยันตัวตนพนักงานด้วย Firebase Auth
 
-สถานะ: **function + หน้าเว็บ deploy แล้ว (2026-09-17) — rules ยังเป็น Layer 1**
+สถานะ: **เสร็จสมบูรณ์ ใช้งานจริงแล้ว (2026-09-17)**
 
-เหลือขั้นที่ 6 (ทดสอบจากมือถือจริง) และขั้นที่ 7 (สลับ rules) เท่านั้น
+rules ของ Layer 2 อยู่ใน `firestore.rules` และ deploy ไปแล้ว ยืนยันแล้วว่าคนนอกอ่านไม่ได้ (`403 PERMISSION_DENIED`) และพนักงานตัวจริงยังใช้งานได้ปกติ
+
+ขั้นตอนด้านล่างเก็บไว้เป็นบันทึกว่าทำอย่างไร เผื่อต้องตั้งโปรเจกต์ใหม่หรือย้อนกลับ
 
 ---
 
@@ -37,12 +39,13 @@ LIFF id token ──▶ Cloud Function (lineLogin) ──▶ LINE verify API
 |------|--------|
 | `functions/index.js` | Cloud Function `lineLogin` — ตรวจ id token กับ LINE แล้วออก Firebase custom token |
 | `functions/package.json` | dependencies ของ function (Node 22) |
-| `firestore.rules.layer2` | rules ชุดใหม่ **ยังไม่ใช่ตัวที่ deploy** (`firebase.json` ยังชี้ไปที่ `firestore.rules`) |
-| `test/firestore.rules.layer2.test.mjs` | เทส 30 เคสของ rules ชุดใหม่ |
+| `firestore.rules` | rules ที่ใช้งานจริง (เนื้อหาคือ Layer 2) |
+| `test/firestore.rules.test.mjs` | ชุดเทสเดียวของโปรเจกต์ 39 เคส อ่าน `firestore.rules` ตรง ๆ |
 | `index.html` | เรียก `signInWithLine()` ก่อนโหลดข้อมูล |
 
-`index.html` ออกแบบให้ **ล้มแบบไม่พังหน้าเว็บ**: ถ้ายังไม่มี function ให้เรียก จะ log คำเตือนแล้วทำงานต่อ
-ตาม rules ปัจจุบันได้ตามปกติ — deploy hosting ก่อน function ได้โดยไม่มีอะไรเสียหาย
+`index.html` ออกแบบให้ **ล้มแบบไม่พังหน้าเว็บ**: ถ้าเรียก function ไม่สำเร็จ จะ log คำเตือนแล้วทำงานต่อ
+ซึ่งช่วยตอน rollout (deploy hosting ก่อน function ได้) แต่ตอนนี้ rules เป็น Layer 2 แล้ว
+ถ้า sign-in ล้มจริง หน้าพนักงานจะโหลดข้อมูลไม่ได้เลย — คำเตือนในหน้าคือสัญญาณแรกที่ต้องดู
 
 ---
 
@@ -123,14 +126,13 @@ npm run deploy
 เปิดหน้าพนักงานจาก LINE จริง แล้วดูว่า debug log ขึ้น **"ยืนยันตัวตนกับระบบเรียบร้อย"**
 ถ้ายังขึ้น "⚠️ ยังไม่ได้ยืนยันตัวตนกับ Firebase" **ห้ามทำขั้นที่ 7** เพราะพนักงานจะใช้งานไม่ได้ทั้งระบบ
 
-### 7. สลับ rules เป็น Layer 2
+### 7. สลับ rules เป็น Layer 2 ✅ ทำไปแล้ว
+
+ทำเมื่อ 2026-09-17 (commit `4e1f918`) ตอนนี้ `firestore.rules` คือ Layer 2 เรียบร้อย
+ถ้าแก้ rules ในอนาคต ให้รันเทสก่อน deploy เสมอ
 
 ```bash
-npm run test:rules:layer2
-```
-
-```bash
-cp firestore.rules.layer2 firestore.rules
+npm run test:rules
 ```
 
 ```bash
@@ -175,9 +177,14 @@ rules ชุดเก่ายอมให้ anonymous อ่านได้ �
 npm run test:rules
 ```
 
+ชุดเดียว 39 เคส อ่าน `firestore.rules` ตัวที่ deploy จริง (เดิมแยกเป็นสองชุด รวมกันแล้วเมื่อ 2026-09-17)
+
+อยากรู้ว่าชุดเทสยังจับ regression ได้จริงไหม ให้ยิงกับ rules ตัวเก่าดู — ต้องตก:
+
 ```bash
-npm run test:rules:layer2
+git show 625f190:firestore.rules > /tmp/layer1.rules
 ```
 
-ชุดแรกเทส rules ที่ใช้งานจริงตอนนี้ (36 เคส) ชุดหลังเทส `firestore.rules.layer2` (30 เคส)
-เมื่อสลับไปใช้ Layer 2 แล้ว ให้ย้ายเคสที่ยังมีประโยชน์จากชุดแรกมารวมกัน แล้วลบชุดเก่าทิ้ง
+```bash
+RULES_FILE=/tmp/layer1.rules npm run test:rules
+```
