@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.79';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.80';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -240,10 +240,20 @@ window.selectUserPick = (el) => {
     applyCafeShiftChips(el.getAttribute('data-dept'));
 };
 
+// One rule for "does this person work CAFE hours?", used by the create-shift chips and by
+// the roster cell picker. Accepts either the department string or the whole user record.
+function isCafeRole(value) {
+    if (!value) return false;
+    const text = typeof value === 'string'
+        ? value
+        : [value.dept, value.position, value.role, value.department].filter(Boolean).join(' ');
+    return /cafe|คาเฟ่/i.test(text);
+}
+
 // The CAFE hours are only offered while a CAFE employee is picked, so the shift list for
 // everybody else stays as short as it was.
 function applyCafeShiftChips(dept) {
-    const isCafe = /cafe|คาเฟ่/i.test(dept || '');
+    const isCafe = isCafeRole(dept);
     document.querySelectorAll('#shiftChips .cafe-only').forEach(chip => chip.classList.toggle('d-none', !isCafe));
     if (isCafe) return;
 
@@ -685,6 +695,13 @@ window.setNurseRosterCell = async (userId, date) => {
         NURSE_ROSTER_SHIFTS.forEach(s => {
             inputOptions[s.key] = `${s.label} (${s.name})`;
         });
+        // CAFE hours are offered per employee here rather than from the palette, which
+        // paints whatever is selected onto whichever row gets clicked.
+        if (isCafeRole(user)) {
+            CAFE_ROSTER_SHIFTS.forEach(s => {
+                inputOptions[s.key] = `☕ ${s.label} (${s.name})`;
+            });
+        }
 
         const { value: selectedKey } = await Swal.fire({
             title: `เลือกเวรสำหรับ ${userName}`,
