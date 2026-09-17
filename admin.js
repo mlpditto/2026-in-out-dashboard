@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.96';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.97';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -2838,6 +2838,11 @@ function initCalendar() {
             });
             renderDetailModal(p.detail || 'รายละเอียด', '#6c757d', p.id || info.event.id, safeObj);
         },
+        // fires once the events are actually in the calendar - the key reads them
+        // back, so rendering it before s(ev) found an empty calendar
+        eventsSet: function () {
+            renderCalendarLegend();
+        },
         eventContent: function (arg) {
             const props = arg.event.extendedProps;
             const type = props.type;
@@ -2973,7 +2978,6 @@ function initCalendar() {
                     });
                 }
 
-                renderCalendarLegend();
                 s(ev)
             } catch (e) { console.error(e); f(e) }
         }
