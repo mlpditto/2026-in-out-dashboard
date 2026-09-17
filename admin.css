@@ -639,6 +639,18 @@ thead th {
 
 .topbar-tabs .nav-link.active span { display: inline; margin-left: 7px; }
 
+/* The pending-leave breakdown that sits on the stat card. */
+.leave-chip {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(154, 52, 18, 0.25);
+    color: #9a3412;
+    white-space: nowrap;
+}
+
 .nurse-roster-hero {
     display: flex;
     justify-content: space-between;
