@@ -6,6 +6,7 @@ export function getDeptCategoryColor(dept) {
     if (dept.match(/IT|ไอที/i)) return '#5a2d9c';                  // High-Contrast Purple
     if (dept.match(/Admin|ธุรการ/i)) return '#c21b2e';               // High-Contrast Red
     if (dept.match(/Sales|การตลาด/i)) return '#e65100';            // High-Contrast Orange
+    if (dept.match(/CAFE|คาเฟ่/i)) return '#c2185b';                // Sakura Rose (deep enough for white text)
     if (dept.match(/HR|บุคคล/i)) return '#b82167';                 // High-Contrast Pink
     return '#1a1d20';                                             // High-Contrast Dark
 }
@@ -18,6 +19,7 @@ export function getDeptPastelColor(dept) {
     if (dept.match(/IT|ไอที/i)) return '#f3e5f5';                  // Pastel Purple
     if (dept.match(/Admin|ธุรการ/i)) return '#ffebee';               // Pastel Red
     if (dept.match(/Sales|การตลาด/i)) return '#fff3e0';            // Pastel Orange
+    if (dept.match(/CAFE|คาเฟ่/i)) return '#ffdce7';                // Sakura Blossom petal
     if (dept.match(/HR|บุคคล/i)) return '#fce4ec';                 // Pastel Pink
     return '#f8f9fa';                                             // Default Light
 }
