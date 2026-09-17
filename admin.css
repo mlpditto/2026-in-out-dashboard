@@ -334,9 +334,11 @@ thead th {
     text-overflow: ellipsis;
 }
 
+/* never shrinks: the number is the point of the row, so the name absorbs the
+   truncation on its own. Only the roster's free-text shift labels may clip. */
 .calendar-event-value {
-    flex: 0 1 auto;
-    max-width: 60%;
+    flex: 0 0 auto;
+    max-width: 62%;
     font-size: 0.72rem;
     font-weight: 700;
     font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
@@ -344,6 +346,17 @@ thead th {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.calendar-event-row.is-attendance .calendar-event-value {
+    max-width: none;
+}
+
+#calLegend .badge {
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Status variants */
