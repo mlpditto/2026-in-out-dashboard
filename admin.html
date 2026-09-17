@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="admin.css?v=3.90">
+    <link rel="stylesheet" href="admin.css?v=3.91">
 </head>
 
 <body>
@@ -75,7 +75,7 @@
                         </li>
                     </ul>
                 </div>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.90</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.91</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -208,6 +208,87 @@
             <!-- Leave requests used to sit here as a full card that spent ~185px saying
                  "ไม่มีคำขอที่รออนุมัติ" on most days. It is now a dialog opened from the
                  รออนุมัติ stat card, which carries the counts inline. -->
+            <!-- Creating a shift by hand covers what the grid cannot: the 09-18 and 10-19
+                 shifts, the three leave types kept apart, a custom time, and any date
+                 outside the month on screen. -->
+            <div class="modal fade" id="specialShiftModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-white">
+                            <span class="fw-bold">➕ เวรพิเศษ / ลา</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+                        </div>
+                        <div class="modal-body">
+                                <form onsubmit="createSchedule(event)">
+                                    <!-- Employee Picker with Profile Pictures -->
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">พนักงาน</label>
+                                        <input type="text" id="userSearchInput"
+                                            class="form-control form-control-sm mb-2" placeholder="🔍 ค้นหาชื่อ...">
+                                        <input type="hidden" id="userSelect" required>
+                                        <div id="userPickerList"
+                                            style="max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding-right:4px;">
+                                        </div>
+                                    </div>
+                                    <!-- Date -->
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">วันที่</label>
+                                        <input type="date" id="schedDate" class="form-control" required>
+                                    </div>
+                                    <!-- Shift Chip Buttons -->
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">กะ / รายละเอียด</label>
+                                        <div id="shiftChips" class="d-flex flex-wrap gap-2">
+                                            <button type="button" class="shift-chip active"
+                                                data-value="☀️ เช้า (08:00 - 17:00)" onclick="selectShiftChip(this)">☀️
+                                                เช้า 08-17</button>
+                                            <button type="button" class="shift-chip"
+                                                data-value="☀️ เช้า (09:00 - 18:00)" onclick="selectShiftChip(this)">☀️
+                                                เช้า 09-18</button>
+                                            <button type="button" class="shift-chip"
+                                                data-value="🕛 เที่ยง (11:00 - 20:00)"
+                                                onclick="selectShiftChip(this)">🕛 เที่ยง 11-20</button>
+                                            <button type="button" class="shift-chip"
+                                                data-value="🕛 เที่ยง (12:00 - 21:00)"
+                                                onclick="selectShiftChip(this)">🕛 เที่ยง 12-21</button>
+                                            <button type="button" class="shift-chip" data-value="🕙 สาย (10:00 - 19:00)"
+                                                onclick="selectShiftChip(this)">🕙 สาย 10-19</button>
+                                            <button type="button" class="shift-chip" data-value="☀️ บ่ายพิเศษ (10:00 - 20:00)"
+                                                onclick="selectShiftChip(this)">☀️ บ่ายพิเศษ 10-20</button>
+                                            <button type="button" class="shift-chip cafe-only d-none"
+                                                data-value="☕ CAFE (07:30 - 16:30)"
+                                                onclick="selectShiftChip(this)">☕ CAFE 07:30-16:30</button>
+                                            <button type="button" class="shift-chip cafe-only d-none"
+                                                data-value="☕ CAFE (08:30 - 17:30)"
+                                                onclick="selectShiftChip(this)">☕ CAFE 08:30-17:30</button>
+                                            <button type="button" class="shift-chip" data-value="🚫 หยุด (Day Off)"
+                                                onclick="selectShiftChip(this)">🚫 หยุด</button>
+                                            <button type="button" class="shift-chip" data-value="🤒 ลาป่วย"
+                                                onclick="selectShiftChip(this)">🤒 ลาป่วย</button>
+                                            <button type="button" class="shift-chip" data-value="🌴 ลาพักร้อน"
+                                                onclick="selectShiftChip(this)">🌴 ลาพักร้อน</button>
+                                            <button type="button" class="shift-chip" data-value="📋 ลากิจ"
+                                                onclick="selectShiftChip(this)">📋 ลากิจ</button>
+                                            <button type="button" class="shift-chip" data-value="custom"
+                                                onclick="selectShiftChip(this)">⚙️ กำหนดเอง</button>
+                                        </div>
+                                        <input type="hidden" id="schedType" value="☀️ เช้า (08:00 - 17:00)">
+                                    </div>
+                                    <div id="customTimeBox" class="d-none mb-3">
+                                        <label class="form-label small text-muted">เวลา (เริ่ม - สิ้นสุด)</label>
+                                        <div class="d-flex gap-2">
+                                            <input type="time" id="customStart" class="form-control" value="08:00">
+                                            <span class="align-self-center">-</span>
+                                            <input type="time" id="customEnd" class="form-control" value="17:00">
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 py-2">บันทึก</button>
+                                </form>
+                            </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="modal fade" id="leaveRequestsModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-xl modal-dialog-scrollable">
                     <div class="modal-content border-0 shadow">
@@ -334,6 +415,7 @@
                             </details>
 
                             <div class="rt-actions">
+                                <button type="button" class="rt-btn" onclick="openSpecialShift()" title="เวรพิเศษ / ลา — กะนอกแถบ, แยกประเภทลา, กำหนดเวลาเอง, วันที่นอกเดือนนี้">➕ เวรพิเศษ / ลา</button>
                                 <button type="button" class="rt-btn" onclick="autoFillNurseRoster()" title="จัดเวรอัตโนมัติ">🪄</button>
                                 <button type="button" id="btnSaveRoster" class="rt-btn rt-save" onclick="saveNurseRosterDraft()" title="บันทึกตารางเวร">💾 <span id="rosterSaveLabel">บันทึก</span></button>
                                 <button type="button" class="rt-btn" onclick="exportNurseRosterCsv()" title="ส่งออก Excel">📊</button>
@@ -350,6 +432,9 @@
                             </button>
                             <button type="button" data-roster-panel="ot" onclick="switchNurseRosterPanel(this)">
                                 <i class="bi bi-wallet2"></i>OT <span id="rosterOtCount">0</span>
+                            </button>
+                            <button type="button" data-roster-panel="recent" onclick="switchNurseRosterPanel(this)">
+                                <i class="bi bi-list-task"></i>รายการล่าสุด
                             </button>
                             <button type="button" data-roster-panel="guide" onclick="switchNurseRosterPanel(this)">
                                 <i class="bi bi-question-circle"></i>คู่มือ
@@ -371,92 +456,10 @@
                         <div id="nurseRosterPanelOt" class="roster-panel d-none">
                             <div id="nurseRosterOt" class="roster-summary-grid"></div>
                         </div>
-                        <div id="nurseRosterPanelGuide" class="roster-panel d-none">
-                            <div class="roster-guide">
-                                <div><strong>วิธีใช้</strong> เลือกกะจากแถบสี แล้วคลิกช่องวันที่ของพนักงานเพื่อใส่/เปลี่ยนเวร</div>
-                                <div><strong>บันทึก</strong> ระบบจะบันทึกลง collection schedules ด้วยรูปแบบเดิมของระบบ</div>
-                                <div><strong>อัตโนมัติ</strong> ใช้จำนวนคนต่อกะด้านบนและกระจายเวรแบบหมุนเวียนตามวัน</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="card shadow-sm border-0 mb-3">
-                            <div class="card-header bg-white py-3 fw-bold"><i
-                                    class="bi bi-plus-circle me-2"></i>สร้างเวรทำงาน</div>
-                            <div class="card-body">
-                                <form onsubmit="createSchedule(event)">
-                                    <!-- Employee Picker with Profile Pictures -->
-                                    <div class="mb-3">
-                                        <label class="form-label small text-muted">พนักงาน</label>
-                                        <input type="text" id="userSearchInput"
-                                            class="form-control form-control-sm mb-2" placeholder="🔍 ค้นหาชื่อ...">
-                                        <input type="hidden" id="userSelect" required>
-                                        <div id="userPickerList"
-                                            style="max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding-right:4px;">
-                                        </div>
-                                    </div>
-                                    <!-- Date -->
-                                    <div class="mb-3">
-                                        <label class="form-label small text-muted">วันที่</label>
-                                        <input type="date" id="schedDate" class="form-control" required>
-                                    </div>
-                                    <!-- Shift Chip Buttons -->
-                                    <div class="mb-3">
-                                        <label class="form-label small text-muted">กะ / รายละเอียด</label>
-                                        <div id="shiftChips" class="d-flex flex-wrap gap-2">
-                                            <button type="button" class="shift-chip active"
-                                                data-value="☀️ เช้า (08:00 - 17:00)" onclick="selectShiftChip(this)">☀️
-                                                เช้า 08-17</button>
-                                            <button type="button" class="shift-chip"
-                                                data-value="☀️ เช้า (09:00 - 18:00)" onclick="selectShiftChip(this)">☀️
-                                                เช้า 09-18</button>
-                                            <button type="button" class="shift-chip"
-                                                data-value="🕛 เที่ยง (11:00 - 20:00)"
-                                                onclick="selectShiftChip(this)">🕛 เที่ยง 11-20</button>
-                                            <button type="button" class="shift-chip"
-                                                data-value="🕛 เที่ยง (12:00 - 21:00)"
-                                                onclick="selectShiftChip(this)">🕛 เที่ยง 12-21</button>
-                                            <button type="button" class="shift-chip" data-value="🕙 สาย (10:00 - 19:00)"
-                                                onclick="selectShiftChip(this)">🕙 สาย 10-19</button>
-                                            <button type="button" class="shift-chip" data-value="☀️ บ่ายพิเศษ (10:00 - 20:00)"
-                                                onclick="selectShiftChip(this)">☀️ บ่ายพิเศษ 10-20</button>
-                                            <button type="button" class="shift-chip cafe-only d-none"
-                                                data-value="☕ CAFE (07:30 - 16:30)"
-                                                onclick="selectShiftChip(this)">☕ CAFE 07:30-16:30</button>
-                                            <button type="button" class="shift-chip cafe-only d-none"
-                                                data-value="☕ CAFE (08:30 - 17:30)"
-                                                onclick="selectShiftChip(this)">☕ CAFE 08:30-17:30</button>
-                                            <button type="button" class="shift-chip" data-value="🚫 หยุด (Day Off)"
-                                                onclick="selectShiftChip(this)">🚫 หยุด</button>
-                                            <button type="button" class="shift-chip" data-value="🤒 ลาป่วย"
-                                                onclick="selectShiftChip(this)">🤒 ลาป่วย</button>
-                                            <button type="button" class="shift-chip" data-value="🌴 ลาพักร้อน"
-                                                onclick="selectShiftChip(this)">🌴 ลาพักร้อน</button>
-                                            <button type="button" class="shift-chip" data-value="📋 ลากิจ"
-                                                onclick="selectShiftChip(this)">📋 ลากิจ</button>
-                                            <button type="button" class="shift-chip" data-value="custom"
-                                                onclick="selectShiftChip(this)">⚙️ กำหนดเอง</button>
-                                        </div>
-                                        <input type="hidden" id="schedType" value="☀️ เช้า (08:00 - 17:00)">
-                                    </div>
-                                    <div id="customTimeBox" class="d-none mb-3">
-                                        <label class="form-label small text-muted">เวลา (เริ่ม - สิ้นสุด)</label>
-                                        <div class="d-flex gap-2">
-                                            <input type="time" id="customStart" class="form-control" value="08:00">
-                                            <span class="align-self-center">-</span>
-                                            <input type="time" id="customEnd" class="form-control" value="17:00">
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 py-2">บันทึก</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card shadow-sm border-0 h-100">
+                        <!-- The recent list is another view of the same schedules the grid draws, so it
+                             lives beside it as a tab rather than trailing the page. -->
+                        <div id="nurseRosterPanelRecent" class="roster-panel d-none">
+                            <div class="card shadow-sm border-0 h-100">
                             <div class="card-header bg-white py-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="fw-bold"><i class="bi bi-list-task me-2"></i>รายการเวรล่าสุด</span>
@@ -499,9 +502,19 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
+
+                        <div id="nurseRosterPanelGuide" class="roster-panel d-none">
+                            <div class="roster-guide">
+                                <div><strong>วิธีใช้</strong> เลือกกะจากแถบสี แล้วคลิกช่องวันที่ของพนักงานเพื่อใส่/เปลี่ยนเวร</div>
+                                <div><strong>บันทึก</strong> ระบบจะบันทึกลง collection schedules ด้วยรูปแบบเดิมของระบบ</div>
+                                <div><strong>อัตโนมัติ</strong> ใช้จำนวนคนต่อกะด้านบนและกระจายเวรแบบหมุนเวียนตามวัน</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                            </div>
 
             <div id="tabReport" class="tab-section hidden">
                 <div class="card shadow-sm border-0 mb-4">
@@ -1204,7 +1217,7 @@
         };
     </script>
 
-    <script type="module" src="admin.js?v=3.90"></script>
+    <script type="module" src="admin.js?v=3.91"></script>
 </body>
 
 </html>
