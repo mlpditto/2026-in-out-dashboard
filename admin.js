@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.80';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.82';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -339,8 +339,8 @@ const ROSTER_OT_SHIFTS = [
 // They are still listed below so the roster grid can draw and label a CAFE shift correctly
 // instead of falling back to the morning shift.
 const CAFE_ROSTER_SHIFTS = [
-    { key: 'CAFE1', label: 'C7', name: '7:30-16:30', detail: '☕ CAFE (07:30 - 16:30)', color: '#f3dfc1', text: '#6b3e11' },
-    { key: 'CAFE2', label: 'C8', name: '8:30-17:30', detail: '☕ CAFE (08:30 - 17:30)', color: '#e6cda6', text: '#6b3e11' }
+    { key: 'CAFE1', label: 'C7', name: '7:30-16:30', detail: '☕ CAFE (07:30 - 16:30)', color: '#ffb7c5', text: '#6b1030' },
+    { key: 'CAFE2', label: 'C8', name: '8:30-17:30', detail: '☕ CAFE (08:30 - 17:30)', color: '#f48fb1', text: '#430a1f' }
 ];
 
 const ROSTER_ALL_SHIFTS = [...NURSE_ROSTER_SHIFTS, ...ROSTER_OT_SHIFTS, ...CAFE_ROSTER_SHIFTS];
