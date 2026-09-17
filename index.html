@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.83</title>
+    <title>MLP Time Attendance v3.84</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -55,9 +55,49 @@
 
             .container {
                 min-height: auto;
+                max-width: 520px;
                 border-radius: 28px;
                 border: 1px solid rgba(255, 255, 255, 0.8);
                 box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            }
+        }
+
+        /* From here the phone-width column wastes most of the screen, so the dashboard
+           splits in two: the clock and the numbers on the left, what you can do about
+           them on the right. Below 900px nothing changes - that is the LIFF path. */
+        @media (min-width: 900px) {
+            .container {
+                max-width: 920px;
+                padding: 22px;
+            }
+
+            #mainPage {
+                display: grid;
+                grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+                gap: 0 18px;
+                align-items: start;
+            }
+
+            #mainPage > .dashboard-header {
+                grid-column: 1 / -1;
+            }
+
+            /* left: the clock and the totals - right: what you can do and what happened,
+               which also keeps the two columns close to the same height */
+            #mainPage > #heroStatusCard,
+            #mainPage > .lean-stat-bar {
+                grid-column: 1;
+            }
+
+            #mainPage > .quick-actions-grid,
+            #mainPage > #scheduleContent,
+            #mainPage > .history-compact-card {
+                grid-column: 2;
+            }
+
+            /* the leave form is an overlay pinned to the container, not a grid cell */
+            #mainPage > #leaveFormSection {
+                grid-column: 1 / -1;
             }
         }
 
@@ -317,9 +357,34 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            /* wrap whenever the three pieces do not fit - that happens on a narrow phone
+               and again inside the left column of the two-column desktop layout */
+            flex-wrap: wrap;
+            gap: 6px 8px;
             padding-bottom: 8px;
             margin-bottom: 10px;
             border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* The markup asks for min-w-0 and gap-1.5, neither of which exists in Bootstrap 5,
+           so the date could not shrink: text-truncate never engaged and the clock was
+           pushed off the right edge of a 375px phone. */
+        .hero-date-clock-bar > div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hero-date-clock-bar > div:first-child {
+            min-width: 0;
+        }
+
+        /* On a narrow phone the date, the shift badge and the clock cannot share one line
+           without chopping the date down to "วันพ...". Let the clock group drop to its own
+           line instead - it costs about 20px and keeps every label readable. */
+        .hero-date-clock-bar > div:last-child {
+            flex-shrink: 0;
+            margin-left: auto;
         }
 
         .hero-date {
@@ -723,7 +788,7 @@
                 <div class="dashboard-identity">
                     <div class="dashboard-title-row">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50 app-version-badge">v3.83</span>
+                        <span class="badge bg-secondary opacity-50 app-version-badge">v3.84</span>
                     </div>
                     <!-- .dashboard-identity stacks its children, so the id and the reload
                          icon have to share one flex item to stay on the same line -->
@@ -1170,7 +1235,7 @@
 
 
     <script type="module">
-        import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.83';
+        import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.84';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
