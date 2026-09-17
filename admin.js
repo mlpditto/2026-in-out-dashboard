@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.95';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.96';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -405,7 +405,9 @@ function inferRosterShiftKey(detail = '') {
     if ((d.includes('เช้า') && d.includes('บ่าย')) || d.includes('ชบ')) return 'ME';
     if ((d.includes('บ่าย') && d.includes('ดึก')) || d.includes('บด')) return 'EN';
     if (d.includes('หยุด') || d.includes('off')) return 'OFF';
-    if (d.includes('ลา') || d.includes('ป่วย') || d.includes('พักร้อน') || d.includes('กิจ')) return 'LEAVE';
+    // strip เวลา first: "แจ้งเวลาปฏิบัติงาน" is a working day, but it contains ลา
+    const dl = d.replace(/เวลา/g, '');
+    if (dl.includes('ลา') || dl.includes('ป่วย') || dl.includes('พักร้อน') || dl.includes('กิจ')) return 'LEAVE';
     if (d.includes('07:30') || d.includes('7:30-16:30')) return 'CAFE1';
     if (d.includes('08:30') || d.includes('8:30-17:30')) return 'CAFE2';
     if (d.includes('10-20') || d.includes('บ10+') || d.includes('บ่ายพิเศษ')) return 'E10P';
@@ -2669,7 +2671,22 @@ function renderCalendarLegend() {
         `<span class="badge rounded-pill" title="${esc(label)}" style="background:${bg};color:${fg};font-weight:600;font-size:0.72rem;">${esc(label)}</span>`;
 
     let html = '';
-    if (customCalendarMode === 'attendance') {
+    if (customCalendarMode === 'schedule') {
+        // read the shifts off the calendar itself, so the key can never disagree
+        // with what is actually drawn in the grid
+        const keys = new Set();
+        (calendarObj ? calendarObj.getEvents() : []).forEach(e => {
+            const det = e.extendedProps?.type === 'schedule' ? (e.extendedProps.detail || '') : '';
+            if (det && !det.includes('แจ้งเวลา')) keys.add(inferRosterShiftKey(det));
+        });
+        const shifts = ROSTER_ALL_SHIFTS.filter(s => keys.has(s.key));
+        html = '<span class="small text-muted me-1">กะ</span>'
+            + shifts.map(s => {
+                const word = s.detail.replace(/^\S+\s*/, '').replace(/\s*\(.*\)$/, '');
+                return chip(s.color, s.text, word === s.name ? s.name : `${s.name} · ${word}`);
+            }).join('');
+        if (!shifts.length) html += '<span class="small text-muted">ยังไม่มีเวรในเดือนนี้</span>';
+    } else if (customCalendarMode === 'attendance') {
         // one chip per colour, not per spelling - Pharmacy and คลังยา share a colour
         const seen = new Set();
         Object.values(window.allUserData || {}).forEach(u => {
@@ -2681,12 +2698,6 @@ function renderCalendarLegend() {
             html += chip(getDeptPastelColor(d), c, d);
         });
         html = '<span class="small text-muted me-1">แผนก · ตัวเลขคือชั่วโมง</span>' + html;
-    } else {
-        html = '<span class="small text-muted me-1">ประเภทเวร</span>'
-            + chip('#f0f7ff', '#0d6efd', 'เช้า')
-            + chip('#fffbeb', '#d97706', 'บ่าย / เที่ยง')
-            + chip('#fef2f2', '#dc3545', 'ลา / หยุด')
-            + chip('#f8f9fa', '#6c757d', 'อื่น ๆ');
     }
     box.innerHTML = html;
 }
@@ -2836,25 +2847,39 @@ function initCalendar() {
 
             let statusClass = 'status-soft-secondary';
             let customStyle = '';
+            let valueColor = '';
+            let value;
+
             if (type === 'attendance') {
                 statusClass = ''; // Use custom colors
                 customStyle = `background: ${props.pastelColor}; border-left-color: ${props.deptColor};`;
+                valueColor = props.deptColor;
+                // the unit sits in the legend once, not on every row of every day
+                value = props.hours || '';
+            } else {
+                // The stored shiftDetail is a whole sentence — "☀️ เช้า (08:00 - 17:00)" wants
+                // 148px inside a 160px cell. The roster already defines a short name and a real
+                // colour for each of the 12 shifts, so use those rather than guessing from four
+                // keywords, which dropped ดึก and CAFE into the same grey bucket as "other".
+                // A bare "แจ้งเวลาปฏิบัติงาน" carries no shift time, so do not invent one.
+                const isNotify = detail.includes('แจ้งเวลา');
+                const shift = detail && !isNotify ? getRosterShiftByKey(inferRosterShiftKey(detail)) : null;
+                value = isNotify ? 'แจ้งเวลา' : (shift ? shift.name : detail);
+                if (shift) {
+                    statusClass = '';
+                    customStyle = `background: ${shift.color}; border-left-color: ${shift.text};`;
+                    valueColor = shift.text;
+                }
             }
-            else if (detail.includes('หยุด') || detail.includes('ลา')) statusClass = 'status-soft-danger';
-            else if (detail.includes('เช้า')) statusClass = 'status-soft-primary';
-            else if (detail.includes('เที่ยง') || detail.includes('บ่าย')) statusClass = 'status-soft-warning';
 
             const tooltip = `${name}${detail ? '\n' + detail : ''}${props.reason && props.reason !== detail ? '\nหมายเหตุ: ' + props.reason : ''}`;
 
-            // the unit sits in the legend once, not on every row of every day
-            const value = type === 'attendance' ? (props.hours || '') : (detail || arg.event.title);
-
             return {
                 html: `
-                <div class="calendar-event-row ${type === 'attendance' ? 'is-attendance' : ''} ${statusClass}" style="${customStyle}" title="${esc(tooltip)}">
+                <div class="calendar-event-row ${statusClass}" style="${customStyle}" title="${esc(tooltip)}">
                     ${imgHtml}
-                    <span class="calendar-event-name" style="${type === 'attendance' ? 'color: #333;' : ''}">${esc(name)}</span>
-                    <span class="calendar-event-value" style="${type === 'attendance' ? `color: ${props.deptColor};` : ''}">${esc(value)}</span>
+                    <span class="calendar-event-name" style="${customStyle ? 'color: #333;' : ''}">${esc(name)}</span>
+                    <span class="calendar-event-value" style="${valueColor ? `color: ${valueColor};` : ''}">${esc(value)}</span>
                 </div>`
             };
         },
@@ -2869,18 +2894,18 @@ function initCalendar() {
                     sn.forEach(d => {
                         const v = d.data();
                         const uid = v.userId;
-                        const prof = window.allUserData?.[uid] || {};
-                        let c = 'var(--color-shift-am)';
                         const detail = v.shiftDetail || '';
-                        if (detail.includes('บ่าย')) c = 'var(--color-shift-pm)';
-                        else if (detail.includes('ดึก')) c = 'var(--color-shift-night)';
-                        else if (detail.includes('หยุด') || detail.includes('ลา')) c = 'var(--color-leave)';
+                        // eventContent paints the row from the roster's own palette.
+                        // (--color-shift-am/pm/night were referenced here but never defined
+                        // anywhere, so the old value resolved to nothing.)
+                        const shift = detail && !detail.includes('แจ้งเวลา')
+                            ? getRosterShiftByKey(inferRosterShiftKey(detail)) : null;
 
                         ev.push({
                             id: d.id,
                             title: v.name,
                             start: v.date,
-                            backgroundColor: c,
+                            backgroundColor: shift ? shift.color : '#e2e8f0',
                             extendedProps: {
                                 id: d.id,
                                 type: 'schedule',
@@ -2948,6 +2973,7 @@ function initCalendar() {
                     });
                 }
 
+                renderCalendarLegend();
                 s(ev)
             } catch (e) { console.error(e); f(e) }
         }
