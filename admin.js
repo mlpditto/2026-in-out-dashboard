@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.77';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.78';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -478,7 +478,22 @@ function getRosterUsers() {
             }
         }
     });
-    return users.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
+    // Someone with no clock-in for 15 days still needs a row - they may hold shifts this
+    // month - but they sink below the people actually working.
+    return users.sort((a, b) => {
+        const byActivity = Number(isRosterUserActive(b)) - Number(isRosterUserActive(a));
+        if (byActivity) return byActivity;
+        return (a.name || '').localeCompare(b.name || '', 'th');
+    });
+}
+
+// "Active" here means the same thing it means everywhere else on this page: clocked in at
+// least once in the last 15 days.
+function isRosterUserActive(u) {
+    const active = window.activeUserIdsInLast15Days;
+    // Attendance has not loaded yet - better to dim nobody than to dim the whole table.
+    if (!active || !active.size) return true;
+    return active.has(u.id);
 }
 
 // A past day with no record counts as a day off; the future stays blank. The grid, the
@@ -583,12 +598,13 @@ function renderNurseRoster() {
         const role = roleLabelForUser(u);
         const color = getDeptCategoryColor(role);
         const profileImgHtml = window.getProfileImgHtml(u.id, 24, 'rounded-circle', 'width:24px;height:24px;object-fit:cover;flex-shrink:0;');
-        return `<tr>
+        const active = isRosterUserActive(u);
+        return `<tr class="${active ? '' : 'roster-row-inactive'}">
             <td class="roster-sticky">${index + 1}</td>
             <td class="roster-sticky roster-name-col fw-semibold">
                 <div class="d-flex align-items-center gap-2">
                     ${profileImgHtml}
-                    <span class="text-truncate" style="max-width:140px;" title="${esc(u.name || u.displayName || 'ไม่ทราบชื่อ')}">${esc(u.name || u.displayName || 'ไม่ทราบชื่อ')}</span>
+                    <span class="text-truncate" style="max-width:140px;" title="${esc(u.name || u.displayName || 'ไม่ทราบชื่อ')}${active ? '' : ' — ไม่มีการลงเวลาใน 15 วันที่ผ่านมา'}">${esc(u.name || u.displayName || 'ไม่ทราบชื่อ')}</span>
                 </div>
             </td>
             <td class="roster-sticky roster-role-col cursor-pointer" onclick="editUserRoleDirectly('${u.id}')" title="คลิกเพื่อแก้ไขตำแหน่ง"><span class="roster-role-badge" style="background:${color}">${esc(role)}</span></td>

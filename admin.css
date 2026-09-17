@@ -826,6 +826,17 @@ thead th {
 
 /* A cell that has been painted but not written to the database yet. Without this the
    grid looks identical before and after a save, so nobody can tell what is still pending. */
+/* No clock-in for 15 days: the row stays (they may still hold shifts this month) but
+   fades back so the working team reads first. Hovering brings it back to full strength. */
+.nurse-roster-table tr.roster-row-inactive {
+    opacity: 0.42;
+    transition: opacity 0.15s ease;
+}
+
+.nurse-roster-table tr.roster-row-inactive:hover {
+    opacity: 1;
+}
+
 .nurse-roster-table .roster-cell.is-draft {
     position: relative;
     box-shadow: inset 0 0 0 2px #f59e0b;
