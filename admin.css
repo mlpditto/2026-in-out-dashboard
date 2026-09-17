@@ -699,6 +699,58 @@ thead th {
     white-space: nowrap;
 }
 
+/* The two approval queues inside the รออนุมัติ card. The card is no longer clickable
+   as a whole, so each row has to carry its own hover affordance and hit area. */
+.pending-queue {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px;
+    margin: 0 -6px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.pending-queue:hover {
+    background: rgba(255, 255, 255, 0.75);
+}
+
+.pending-queue-label {
+    opacity: 0.85;
+}
+
+/* Keeps the year hint and the chevron together on the right, so hiding the hint on
+   narrow screens does not leave the chevron stranded mid-row. */
+.pending-queue-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Hidden on narrow screens so the row does not wrap when the card is half-width.
+   This cannot use Bootstrap's `d-none d-md-inline`: admin.css redefines `.d-none`
+   further up, and being later in the cascade it beats every `d-*-inline` utility. */
+.pending-queue-hint {
+    display: none;
+    font-size: 0.68rem;
+    opacity: 0.65;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .pending-queue-hint {
+        display: block;
+    }
+}
+
+.pending-queue-go {
+    opacity: 0.45;
+    font-size: 0.8rem;
+}
+
 .nurse-roster-hero {
     display: flex;
     justify-content: space-between;

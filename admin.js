@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.92';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.93';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -1110,6 +1110,18 @@ window.openLeaveRequests = () => {
     loadLeaveRequests();
 };
 
+// The รออนุมัติ card holds two queues that arrive from different listeners, so each
+// one records only its own number here and asks for the headline total to be redrawn.
+// Neither listener knows the other's count, and either may run first or alone.
+window.pendingCounts = { leave: 0, newUsers: 0 };
+
+window.renderPendingTotal = () => {
+    const el = document.getElementById('statPendingTotal');
+    if (!el) return;
+    const c = window.pendingCounts;
+    el.innerText = (c.leave || 0) + (c.newUsers || 0);
+};
+
 window.loadLeaveRequests = async () => {
     const tPending = document.getElementById('leavePendingTableBody');
     const tApproved = document.getElementById('leaveApprovedTableBody');
@@ -1141,7 +1153,6 @@ window.loadLeaveRequests = async () => {
         const pendingByType = {};
         let yCount = 0;
         let mCount = 0;
-        const usersApprovedYear = new Set();
         const thisYear = new Date().getFullYear();
         const thisMonth = new Date().getMonth();
 
@@ -1163,7 +1174,6 @@ window.loadLeaveRequests = async () => {
             if (v.status === 'Approved') {
                 if (dDate.getFullYear() === thisYear) {
                     yCount++;
-                    usersApprovedYear.add(v.userId);
                     if (dDate.getMonth() === thisMonth) mCount++;
                 }
             }
@@ -1268,6 +1278,8 @@ window.loadLeaveRequests = async () => {
         if (tSchedApproved) tSchedApproved.innerHTML = hSchedApproved || '<tr><td colspan="4" class="text-center text-muted py-3">ไม่มีรายการแจ้งเวร</td></tr>';
 
         const sl = document.getElementById('statLeave'); if (sl) sl.innerText = pendingCount;
+        window.pendingCounts.leave = pendingCount;
+        window.renderPendingTotal();
 
         // The stat card says what is waiting without anyone opening the dialog. Nothing
         // pending means no chips at all, so the card keeps the height it always had.
@@ -1280,19 +1292,6 @@ window.loadLeaveRequests = async () => {
         }
         const sm = document.getElementById('statLeaveMonth'); if (sm) sm.innerText = mCount;
         const sy = document.getElementById('statLeaveYear'); if (sy) sy.innerText = yCount;
-
-        const lp = document.getElementById('leaveApprovedProfiles');
-        if (lp) {
-            const uList = [];
-            usersApprovedYear.forEach(uid => {
-                if (window.allUserData && window.allUserData[uid]) uList.push(window.allUserData[uid]);
-            });
-            lp.innerHTML = uList.slice(0, 5).map(u => {
-                const uid = u.lineUserId || u.id;
-                const imgHtml = window.getProfileImgHtml(uid, 20, '', 'width:20px;height:20px;border-radius:50%;margin-right:-5px;border:1px solid #fff;');
-                return imgHtml.replace('<img ', `<img title="${esc(u.name)}" `);
-            }).join('') + (uList.length > 5 ? `<span class="small ms-2 text-muted">+${uList.length - 5}</span>` : '');
-        }
 
         // Store docs globally for edit access
         window.allLeaveRequests = docs;
@@ -2022,6 +2021,8 @@ window.loadPendingUsers = async () => {
         // Update main pending count
         const sn = document.getElementById('statNewUsers');
         if (sn) sn.innerText = s.size;
+        window.pendingCounts.newUsers = s.size;
+        window.renderPendingTotal();
 
         // Calculate New Members (Approved) Stats based on createdAt or startDate
         let nm = 0, ny = 0;
@@ -2063,6 +2064,8 @@ window.loadPendingUsers = async () => {
         // Update stats and show notification if there are new users
         const newUserCount = s.size;
         document.getElementById('statNewUsers').innerText = newUserCount;
+        window.pendingCounts.newUsers = newUserCount;
+        window.renderPendingTotal();
 
         // Show notification badge on the tab
         const newMemberBadge = document.getElementById('newMemberBadge');
