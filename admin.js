@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.99';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=4.00';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -2611,7 +2611,15 @@ window.loadUsersList = async () => {
         const u = d.data();
         users.push({ uid: u.lineUserId || d.id, name: u.name || 'ไม่ทราบชื่อ', dept: u.dept || '', pic: u.pictureUrl || '' });
     });
-    users.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
+    // The faces carry no caption, so the order is the only thing making them findable:
+    // group by department, then by name, both in Thai collation. Anyone with no
+    // department recorded goes last rather than leading the row.
+    users.sort((a, b) => {
+        const da = (a.dept || '').trim(), db = (b.dept || '').trim();
+        if (!da !== !db) return da ? -1 : 1;
+        return da.localeCompare(db, 'th', { sensitivity: 'base' })
+            || (a.name || '').localeCompare(b.name || '', 'th');
+    });
 
     // Everyone on the roster, as faces, before a single keystroke.
     const facesEl = document.getElementById('userPickerFaces');
