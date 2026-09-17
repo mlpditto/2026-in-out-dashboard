@@ -8,14 +8,14 @@
  * matched against request.auth.uid in firestore.rules.
  */
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
-const { defineString } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 
 admin.initializeApp();
 
 // The LINE Login channel that issued the token. It is the numeric half of the LIFF id
-// (2008951813-KgjInNxK), and can be changed with a config value instead of a code edit.
-const LINE_CHANNEL_ID = defineString('LINE_CHANNEL_ID', { default: '2008951813' });
+// (2008951813-KgjInNxK) and is not a secret - it ships inside index.html. Override it
+// with LINE_CHANNEL_ID in functions/.env if the channel ever changes.
+const LINE_CHANNEL_ID = process.env.LINE_CHANNEL_ID || '2008951813';
 
 // Singapore is the closest region to the shop; keep the client's getFunctions() in sync.
 const REGION = 'asia-southeast1';
@@ -33,7 +33,7 @@ exports.lineLogin = onCall({ region: REGION, cors: true }, async (request) => {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             id_token: idToken,
-            client_id: LINE_CHANNEL_ID.value()
+            client_id: LINE_CHANNEL_ID
         })
     });
 

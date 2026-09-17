@@ -1,6 +1,8 @@
 # 🔐 Layer 2 — ยืนยันตัวตนพนักงานด้วย Firebase Auth
 
-สถานะ: **เขียนโค้ดครบแล้ว ยังไม่ deploy** (รอเปิดแผน Blaze)
+สถานะ: **function + หน้าเว็บ deploy แล้ว (2026-09-17) — rules ยังเป็น Layer 1**
+
+เหลือขั้นที่ 6 (ทดสอบจากมือถือจริง) และขั้นที่ 7 (สลับ rules) เท่านั้น
 
 ---
 
@@ -65,7 +67,10 @@ Cloud Functions ต้องใช้แผน **Blaze (pay-as-you-go)** ต้�
 ### 2. ตรวจว่า LINE channel id ถูกต้อง
 
 `functions/index.js` ใช้ค่า default `2008951813` ซึ่งมาจากครึ่งหน้าของ LIFF ID
-(`2008951813-KgjInNxK`) ถ้า LINE Login channel เป็นคนละเลข ให้แก้ผ่าน config โดยไม่ต้องแก้โค้ด
+(`2008951813-KgjInNxK`) ถ้า LINE Login channel เป็นคนละเลข ให้ใส่ `LINE_CHANNEL_ID=<เลขใหม่>`
+ในไฟล์ `functions/.env` แล้ว deploy function ใหม่ — ไม่ต้องแก้โค้ด
+
+ค่านี้ไม่ใช่ความลับ มันฝังอยู่ใน `index.html` ที่เปิดเผยต่อสาธารณะอยู่แล้ว
 
 ### 3. ติดตั้ง dependencies ของ function
 
