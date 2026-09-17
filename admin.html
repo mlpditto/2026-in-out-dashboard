@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="admin.css?v=3.93">
+    <link rel="stylesheet" href="admin.css?v=3.94">
 </head>
 
 <body>
@@ -75,7 +75,7 @@
                         </li>
                     </ul>
                 </div>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.93</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.94</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -524,17 +524,20 @@
 
             <div id="tabReport" class="tab-section hidden">
                 <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0">ปฏิทินงาน & ชั่วโมงทำงาน</h5>
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="btnModeShift"
-                                onclick="toggleCalendarMode('schedule')">ตารางเวร</button>
-                            <button type="button" class="btn btn-success btn-sm" id="btnModeActual"
-                                onclick="toggleCalendarMode('attendance')">⏱️ ชั่วโมงทำงานจริง</button>
-                        </div>
-                    </div>
                     <div class="card-body">
+                        <div class="calendar-wrap">
+                        <div id="calModeSwitch" class="btn-group btn-group-sm" role="group"
+                            aria-label="สลับมุมมองปฏิทิน">
+                            <button type="button" class="btn btn-outline-secondary" id="btnModeShift"
+                                onclick="toggleCalendarMode('schedule')"><i
+                                    class="bi bi-calendar2-week me-1"></i>เวร</button>
+                            <button type="button" class="btn btn-success" id="btnModeActual"
+                                onclick="toggleCalendarMode('attendance')"><i
+                                    class="bi bi-clock me-1"></i>ชั่วโมง</button>
+                        </div>
                         <div id='calendar'></div>
+                        </div>
+                        <div id="calLegend" class="d-flex flex-wrap align-items-center gap-2 pt-3 mt-3 border-top"></div>
                     </div>
                 </div>
                 <div class="card shadow-sm border-0 mb-4">
@@ -1223,7 +1226,7 @@
         };
     </script>
 
-    <script type="module" src="admin.js?v=3.93"></script>
+    <script type="module" src="admin.js?v=3.94"></script>
 </body>
 
 </html>
