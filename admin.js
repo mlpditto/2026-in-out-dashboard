@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.97';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.98';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -1689,6 +1689,45 @@ window.changeDate = (offset) => {
     loadData();
 };
 
+// Lateness is derived from the record's own timestamp, never read back from storage.
+// A stored delayMin froze whatever was computed at clock-in, and submitEditAttendance
+// writes only `timestamp` - so correcting a time left the old figure behind and a row
+// could read "07:30" and "late 281 min" at the same time. submitManualEntry never wrote
+// the fields at all, so a back-filled record could never show as late. Deriving it here
+// fixes both, and fixes the records already stored.
+const LATE_GRACE_MIN = 5;
+
+function getShiftStartMinutes(shiftDetail) {
+    // leave and day-off details carry no clock time, so they are never late
+    const m = String(shiftDetail || '').match(/(\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    return Number(m[1]) * 60 + Number(m[2]);
+}
+
+function calcLateMinutes(ts, shiftDetail) {
+    const start = getShiftStartMinutes(shiftDetail);
+    if (start === null || !ts) return 0;
+    const late = (ts.getHours() * 60 + ts.getMinutes()) - start;
+    return late > LATE_GRACE_MIN ? late : 0;
+}
+
+// key is `${userId}_${YYYY-MM-DD}`; date is stored as a plain string, which sorts
+// chronologically, so one range query covers the whole period
+async function fetchShiftsByUserDate(startStr, endStr) {
+    const map = {};
+    try {
+        const snap = await getDocs(query(collection(db, "schedules"),
+            where("date", ">=", startStr), where("date", "<=", endStr)));
+        snap.forEach(d => {
+            const v = d.data();
+            if (v.userId && v.date) map[`${v.userId}_${v.date}`] = v.shiftDetail || '';
+        });
+    } catch (e) {
+        console.error('shift lookup failed, lateness will read as 0', e);
+    }
+    return map;
+}
+
 window.loadData = async () => {
     // Refresh user profiles to get latest names/pictures before rendering attendance
     await cacheUserProfiles();
@@ -1699,7 +1738,7 @@ window.loadData = async () => {
     t.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>';
 
     const q = query(collection(db, "attendance"), where("timestamp", ">=", s), where("timestamp", "<=", e));
-    const snap = await getDocs(q);
+    const [snap, shiftsByUserDate] = await Promise.all([getDocs(q), fetchShiftsByUserDate(d, d)]);
 
     // Sort and determine status
     window.currentData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1737,13 +1776,17 @@ window.loadData = async () => {
             actionBtns = `<button onclick="openManualEntry('${escJs(v.userId)}', '${escJs(v.name)}', 'ออกงาน')" class="btn btn-sm btn-outline-warning me-1" title="ลงเวลาออกงาน"><i class="bi bi-box-arrow-right"></i></button>` + actionBtns;
         }
 
-        // Late indicator
+        // Late indicator - computed from this record's timestamp, not from stored fields
+        const vTs = v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp.seconds * 1000);
+        const lateMin = v.type === 'เข้างาน'
+            ? calcLateMinutes(vTs, shiftsByUserDate[`${v.userId}_${vTs.toLocaleDateString('sv')}`])
+            : 0;
         let lateBadge = "";
-        if (v.isLate) {
+        if (lateMin > 0) {
             lateBadge = `<div class="mt-1">
                 <span class="badge bg-warning text-dark shadow-sm" style="font-size:0.7rem; cursor:pointer;" 
                       title="เหตุผล: ${v.lateReason || '-'}" onclick="Swal.fire('เหตุผลการมาสาย', '${(v.lateReason || 'ไม่ได้ระบุเหตุผล').replace(/'/g, "\\'")}', 'info')">
-                    <i class="bi bi-clock-history"></i> สาย ${v.delayMin || 0} น.
+                    <i class="bi bi-clock-history"></i> สาย ${lateMin} น.
                 </span>
             </div>`;
         }
@@ -3260,10 +3303,13 @@ window.loadFairnessReport = async () => {
             return Swal.fire('ไม่พบพนักงาน', 'ไม่พบสมาชิกในแผนกที่เลือก', 'info');
         }
 
-        // 2. Get attendance for the period
-        const attSnap = await getDocs(query(collection(db, "attendance"),
-            where("timestamp", ">=", start),
-            where("timestamp", "<=", end)));
+        // 2. Get attendance for the period, plus the roster it has to be judged against
+        const [attSnap, shiftsByUserDate] = await Promise.all([
+            getDocs(query(collection(db, "attendance"),
+                where("timestamp", ">=", start),
+                where("timestamp", "<=", end))),
+            fetchShiftsByUserDate(start.toLocaleDateString('sv'), end.toLocaleDateString('sv'))
+        ]);
 
         const logsByUser = {};
         attSnap.forEach(d => {
@@ -3347,10 +3393,14 @@ window.loadFairnessReport = async () => {
                 weightedHoursTotal += Math.min(dailyHrs, MAX_HOURS_PER_DAY);
             });
 
-            // Calc lates
-            const lates = uLogs.filter(l => l.type === 'เข้างาน' && l.isLate);
-            const lateCount = lates.length;
-            const lateMins = lates.reduce((sum, l) => sum + (l.delayMin || 0), 0);
+            // Calc lates - derived per record, so this agrees with the daily table
+            let lateCount = 0;
+            let lateMins = 0;
+            uLogs.forEach(l => {
+                if (l.type !== 'เข้างาน') return;
+                const mins = calcLateMinutes(l.ts, shiftsByUserDate[`${uid}_${l.ts.toLocaleDateString('sv')}`]);
+                if (mins > 0) { lateCount++; lateMins += mins; }
+            });
 
             totalHrsSum += weightedHoursTotal;
             totalLateMins += lateMins;
