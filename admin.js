@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.98';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.99';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -267,7 +267,6 @@ function commitUserPick(uid, name, dept) {
         f.classList.toggle('active', f.getAttribute('data-uid') === uid);
     });
 
-    applyCafeShiftChips(dept, uid);
 }
 
 // One rule for "does this person work CAFE hours?", used by the create-shift chips and by
@@ -278,21 +277,6 @@ function isCafeRole(value) {
         ? value
         : [value.dept, value.position, value.role, value.department].filter(Boolean).join(' ');
     return /cafe|คาเฟ่/i.test(text);
-}
-
-// The CAFE hours are only offered while a CAFE employee is picked, so the shift list for
-// everybody else stays as short as it was.
-function applyCafeShiftChips(dept) {
-    const isCafe = isCafeRole(dept);
-    document.querySelectorAll('#shiftChips .cafe-only').forEach(chip => chip.classList.toggle('d-none', !isCafe));
-    if (isCafe) return;
-
-    // Switching from a CAFE employee to anyone else must not leave a CAFE shift selected.
-    const active = document.querySelector('#shiftChips .shift-chip.active');
-    if (active && active.classList.contains('cafe-only')) {
-        const fallback = document.querySelector('#shiftChips .shift-chip:not(.cafe-only)');
-        if (fallback) window.selectShiftChip(fallback);
-    }
 }
 
 window.selectManualUserPick = (el) => {
