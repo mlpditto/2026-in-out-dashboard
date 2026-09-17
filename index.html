@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>MLP Time Attendance v3.80</title>
+    <title>MLP Time Attendance v3.81</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -36,14 +36,29 @@
         }
 
         .container {
-            background: white;
+            background: #f8fafc;
             width: 100%;
-            max-width: 450px;
-            padding: 25px;
+            max-width: 440px;
+            padding: 16px;
             box-shadow: var(--card-shadow);
             min-height: 100vh;
             box-sizing: border-box;
             position: relative;
+        }
+
+        @media (min-width: 600px) {
+            body {
+                background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+                align-items: center;
+                padding: 30px 16px;
+            }
+
+            .container {
+                min-height: auto;
+                border-radius: 28px;
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            }
         }
 
         /* Typography */
@@ -207,11 +222,16 @@
         }
 
         .dashboard-header {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 58px;
-            align-items: start;
-            gap: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
             margin-bottom: 12px;
+            padding: 10px 14px;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         }
 
         .dashboard-identity {
@@ -219,24 +239,14 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 4px;
+            gap: 2px;
         }
 
         .dashboard-title-row {
-            width: 100%;
-            min-width: 0;
             display: flex;
             align-items: center;
             gap: 6px;
-        }
-
-        #showName,
-        #showEmpId {
             max-width: 100%;
-            border-radius: 4px;
-            line-height: 1.12;
-            box-decoration-break: clone;
-            -webkit-box-decoration-break: clone;
         }
 
         #showName {
@@ -244,48 +254,188 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            padding: 2px 4px;
-            font-size: clamp(1.25rem, 5.2vw, 1.85rem);
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            padding: 0;
+            margin: 0;
+            line-height: 1.2;
         }
 
         #showEmpId {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            padding: 1px 3px;
-            font-size: 0.78rem;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 20px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
         }
 
         .app-version-badge {
             flex: 0 0 auto;
-            align-self: flex-start;
-            margin-top: 3px;
+            align-self: center;
+            font-size: 9px !important;
+            padding: 2px 5px !important;
         }
 
         .profile-photo-button {
             position: relative;
-            width: 55px;
-            height: 55px;
-            justify-self: end;
+            width: 48px;
+            height: 48px;
             flex-shrink: 0;
             cursor: pointer;
         }
 
-        @media (max-width: 380px) {
-            .container {
-                padding: 18px;
-            }
+        .profile-photo-button .profile-img {
+            width: 48px;
+            height: 48px;
+            margin: 0;
+            border-radius: 50%;
+            border: 2px solid #10b981;
+            object-fit: cover;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
 
-            .dashboard-header {
-                grid-template-columns: minmax(0, 1fr) 52px;
-                gap: 9px;
-            }
+        /* Lean UI Components */
+        .hero-card {
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            padding: 14px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
 
-            .profile-photo-button {
-                width: 52px;
-                height: 52px;
-            }
+        .hero-date-clock-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .hero-date {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .hero-clock {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            background: #f8fafc;
+            padding: 2px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            font-variant-numeric: tabular-nums;
+            border: 1px solid #e2e8f0;
+        }
+
+        .lean-stat-bar {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            padding: 10px 12px;
+            margin-bottom: 12px;
+        }
+
+        .lean-stat-col {
+            padding: 2px 4px;
+        }
+
+        .lean-stat-col + .lean-stat-col {
+            border-left: 1px solid #f1f5f9;
+        }
+
+        .lean-stat-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-bottom: 2px;
+            font-weight: 500;
+        }
+
+        .lean-stat-val {
+            font-size: 1.12rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.1;
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .quick-action-tile {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            text-align: left;
+            width: 100%;
+        }
+
+        .quick-action-tile:active {
+            transform: scale(0.98);
+            background: #f8fafc;
+        }
+
+        .quick-action-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .quick-action-meta {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .quick-action-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        .quick-action-sub {
+            font-size: 0.68rem;
+            color: #94a3b8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-compact-card {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
         }
 
         /* Buttons */
@@ -573,14 +723,14 @@
                 <div class="dashboard-identity">
                     <div class="dashboard-title-row">
                         <h2 id="showName" class="text-truncate">User</h2>
-                        <span class="badge bg-secondary opacity-50 app-version-badge" style="font-size: 10px;">v3.80</span>
+                        <span class="badge bg-secondary opacity-50 app-version-badge">v3.81</span>
                     </div>
                     <!-- .dashboard-identity stacks its children, so the id and the reload
                          icon have to share one flex item to stay on the same line -->
-                    <div style="max-width: 100%;">
-                        <small id="showEmpId" class="text-muted">ID</small>
+                    <div style="max-width: 100%; display: flex; align-items: center; gap: 4px;">
+                        <small id="showEmpId">ID</small>
                         <button onclick="location.reload(true)" title="โหลดหน้าใหม่"
-                            class="btn border-0 p-0 ms-2 text-muted opacity-50"
+                            class="btn border-0 p-0 text-muted opacity-50"
                             style="display: inline-flex; width: auto; margin-bottom: 0; line-height: 1; vertical-align: middle;">
                             <i class="bi bi-arrow-clockwise" style="font-size: 13px;"></i>
                         </button>
@@ -589,17 +739,16 @@
                 <!-- Clickable Profile Picture -->
                 <div class="profile-photo-button"
                     onclick="document.getElementById('profileFileInput').click()" title="แตะเพื่อเปลี่ยนรูปโปรไฟล์">
-                    <img id="mainProfileImg" src="" class="profile-img"
-                        style="width:55px;height:55px;margin:0;object-fit:cover;">
+                    <img id="mainProfileImg" src="" class="profile-img">
                     <!-- Camera overlay -->
                     <div id="profileImgOverlay"
-                        style="position:absolute;bottom:0;right:0;width:20px;height:20px;background:#0d6efd;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.25);">
-                        <i class="bi bi-camera-fill" style="font-size:9px;color:white;line-height:1;"></i>
+                        style="position:absolute;bottom:0;right:0;width:18px;height:18px;background:#0d6efd;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.25);">
+                        <i class="bi bi-camera-fill" style="font-size:8px;color:white;line-height:1;"></i>
                     </div>
                     <!-- Upload spinner (hidden by default) -->
                     <div id="profileUploadSpinner"
                         style="display:none;position:absolute;inset:0;background:rgba(255,255,255,0.75);border-radius:50%;align-items:center;justify-content:center;">
-                        <div class="spinner-border spinner-border-sm text-primary" style="width:20px;height:20px;">
+                        <div class="spinner-border spinner-border-sm text-primary" style="width:18px;height:18px;">
                         </div>
                     </div>
                 </div>
@@ -608,31 +757,35 @@
                     onchange="handleProfileUpload(event)">
             </div>
 
-            <div class="status-card">
-                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
-                    <div id="currentDate" class="date-display">...</div>
-                    <div id="shiftStatus" class="badge rounded-pill bg-light text-dark border px-2 py-1"
-                        style="font-size: 0.7rem;">กะเช้า (08:00 - 17:00)</div>
+            <!-- Dynamic Hero Status Card (Unified Date, Time, Shift & Action) -->
+            <div class="hero-card" id="heroStatusCard">
+                <div class="hero-date-clock-bar">
+                    <div class="d-flex align-items-center gap-1.5 min-w-0">
+                        <i class="bi bi-calendar3 text-muted" style="font-size: 0.85rem;"></i>
+                        <span id="currentDate" class="hero-date text-truncate">...</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                        <span id="shiftStatus" class="badge rounded-pill bg-light text-muted border px-2 py-1"
+                            style="font-size: 0.7rem;">ไม่ได้ระบุเวร</span>
+                        <span id="clock" class="hero-clock">00:00:00</span>
+                    </div>
                 </div>
-                <div id="clock" class="digital-clock">00:00:00</div>
-            </div>
 
-            <div class="row g-2">
-                <button onclick="recordTime('เข้างาน')" class="btn btn-success hidden" id="btnCheckIn">
-                    <i class="bi bi-geo-alt-fill"></i> เข้างาน (Clock In)
-                </button>
-                <button onclick="recordTime('ออกงาน')" class="btn btn-danger hidden" id="btnCheckOut">
-                    <i class="bi bi-box-arrow-right"></i> ออกงาน (Clock Out)
-                </button>
-            </div>
+                <!-- Shift Status / Warning / Quick Shift Area -->
+                <div id="clockInStatusMsg" class="mb-2 hidden">
+                    <i class="bi bi-info-circle"></i> คุณเพิ่งลงเวลาเข้างาน (ต้องทำงานอย่างน้อย 1 ชม.)
+                </div>
 
-            <div id="clockInStatusMsg" class="text-center text-muted small mt-2 mb-2 hidden">
-                <i class="bi bi-info-circle"></i> คุณเพิ่งลงเวลาเข้างาน (ต้องทำงานอย่างน้อย 1 ชม.)
+                <!-- Clock In / Out Primary CTA Buttons -->
+                <div>
+                    <button onclick="recordTime('เข้างาน')" class="btn btn-success hidden w-100 py-3 mb-0" id="btnCheckIn" style="font-size: 1.05rem; border-radius: 12px;">
+                        <i class="bi bi-geo-alt-fill me-1"></i> เข้างาน (Clock In)
+                    </button>
+                    <button onclick="recordTime('ออกงาน')" class="btn btn-danger hidden w-100 py-3 mb-0" id="btnCheckOut" style="font-size: 1.05rem; border-radius: 12px;">
+                        <i class="bi bi-box-arrow-right me-1"></i> ออกงาน (Clock Out)
+                    </button>
+                </div>
             </div>
-
-            <button onclick="toggleLeaveForm()" class="btn btn-warning py-3" style="font-size:1rem; opacity:0.9;">
-                <i class="bi bi-file-earmark-text"></i> แจ้งลา / แจ้งเวร / ตรวจสอบ
-            </button>
 
             <!-- Leave Form Modal-ish -->
             <div id="leaveFormSection" class="hidden"
@@ -766,140 +919,98 @@
                 <ul id="myLeaveList" class="history-list" style="max-height: 200px; overflow-y: auto;"></ul>
             </div>
 
-            <!-- Working hours and the roster share one row of toggles to save a screenful -->
-            <div class="mt-3">
-                <div class="row g-2 mb-2">
-                    <div class="col-6">
-                        <div class="section-toggle" onclick="toggleSection('workingHoursContent')">
-                            <span><i class="bi bi-clock-history"></i> ชั่วโมงงาน</span>
-                            <i class="bi bi-chevron-down text-muted" id="icon-workingHoursContent"></i>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="section-toggle" onclick="toggleSection('scheduleContent')">
-                            <span><i class="bi bi-calendar-event"></i> ตารางเวร</span>
-                            <i class="bi bi-chevron-down text-muted" id="icon-scheduleContent"></i>
-                        </div>
-                    </div>
+            <!-- Lean Working Hours Metric Strip (1-Row 4-Columns) -->
+            <div class="lean-stat-bar">
+                <div class="d-flex align-items-center justify-content-between px-1 mb-1.5">
+                    <span class="small fw-bold text-muted" style="font-size: 0.72rem; letter-spacing: 0.3px;">
+                        <i class="bi bi-clock-history me-1"></i> ชั่วโมงงานสะสม (WORKING HOURS)
+                    </span>
+                    <span class="text-muted small" style="font-size: 0.68rem;" id="todayInOutText"></span>
                 </div>
-                <!-- Collapsible Content -->
-                <div id="workingHoursContent" style="display: none;">
-
-                    <!-- New 2x2 Grid Layout -->
-                    <div class="row g-2 mb-3">
-                        <!-- Today -->
-                        <div class="col-6">
-                            <div class="p-3 h-100 position-relative shadow-sm"
-                                style="background-color: #f1f1ee; border-radius: 12px; border: 1px solid #dcdcdc;">
-                                <div class="text-muted mb-2 text-truncate" style="font-size: 0.85rem;" id="hours1Title">
-                                    Today</div>
-                                <div class="d-flex align-items-end justify-content-end mt-3">
-                                    <div class="me-auto text-muted small position-absolute"
-                                        style="left: 12px; bottom: 12px; font-size: 0.65rem; line-height: 1.2;"
-                                        id="todayInOutText">
-                                    </div>
-                                    <div>
-                                        <span class="fs-1 fw-bold" id="hours1Value"
-                                            style="color: #636363; line-height: 1;">0.00</span>
-                                        <span style="color: #636363; font-size: 0.9rem; margin-left: 2px;">hr</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Week -->
-                        <div class="col-6">
-                            <div class="p-3 h-100 shadow-sm"
-                                style="background-color: #c6d8f6; border-radius: 12px; border: 1px solid #aebce3;">
-                                <div class="text-muted mb-2 text-truncate" style="font-size: 0.85rem;" id="hours2Title">
-                                    This week</div>
-                                <div class="text-end mt-3" style="line-height: 1;">
-                                    <span class="fs-1 fw-bold" id="hours2Value" style="color: #555;">0.00</span>
-                                    <span style="color: #555; font-size: 0.9rem; margin-left: 2px;">hr</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Month -->
-                        <div class="col-6">
-                            <div class="p-3 h-100 shadow-sm"
-                                style="background-color: #d4e5ce; border-radius: 12px; border: 1px solid #c2d3c0;">
-                                <div class="text-muted mb-2 text-truncate" style="font-size: 0.85rem;" id="hours3Title">
-                                    This month</div>
-                                <div class="text-end mt-3" style="line-height: 1;">
-                                    <span class="fs-1 fw-bold" id="hours3Value" style="color: #555;">0.00</span>
-                                    <span style="color: #555; font-size: 0.9rem; margin-left: 2px;">hr</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Year -->
-                        <div class="col-6">
-                            <div class="p-3 h-100 shadow-sm"
-                                style="background-color: #fde2c5; border-radius: 12px; border: 1px solid #e1cbb3;">
-                                <div class="text-muted mb-2 text-truncate" style="font-size: 0.85rem;" id="hours4Title">
-                                    This year</div>
-                                <div class="text-end mt-3" style="line-height: 1;">
-                                    <span class="fs-1 fw-bold" id="hours4Value" style="color: #555;">0.00</span>
-                                    <span id="hours4Unit"
-                                        style="color: #555; font-size: 0.9rem; margin-left: 2px;">hr</span>
-                                </div>
-                            </div>
-                        </div>
+                <div class="row g-0 text-center">
+                    <div class="col-3 lean-stat-col">
+                        <div class="lean-stat-label text-truncate" id="hours1Title">Today</div>
+                        <div class="lean-stat-val" id="hours1Value">0.00</div>
                     </div>
-
-                    <!-- History inside Working Hours -->
-                    <div class="mt-4 pb-2">
-                        <div class="d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;">
-                            <h5 class="text-muted m-0" style="font-size: 0.95rem;"><i class="bi bi-list-ul"></i>
-                                ประวัติวันนี้</h5>
-                        </div>
-                        <ul id="historyList" class="history-list mt-2"></ul>
+                    <div class="col-3 lean-stat-col">
+                        <div class="lean-stat-label text-truncate" id="hours2Title">This week</div>
+                        <div class="lean-stat-val" id="hours2Value">0.00</div>
                     </div>
-
+                    <div class="col-3 lean-stat-col">
+                        <div class="lean-stat-label text-truncate" id="hours3Title">This month</div>
+                        <div class="lean-stat-val" id="hours3Value">0.00</div>
+                    </div>
+                    <div class="col-3 lean-stat-col">
+                        <div class="lean-stat-label text-truncate" id="hours4Title">This year</div>
+                        <div class="lean-stat-val"><span id="hours4Value">0.00</span><span id="hours4Unit" class="text-muted ms-0.5" style="font-size: 0.72rem; font-weight: 500;">hr</span></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Schedule content - its toggle sits in the row above -->
-            <div id="scheduleContent" class="mb-2" style="display: none;">
+            <!-- Quick Actions 2x2 Grid -->
+            <div class="quick-actions-grid">
+                <button type="button" class="quick-action-tile" onclick="toggleSection('scheduleContent')">
+                    <div class="quick-action-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <div class="quick-action-meta">
+                        <div class="quick-action-title">ตารางเวร</div>
+                        <div class="quick-action-sub">ดูเวรเร็วๆ นี้</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-action-tile" onclick="toggleLeaveForm()">
+                    <div class="quick-action-icon bg-warning bg-opacity-10 text-warning-emphasis">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div class="quick-action-meta">
+                        <div class="quick-action-title">แจ้งลา / เวร</div>
+                        <div class="quick-action-sub">ส่งคำขอใหม่</div>
+                    </div>
+                </button>
+                <div id="cashPrompt" class="hidden w-100">
+                    <button type="button" class="quick-action-tile w-100" onclick="show('cashPage')">
+                        <div class="quick-action-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="quick-action-meta">
+                            <div class="quick-action-title">ส่งยอดเงิน</div>
+                            <div class="quick-action-sub">ลิ้นชักประจำกะ</div>
+                        </div>
+                    </button>
+                </div>
+                <div id="surveyPrompt" class="w-100">
+                    <button type="button" class="quick-action-tile w-100" onclick="show('surveyPage')">
+                        <div class="quick-action-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div class="quick-action-meta">
+                            <div class="quick-action-title">แบบสำรวจ</div>
+                            <div class="quick-action-sub">ความพึงพอใจ</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Schedule Modal/Dropdown Container -->
+            <div id="scheduleContent" class="mb-2 p-3 bg-white border rounded-3 shadow-sm" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                    <span class="small fw-bold text-dark"><i class="bi bi-calendar-check me-1"></i> ตารางเวรของคุณ</span>
+                    <button type="button" class="btn-close" style="font-size: 0.75rem;" onclick="toggleSection('scheduleContent')"></button>
+                </div>
                 <div id="scheduleList">กำลังโหลด...</div>
             </div>
 
-            <!-- Cash Submission Prompt -->
-            <div id="cashPrompt" class="mb-2 hidden"
-                style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #20c997; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
-                onclick="show('cashPage')">
-                <div class="px-3 py-2 d-flex align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center"
-                        style="width: 36px; height: 36px; background: #e0f8f1; color: #20c997; flex-shrink: 0;">
-                        <i class="bi bi-cash-stack" style="font-size: 1.1rem;"></i>
+            <!-- Recent History Compact Accordion -->
+            <div class="history-compact-card">
+                <div class="d-flex justify-content-between align-items-center cursor-pointer" onclick="toggleSection('historyCollapseSection')" style="cursor: pointer;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-list-ul text-muted"></i>
+                        <span class="small fw-bold text-dark" style="font-size: 0.82rem;">ประวัติลงเวลาวันนี้</span>
                     </div>
-                    <div style="flex-grow: 1; min-width: 0;">
-                        <div class="fw-bold text-dark text-truncate"
-                            style="font-size: 0.95rem; letter-spacing: -0.2px;">
-                            นำส่งยอดเงินประจำกะ</div>
-                    </div>
-                    <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
+                    <i class="bi bi-chevron-down text-muted small" id="icon-historyCollapseSection"></i>
                 </div>
-            </div>
-
-
-            <!-- History Moved Inside Working Hours Summary -->
-            <!-- Satisfaction Survey Card (Premium Balanced) - Moved to bottom -->
-            <div id="surveyPrompt" class="mb-2 mt-3"
-                style="cursor: pointer; border-radius: 16px; background: white; border-left: 5px solid #ff8e71; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;"
-                onclick="show('surveyPage')">
-                <div class="px-3 py-2 d-flex align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center"
-                        style="width: 36px; height: 36px; background: #fff5f2; color: #ff8e71; flex-shrink: 0;">
-                        <i class="bi bi-star-fill" style="font-size: 1.1rem;"></i>
-                    </div>
-                    <div style="flex-grow: 1; min-width: 0;">
-                        <div class="fw-bold text-dark text-truncate"
-                            style="font-size: 0.95rem; letter-spacing: -0.2px;">
-                            แบบสำรวจความพึงพอใจประจำกะ</div>
-                    </div>
-                    <i class="bi bi-chevron-right text-muted opacity-25" style="font-size: 0.9rem;"></i>
+                <div id="historyCollapseSection" style="display: none;" class="mt-2 pt-2 border-top">
+                    <ul id="historyList" class="history-list mt-1 mb-0"></ul>
                 </div>
             </div>
 
@@ -1059,7 +1170,7 @@
 
 
     <script type="module">
-        import { getDeptCategoryColor } from './colors.js?v=3.80';
+        import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.81';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, query, where, getDocs, serverTimestamp, orderBy, limit }
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -1673,14 +1784,30 @@
                 }
                 if (statusMsg) {
                     statusMsg.classList.remove('hidden');
-                    statusMsg.innerHTML = `<div class="px-3 py-2 bg-warning bg-opacity-10 border border-warning rounded-3 text-start mb-1">
-                        <div class="fw-bold text-warning-emphasis mb-1">${blockTitle}</div>
-                        <div class="small text-muted mb-2">${blockNote}</div>
-                        <button onclick="toggleLeaveForm(); document.getElementById('leaveType').value='แจ้งเวลาปฏิบัติงาน'; toggleTimeInputs();" 
-                                class="btn btn-warning btn-sm w-100 py-2 fw-bold" style="font-size:0.85rem; border-radius:8px;">
-                            <i class="bi bi-calendar-plus"></i> แจ้งเวลาทำงาน (อนุมัติทันที)
-                        </button>
-                    </div>`;
+                    if (!isLeaveDay && !isDayOff) {
+                        statusMsg.innerHTML = `
+                            <div class="p-2.5 bg-warning bg-opacity-10 border border-warning-subtle rounded-3 text-start">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <span class="fw-bold text-warning-emphasis" style="font-size:0.82rem;">${blockTitle}</span>
+                                    <span class="badge bg-warning text-dark px-1.5 py-0.5" style="font-size:0.65rem;">แตะกะเพื่อบันทึก</span>
+                                </div>
+                                <div class="d-grid" style="grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold py-1.5 px-0 m-0 bg-white" style="font-size: 0.78rem; border-radius: 8px;" onclick="window.quickConfirmShift('08:00', '17:00')">08-17</button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold py-1.5 px-0 m-0 bg-white" style="font-size: 0.78rem; border-radius: 8px;" onclick="window.quickConfirmShift('09:00', '18:00')">09-18</button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold py-1.5 px-0 m-0 bg-white" style="font-size: 0.78rem; border-radius: 8px;" onclick="window.quickConfirmShift('10:00', '19:00')">10-19</button>
+                                    <button type="button" class="btn btn-sm btn-light text-muted fw-semibold py-1.5 px-0 m-0 border" style="font-size: 0.75rem; border-radius: 8px;" onclick="toggleLeaveForm(); document.getElementById('leaveType').value='แจ้งเวลาปฏิบัติงาน'; toggleTimeInputs();">กะอื่น...</button>
+                                </div>
+                            </div>`;
+                    } else {
+                        statusMsg.innerHTML = `<div class="p-2.5 bg-warning bg-opacity-10 border border-warning-subtle rounded-3 text-start mb-1">
+                            <div class="fw-bold text-warning-emphasis mb-1">${blockTitle}</div>
+                            <div class="small text-muted mb-2">${blockNote}</div>
+                            <button onclick="toggleLeaveForm(); document.getElementById('leaveType').value='แจ้งเวลาปฏิบัติงาน'; toggleTimeInputs();" 
+                                    class="btn btn-warning btn-sm w-100 py-2 fw-bold" style="font-size:0.85rem; border-radius:8px;">
+                                <i class="bi bi-calendar-plus"></i> แจ้งเวลาทำงาน (อนุมัติทันที)
+                            </button>
+                        </div>`;
+                    }
                 }
             } else {
                 // PROCEED WITH NORMAL IN/OUT LOGIC
@@ -1704,7 +1831,10 @@
                         btnOut.classList.add('hidden');
                         if (statusMsg) {
                             statusMsg.classList.remove('hidden');
-                            statusMsg.innerHTML = `<i class="bi bi-hourglass-split"></i> คุณเพิ่งลงเวลา ${lastTimestamp.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} (รอ 1 ชม. เพื่อออกงาน)`;
+                            statusMsg.innerHTML = `<div class="p-2 bg-success bg-opacity-10 border border-success-subtle rounded-3 text-center mb-1">
+                                <span class="text-success fw-bold" style="font-size:0.85rem;"><i class="bi bi-hourglass-split"></i> เข้างานแล้ว ${lastTimestamp.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.</span>
+                                <div class="text-muted" style="font-size:0.75rem;">(รอทำงานอย่างน้อย 1 ชม. เพื่อลงเวลาออกงาน)</div>
+                            </div>`;
                         }
                     }
 
@@ -1724,8 +1854,8 @@
                         const timeInfo = shiftDetailToday.replace("⏰", "").trim();
                         statusMsg.classList.remove('hidden');
                         statusMsg.innerHTML = `<div class="p-2 bg-success bg-opacity-10 border border-success-subtle rounded-3 text-center mb-1">
-                            <span class="text-success fw-bold" style="font-size:0.9rem;"><i class="bi bi-clock-history"></i> วันนี้คุณมีเวร: ${timeInfo}</span>
-                            <div class="small text-muted" style="font-size:0.75rem;">สามารถลงเวลาเข้างานได้ทันทีครับ</div>
+                            <span class="text-success fw-bold" style="font-size:0.85rem;"><i class="bi bi-calendar-check-fill me-1"></i> เวรวันนี้: ${timeInfo}</span>
+                            <div class="text-muted" style="font-size:0.75rem;">พร้อมลงเวลาเข้างานได้ทันทีครับ</div>
                         </div>`;
                     } else if (statusMsg) {
                         statusMsg.classList.add('hidden');
@@ -2005,7 +2135,10 @@
                     Swal.fire('ส่งคำขอแล้ว', 'กรุณารอแอดมินอนุมัติ', 'success');
                 }
 
-                toggleLeaveForm();
+                const lForm = document.getElementById('leaveFormSection');
+                if (lForm && !lForm.classList.contains('hidden')) {
+                    toggleLeaveForm();
+                }
                 loadSchedule();
                 loadHistory(); // Re-check buttons after shift is added
             } catch (e) {
@@ -2017,6 +2150,29 @@
                 }
             }
         }
+
+        window.quickConfirmShift = async (startTime, endTime) => {
+            const result = await Swal.fire({
+                title: 'ยืนยันกะทำงานของวันนี้',
+                html: `ต้องการบันทึกเวร <b>${startTime} - ${endTime}</b> สำหรับวันนี้ใช่หรือไม่?<br><small class="text-muted">(ระบบอนุมัติอัตโนมัติทันที)</small>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d'
+            });
+            if (!result.isConfirmed) return;
+
+            const todayStr = new Date().toLocaleDateString('sv');
+            document.getElementById('leaveType').value = 'แจ้งเวลาปฏิบัติงาน';
+            document.getElementById('leaveStart').value = todayStr;
+            document.getElementById('leaveEnd').value = todayStr;
+            document.getElementById('reqStartTime').value = startTime;
+            document.getElementById('reqEndTime').value = endTime;
+            document.getElementById('leaveReason').value = '';
+            await window.submitLeaveRequest();
+        };
 
         async function loadMyLeaves() {
             try {
@@ -2060,16 +2216,21 @@
         function updateDeptUI() {
             if (!currentUser || !currentUser.dept) return;
             const color = getDeptCategoryColor(currentUser.dept);
+            const pastel = getDeptPastelColor ? getDeptPastelColor(currentUser.dept) : '#f1f5f9';
 
-            // Apply custom color to profile elements
-            const elements = ['showName', 'showEmpId'];
-            elements.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.style.backgroundColor = color;
-                    el.style.color = 'white';
-                }
-            });
+            // Lean UI styling: clean text for name, pastel pill badge for empId
+            const nameEl = document.getElementById('showName');
+            if (nameEl) {
+                nameEl.style.backgroundColor = 'transparent';
+                nameEl.style.color = '#0f172a';
+            }
+
+            const empEl = document.getElementById('showEmpId');
+            if (empEl) {
+                empEl.style.backgroundColor = pastel;
+                empEl.style.color = color;
+                empEl.style.border = `1px solid ${color}40`;
+            }
 
             const profileImg = document.getElementById('mainProfileImg');
             if (profileImg) {
