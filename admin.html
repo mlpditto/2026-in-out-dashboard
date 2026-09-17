@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="admin.css?v=3.88">
+    <link rel="stylesheet" href="admin.css?v=3.89">
 </head>
 
 <body>
@@ -40,11 +40,25 @@
 
     <div id="dashboardPage" class="hidden">
         <nav class="navbar navbar-light bg-white border-bottom px-4 py-3 sticky-top">
-            <div class="d-flex align-items-center gap-3"><i class="bi bi-hospital-fill text-primary fs-3"></i>
-                <h5 class="mb-0 fw-bold d-none d-md-block">MedLife Plus <span class="text-muted fw-normal fs-6">|
+            <div class="d-flex align-items-center gap-3 topbar-brand"><i class="bi bi-hospital-fill text-primary fs-3"></i>
+                <h5 class="mb-0 fw-bold d-none d-xl-block">MedLife Plus <span class="text-muted fw-normal fs-6">|
                         Admin</span></h5>
             </div>
-            <div class="d-flex align-items-center gap-2">
+
+                <!-- Tabs live in the top bar now. Only the open tab spells out its name; the
+                     rest stay as icons with the name on hover, which keeps seven of them and
+                     the account controls on one line. -->
+                <ul class="nav nav-tabs topbar-tabs" id="mainTab" role="tablist">
+                    <li class="nav-item"><a class="nav-link active" title="เวลาเข้า-ออก" onclick="switchTab('attendance')"><i class="bi bi-clock"></i><span>เวลาเข้า-ออก</span></a></li>
+                    <li class="nav-item"><a class="nav-link" title="จัดการเวร & การลา" onclick="switchTab('manage')"><i class="bi bi-calendar-check"></i><span>จัดการเวร & การลา</span></a></li>
+                    <li class="nav-item"><a class="nav-link" title="รายงาน & ปฏิทิน" onclick="switchTab('report')"><i class="bi bi-graph-up"></i><span>รายงาน & ปฏิทิน</span></a></li>
+                    <li class="nav-item"><a class="nav-link" title="พนักงาน" onclick="switchTab('users')"><i class="bi bi-person-gear"></i><span>พนักงาน</span></a></li>
+                    <li class="nav-item"><a class="nav-link" title="fair·ness" onclick="switchTab('fairness')"><i class="bi bi-shield-check"></i><span>fair·ness</span></a></li>
+                    <li class="nav-item"><a class="nav-link" title="ผลแบบสำรวจ" onclick="switchTab('survey')"><i class="bi bi-clipboard-data"></i><span>ผลแบบสำรวจ</span></a></li>
+                    <li class="nav-item"><a class="nav-link" title="แบบประเมิน" onclick="switchTab('eval')"><i class="bi bi-journal-check"></i><span>แบบประเมิน</span></a></li>
+                </ul>
+
+            <div class="d-flex align-items-center gap-2 topbar-account">
                 <div class="dropdown">
                     <button class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-1"
                         data-bs-toggle="dropdown" title="LIFF Preview" onclick="populatePreviewDropdown()">
@@ -61,7 +75,7 @@
                         </li>
                     </ul>
                 </div>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.88</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.89</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -144,24 +158,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Navigation Tabs -->
-            <ul class="nav nav-tabs mb-4" id="mainTab" role="tablist">
-                <li class="nav-item"><a class="nav-link active" onclick="switchTab('attendance')"><i
-                            class="bi bi-clock me-2"></i>เวลาเข้า-ออก</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('manage')"><i
-                            class="bi bi-calendar-check me-2"></i>จัดการเวร & การลา</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('report')"><i
-                            class="bi bi-graph-up me-2"></i>รายงาน & ปฏิทิน</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('users')"><i
-                            class="bi bi-person-gear me-2"></i>พนักงาน</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('fairness')"><i
-                            class="bi bi-shield-check me-2"></i>fair·ness</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('survey')"><i
-                            class="bi bi-clipboard-data me-2"></i>ผลแบบสำรวจ</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="switchTab('eval')"><i
-                            class="bi bi-journal-check me-2"></i>แบบประเมิน</a></li>
-            </ul>
 
             <!-- Tab Content Sections -->
             <div id="tabAttendance" class="tab-section">
@@ -1198,7 +1194,7 @@
         };
     </script>
 
-    <script type="module" src="admin.js?v=3.88"></script>
+    <script type="module" src="admin.js?v=3.89"></script>
 </body>
 
 </html>

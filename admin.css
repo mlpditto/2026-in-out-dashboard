@@ -584,6 +584,61 @@ thead th {
     background: #f4f8fb;
 }
 
+/* One top bar instead of two: brand, the tab strip and the account controls share a line.
+   Only the open tab shows its label - seven labelled tabs plus the controls do not fit,
+   and a horizontal scroller is hard to find with a mouse. */
+.navbar.sticky-top {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 12px;
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.6rem !important;
+}
+
+.topbar-brand { flex: 0 0 auto; }
+.topbar-account { flex: 0 0 auto; margin-left: auto; }
+
+.topbar-tabs {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    border-bottom: 0;
+    flex-wrap: nowrap;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.topbar-tabs::-webkit-scrollbar { display: none; }
+
+.topbar-tabs .nav-link {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    border: 0;
+    border-radius: 10px;
+    padding: 7px 11px;
+    color: #64748b;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.topbar-tabs .nav-link i { font-size: 1.05rem; line-height: 1; }
+
+/* the label only exists on the tab you are looking at */
+.topbar-tabs .nav-link span { display: none; }
+
+.topbar-tabs .nav-link:hover { background: #eef4fb; color: #0f172a; }
+
+.topbar-tabs .nav-link.active {
+    background: #2f6bff;
+    color: #fff;
+    font-weight: 600;
+}
+
+.topbar-tabs .nav-link.active span { display: inline; margin-left: 7px; }
+
 .nurse-roster-hero {
     display: flex;
     justify-content: space-between;
