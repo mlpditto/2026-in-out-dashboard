@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="admin.css?v=3.75">
+    <link rel="stylesheet" href="admin.css?v=3.76">
 </head>
 
 <body>
@@ -61,7 +61,7 @@
                         </li>
                     </ul>
                 </div>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.75</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.76</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -299,8 +299,8 @@
                             <button type="button" class="btn btn-light btn-sm roster-action" onclick="autoFillNurseRoster()">
                                 <i class="bi bi-magic me-1"></i>จัดเวรอัตโนมัติ
                             </button>
-                            <button type="button" class="btn btn-success btn-sm roster-action" onclick="saveNurseRosterDraft()">
-                                <i class="bi bi-save me-1"></i>บันทึก
+                            <button type="button" id="btnSaveRoster" class="btn btn-success btn-sm roster-action" onclick="saveNurseRosterDraft()">
+                                <i class="bi bi-save me-1"></i><span id="rosterSaveLabel">บันทึก</span>
                             </button>
                             <button type="button" class="btn btn-outline-light btn-sm roster-action" onclick="exportNurseRosterCsv()">
                                 <i class="bi bi-file-earmark-spreadsheet me-1"></i>Excel
@@ -1203,7 +1203,7 @@
         };
     </script>
 
-    <script type="module" src="admin.js?v=3.75"></script>
+    <script type="module" src="admin.js?v=3.76"></script>
 </body>
 
 </html>
