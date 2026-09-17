@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.91';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.92';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -236,9 +236,39 @@ window.selectShiftChip = (btn) => {
 window.selectUserPick = (el) => {
     document.querySelectorAll('#userPickerList .user-pick-item').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
-    document.getElementById('userSelect').value = el.getAttribute('data-uid');
-    applyCafeShiftChips(el.getAttribute('data-dept'));
+    commitUserPick(el.getAttribute('data-uid'), el.getAttribute('data-name'), el.getAttribute('data-dept'));
 };
+
+window.pickUserFace = (el) => {
+    document.querySelectorAll('#userPickerFaces .picker-face').forEach(f => f.classList.remove('active'));
+    document.querySelectorAll('#userPickerList .user-pick-item').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    commitUserPick(el.getAttribute('data-uid'), el.getAttribute('data-name'), el.getAttribute('data-dept'));
+};
+
+// Both paths end here: a face is quick but shows no name, so the choice is spelled out
+// underneath before anyone presses save.
+function commitUserPick(uid, name, dept) {
+    document.getElementById('userSelect').value = uid || '';
+    const nameField = document.getElementById('userSelectName');
+    if (nameField) nameField.value = name || '';
+
+    const picked = document.getElementById('userPickedName');
+    if (picked) {
+        picked.classList.toggle('d-none', !uid);
+        picked.innerHTML = uid
+            ? `${window.getProfileImgHtml(uid, 22, 'rounded-circle', 'width:22px;height:22px;object-fit:cover;')}
+               <span>${esc(name || '')}</span>
+               ${dept ? `<span class="picker-picked-dept">${esc(dept)}</span>` : ''}`
+            : '';
+    }
+
+    document.querySelectorAll('#userPickerFaces .picker-face').forEach(f => {
+        f.classList.toggle('active', f.getAttribute('data-uid') === uid);
+    });
+
+    applyCafeShiftChips(dept, uid);
+}
 
 // One rule for "does this person work CAFE hours?", used by the create-shift chips and by
 // the roster cell picker. Accepts either the department string or the whole user record.
@@ -275,7 +305,8 @@ window.createSchedule = async (e) => {
     e.preventDefault();
     const uId = document.getElementById('userSelect').value;
     const activeItem = document.querySelector('#userPickerList .user-pick-item.active');
-    const uName = activeItem ? activeItem.getAttribute('data-name') : '';
+    const nameField = document.getElementById('userSelectName');
+    const uName = (nameField && nameField.value) || (activeItem ? activeItem.getAttribute('data-name') : '');
     const date = document.getElementById('schedDate').value;
     const type = document.getElementById('schedType').value;
     if (!uId || !date) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุพนักงานและวันที่', 'warning');
@@ -2550,10 +2581,18 @@ window.loadUsersList = async () => {
     });
     users.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'th'));
 
+    // Everyone on the roster, as faces, before a single keystroke.
+    const facesEl = document.getElementById('userPickerFaces');
+    if (facesEl) {
+        facesEl.innerHTML = users.map(u => `<button type="button" class="picker-face" title="${esc(u.name)}${u.dept ? ' · ' + esc(u.dept) : ''}"
+            data-uid="${u.uid}" data-name="${esc(u.name)}" data-dept="${esc(u.dept)}"
+            onclick="pickUserFace(this)">${window.getProfileImgHtml(u.uid, 38, '')}</button>`).join('');
+    }
+
     function renderPickerList(filter) {
         const q = (filter || '').trim().toLowerCase();
         if (!q) {
-            listEl.innerHTML = '<div class="text-muted small p-2 text-center">พิมพ์ชื่อเพื่อค้นหาพนักงาน</div>';
+            listEl.innerHTML = '';
             return;
         }
         const filtered = users.filter(u => u.name.toLowerCase().includes(q) || u.dept.toLowerCase().includes(q));

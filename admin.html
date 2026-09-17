@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="admin.css?v=3.91">
+    <link rel="stylesheet" href="admin.css?v=3.92">
 </head>
 
 <body>
@@ -75,7 +75,7 @@
                         </li>
                     </ul>
                 </div>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.91</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v3.92</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -222,7 +222,13 @@
                                 <form onsubmit="createSchedule(event)">
                                     <!-- Employee Picker with Profile Pictures -->
                                     <div class="mb-3">
-                                        <label class="form-label small text-muted">พนักงาน</label>
+                                        <label class="form-label small text-muted">พนักงาน — แตะรูปเพื่อเลือก</label>
+                                        <!-- Ten faces read faster than ten names, and the roster is small
+                                             enough that everyone fits in two rows. The search box below is
+                                             the fallback once the team outgrows that. -->
+                                        <div id="userPickerFaces" class="picker-faces mb-2"></div>
+                                        <div id="userPickedName" class="picker-picked mb-2 d-none"></div>
+                                        <input type="hidden" id="userSelectName">
                                         <input type="text" id="userSearchInput"
                                             class="form-control form-control-sm mb-2" placeholder="🔍 ค้นหาชื่อ...">
                                         <input type="hidden" id="userSelect" required>
@@ -1217,7 +1223,7 @@
         };
     </script>
 
-    <script type="module" src="admin.js?v=3.91"></script>
+    <script type="module" src="admin.js?v=3.92"></script>
 </body>
 
 </html>

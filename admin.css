@@ -640,6 +640,54 @@ thead th {
 .topbar-tabs .nav-link.active span { display: inline; margin-left: 7px; }
 
 /* The pending-leave breakdown that sits on the stat card. */
+/* Face picker in the เวรพิเศษ / ลา dialog */
+.picker-faces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.picker-face {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background: #e2e8f0;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.picker-face img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
+
+.picker-face:hover { transform: translateY(-2px); border-color: #93c5fd; }
+
+.picker-face.active {
+    border-color: #2f6bff;
+    box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.25);
+}
+
+.picker-picked {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: #eef4ff;
+    border: 1px solid #c7d8ff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e3a8a;
+}
+
+.picker-picked .picker-picked-dept {
+    margin-left: auto;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
 .leave-chip {
     font-size: 0.68rem;
     font-weight: 600;
