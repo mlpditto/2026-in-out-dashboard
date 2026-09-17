@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.75';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.76';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -549,7 +549,8 @@ function renderNurseRoster() {
             if (['ME', 'EN', 'DN'].includes(shiftKey)) ot++;
             if (shiftKey === 'OFF') off++;
             const style = shift ? `background:${shift.color};color:${shift.text}` : '';
-            return `<td class="roster-cell" style="${style}" title="${esc(cell.detail || shift?.detail || '')}"
+            const isDraft = nurseRosterDraft.has(docKey);
+            return `<td class="roster-cell${isDraft ? ' is-draft' : ''}" style="${style}" title="${esc(cell.detail || shift?.detail || '')}"
                 onclick="setNurseRosterCell('${u.id}', '${date}')">${shift?.label || ''}</td>`;
         }).join('');
         const role = roleLabelForUser(u);
@@ -570,6 +571,17 @@ function renderNurseRoster() {
     }).join('') || `<tr><td colspan="${days + 10}" class="text-center text-muted py-4">ยังไม่มีข้อมูลพนักงานสำหรับจัดตารางเวร</td></tr>`;
 
     renderNurseRosterSummary();
+    updateRosterSaveBadge();
+}
+
+// Keeps the save button honest about how much is still only in memory.
+function updateRosterSaveBadge() {
+    const btn = document.getElementById('btnSaveRoster');
+    const label = document.getElementById('rosterSaveLabel');
+    if (!btn || !label) return;
+    const pending = nurseRosterDraft.size;
+    label.textContent = pending ? `บันทึก (${pending})` : 'บันทึก';
+    btn.classList.toggle('has-draft', pending > 0);
 }
 
 function renderNurseRosterSummary() {
