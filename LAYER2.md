@@ -84,6 +84,26 @@ npm --prefix functions install
 firebase deploy --only functions
 ```
 
+### 4.5 ให้สิทธิ์ service account เซ็น custom token ⚠️ ไม่ทำแล้วพังแน่นอน
+
+`createCustomToken()` ต้องเซ็น JWT ผ่าน IAM signBlob ซึ่ง service account ที่ฟังก์ชันใช้
+(`846266395224-compute@developer.gserviceaccount.com`) ไม่มีสิทธิ์นี้มาให้ตั้งแต่ต้น
+ถ้าข้ามขั้นนี้ ฟังก์ชันจะ deploy ผ่านและเรียกได้ แต่ล้มตอนสุดท้ายด้วย
+
+```
+auth/insufficient-permission
+Permission 'iam.serviceAccounts.signBlob' denied
+```
+
+วิธีแก้ (ทำในคอนโซล ไม่ต้อง deploy ใหม่ มีผลใน 1-5 นาที):
+
+*   https://console.cloud.google.com/iam-admin/iam?project=in-out-dashboard
+*   ติ๊ก **Include Google-provided role grants** แล้วหาแถว `846266395224-compute@developer.gserviceaccount.com`
+*   แก้ไข → **Add another role** → **Service Account Token Creator** → Save (อย่าลบ Editor เดิม)
+
+ยืนยันว่าสำเร็จด้วย `firebase auth:export` — ถ้า sign-in ผ่าน จะมี user แบบ custom-token
+ที่ uid ขึ้นต้นด้วย `U` โผล่ขึ้นมา
+
 ### 5. Deploy หน้าเว็บ (ทั้งสองโฮสต์)
 
 ```bash
