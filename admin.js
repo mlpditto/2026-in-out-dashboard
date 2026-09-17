@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.94';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.95';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -2666,7 +2666,7 @@ function renderCalendarLegend() {
     if (!box) return;
 
     const chip = (bg, fg, label) =>
-        `<span class="badge rounded-pill" style="background:${bg};color:${fg};font-weight:600;font-size:0.72rem;">${esc(label)}</span>`;
+        `<span class="badge rounded-pill" title="${esc(label)}" style="background:${bg};color:${fg};font-weight:600;font-size:0.72rem;">${esc(label)}</span>`;
 
     let html = '';
     if (customCalendarMode === 'attendance') {
@@ -2851,7 +2851,7 @@ function initCalendar() {
 
             return {
                 html: `
-                <div class="calendar-event-row ${statusClass}" style="${customStyle}" title="${esc(tooltip)}">
+                <div class="calendar-event-row ${type === 'attendance' ? 'is-attendance' : ''} ${statusClass}" style="${customStyle}" title="${esc(tooltip)}">
                     ${imgHtml}
                     <span class="calendar-event-name" style="${type === 'attendance' ? 'color: #333;' : ''}">${esc(name)}</span>
                     <span class="calendar-event-value" style="${type === 'attendance' ? `color: ${props.deptColor};` : ''}">${esc(value)}</span>
