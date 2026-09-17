@@ -1,4 +1,4 @@
-import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.76';
+import { getDeptCategoryColor, getDeptPastelColor } from './colors.js?v=3.77';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -237,7 +237,23 @@ window.selectUserPick = (el) => {
     document.querySelectorAll('#userPickerList .user-pick-item').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('userSelect').value = el.getAttribute('data-uid');
+    applyCafeShiftChips(el.getAttribute('data-dept'));
 };
+
+// The CAFE hours are only offered while a CAFE employee is picked, so the shift list for
+// everybody else stays as short as it was.
+function applyCafeShiftChips(dept) {
+    const isCafe = /cafe|คาเฟ่/i.test(dept || '');
+    document.querySelectorAll('#shiftChips .cafe-only').forEach(chip => chip.classList.toggle('d-none', !isCafe));
+    if (isCafe) return;
+
+    // Switching from a CAFE employee to anyone else must not leave a CAFE shift selected.
+    const active = document.querySelector('#shiftChips .shift-chip.active');
+    if (active && active.classList.contains('cafe-only')) {
+        const fallback = document.querySelector('#shiftChips .shift-chip:not(.cafe-only)');
+        if (fallback) window.selectShiftChip(fallback);
+    }
+}
 
 window.selectManualUserPick = (el) => {
     document.querySelectorAll('#manualPickerList .user-pick-item').forEach(c => c.classList.remove('active'));
@@ -308,7 +324,16 @@ const ROSTER_OT_SHIFTS = [
     { key: 'DN', label: 'ชด', name: 'ช+ด', detail: '⏱️ ควบเช้า+ดึก (Day+Night)', color: '#ddd6fe', text: '#5b21b6' }
 ];
 
-const ROSTER_ALL_SHIFTS = [...NURSE_ROSTER_SHIFTS, ...ROSTER_OT_SHIFTS];
+// CAFE works its own hours. These stay out of NURSE_ROSTER_SHIFTS on purpose - the monthly
+// palette paints whatever is selected onto any row, and these two belong to CAFE staff only.
+// They are still listed below so the roster grid can draw and label a CAFE shift correctly
+// instead of falling back to the morning shift.
+const CAFE_ROSTER_SHIFTS = [
+    { key: 'CAFE1', label: 'C7', name: '7:30-16:30', detail: '☕ CAFE (07:30 - 16:30)', color: '#f3dfc1', text: '#6b3e11' },
+    { key: 'CAFE2', label: 'C8', name: '8:30-17:30', detail: '☕ CAFE (08:30 - 17:30)', color: '#e6cda6', text: '#6b3e11' }
+];
+
+const ROSTER_ALL_SHIFTS = [...NURSE_ROSTER_SHIFTS, ...ROSTER_OT_SHIFTS, ...CAFE_ROSTER_SHIFTS];
 
 const TH_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 const TH_DAY_SHORT = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
@@ -340,7 +365,9 @@ function inferRosterShiftKey(detail = '') {
     if ((d.includes('บ่าย') && d.includes('ดึก')) || d.includes('บด')) return 'EN';
     if (d.includes('หยุด') || d.includes('off')) return 'OFF';
     if (d.includes('ลา') || d.includes('ป่วย') || d.includes('พักร้อน') || d.includes('กิจ')) return 'LEAVE';
-    if (d.includes('10-20') || d.includes('บ10+')) return 'E10P';
+    if (d.includes('07:30') || d.includes('7:30-16:30')) return 'CAFE1';
+    if (d.includes('08:30') || d.includes('8:30-17:30')) return 'CAFE2';
+    if (d.includes('10-20') || d.includes('บ10+') || d.includes('บ่ายพิเศษ')) return 'E10P';
     if (d.includes('11:00') || d.includes('11-20') || d.includes('บ11')) return 'E11';
     if (d.includes('ดึก') || d.includes('night') || d.includes('12:00') || d.includes('12-21') || d.includes('21:00') || d.includes('00:00')) return 'N';
     if (d.includes('บ่าย') || d.includes('10:00') || d.includes('10-19') || d.includes('19:00') || d.includes('16:00') || d.includes('บ10')) return 'E';
@@ -2444,7 +2471,7 @@ window.loadUsersList = async () => {
         const filtered = users.filter(u => u.name.toLowerCase().includes(q) || u.dept.toLowerCase().includes(q));
         let h = '';
         for (const u of filtered) {
-            h += `<div class="user-pick-item" data-uid="${u.uid}" data-name="${esc(u.name)}" onclick="selectUserPick(this)">
+            h += `<div class="user-pick-item" data-uid="${u.uid}" data-name="${esc(u.name)}" data-dept="${esc(u.dept)}" onclick="selectUserPick(this)">
                 ${window.getProfileImgHtml(u.uid, 28, '')}
                 <div style="overflow:hidden">
                     <div class="user-pick-name">${esc(u.name)}</div>
@@ -2838,6 +2865,8 @@ window.openEditSchedModal = async (id) => {
         { v: "☀️ เช้า (08:00 - 17:00)", t: "☀️ เช้า (08:00 - 17:00)" },
         { v: "🌤️ บ่าย (10:00 - 19:00)", t: "🌤️ บ่าย (10:00 - 19:00)" },
         { v: "☀️ บ่ายพิเศษ (10:00 - 20:00)", t: "☀️ บ่ายพิเศษ (10:00 - 20:00)" },
+        { v: "☕ CAFE (07:30 - 16:30)", t: "☕ CAFE (07:30 - 16:30)" },
+        { v: "☕ CAFE (08:30 - 17:30)", t: "☕ CAFE (08:30 - 17:30)" },
         { v: "🕛 เที่ยง (11:00 - 20:00)", t: "🕛 เที่ยง (11:00 - 20:00)" },
         { v: "🌙 ดึก (12:00 - 21:00)", t: "🌙 ดึก (12:00 - 21:00)" },
         { v: "⏰ 08:00 - 17:00", t: "☀️ เช้า (08:00 - 17:00)" },
