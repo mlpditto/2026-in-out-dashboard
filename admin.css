@@ -622,6 +622,122 @@ thead th {
     background: linear-gradient(180deg, #edf5fb 0%, #f8fafc 100%);
 }
 
+/* Style B - everything above the table lives in one strip that stays put while the
+   table scrolls, so the grid is reachable without hunting for the controls again. */
+.roster-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: -16px -16px 12px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid #dbe6ef;
+}
+
+.roster-toolbar .rt-month { width: 116px; }
+.roster-toolbar .rt-year { width: 96px; }
+
+.rt-sep {
+    width: 1px;
+    align-self: stretch;
+    background: #dbe6ef;
+}
+
+.rt-btn {
+    border: 1px solid #d5e0ea;
+    background: #fff;
+    border-radius: 9px;
+    padding: 5px 10px;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.rt-btn:hover { background: #f1f6fa; }
+
+.rt-btn.rt-save {
+    border-color: #15803d;
+    background: #16a34a;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.rt-btn.rt-save:hover { background: #15803d; }
+
+.rt-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+
+/* the palette has to earn its place in a single strip, so it runs tighter here than it
+   did as a row of its own */
+.roster-toolbar .roster-palette { gap: 5px; }
+
+.roster-toolbar .roster-shift-btn {
+    padding: 3px 9px;
+    font-size: 0.8rem;
+    min-width: auto;
+}
+
+.roster-toolbar .roster-shift-btn small { font-size: 0.6rem; }
+
+.rt-advanced { position: relative; }
+
+.rt-advanced > summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid #d5e0ea;
+    background: #fff;
+    border-radius: 9px;
+    padding: 5px 10px;
+    font-size: 0.95rem;
+}
+
+.rt-advanced > summary::-webkit-details-marker { display: none; }
+
+.rt-advanced[open] > summary { background: #e8f2fb; border-color: #9cc4e4; }
+
+.rt-advanced-body {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    min-width: 260px;
+    background: #fff;
+    border: 1px solid #d5e0ea;
+    border-radius: 12px;
+    box-shadow: 0 12px 28px -12px rgba(15, 23, 42, 0.35);
+}
+
+.rt-advanced-body label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+/* The recent list runs to dozens of rows; cap it so it scrolls inside its own card
+   instead of pushing the whole page down. */
+.sched-scroll {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.sched-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
 .roster-filter-grid {
     display: grid;
     grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) minmax(230px, 1.35fr) minmax(230px, 1.35fr);
@@ -905,6 +1021,10 @@ thead th {
         align-items: flex-start;
         flex-direction: column;
     }
+
+    .roster-toolbar { gap: 6px; }
+    .rt-actions { margin-left: 0; width: 100%; justify-content: flex-end; }
+    .rt-sep { display: none; }
 }
 
 @media print {
