@@ -1461,8 +1461,12 @@ async function getHoursDetailHtmlOnly(row, todayHours = 0) {
     const yearStart = new Date(end.getFullYear(), 0, 1);
     yearStart.setHours(0, 0, 0, 0);
 
+    // The range ends yesterday, so a past day being viewed is already inside it - its
+    // hours are added on top only when it is today, or that day would count twice.
+    const viewedHours = filterDate === new Date().toLocaleDateString('sv') ? todayHours : 0;
+
     const monthHours = await calcHours(uid, monthStart, end);
-    const mTotal = monthHours + todayHours; // Add today to month total
+    const mTotal = monthHours + viewedHours; // Add today to month total
 
     let html = `เดือนนี้: <span class="fw-bold">${mTotal.toFixed(2)}</span> ชม.`;
 
@@ -1473,12 +1477,12 @@ async function getHoursDetailHtmlOnly(row, todayHours = 0) {
             const regStart = reg.toDate ? reg.toDate() : new Date(reg);
             regStart.setHours(0, 0, 0, 0);
             const histHours = await calcHours(uid, regStart, end);
-            const totalHours = histHours + todayHours;
+            const totalHours = histHours + viewedHours;
             html = `สะสม: <span class="fw-bold">${totalHours.toFixed(2)}</span> ชม. | ` + html;
         }
     } else {
         const yearHours = await calcHours(uid, yearStart, end);
-        const yTotal = yearHours + todayHours;
+        const yTotal = yearHours + viewedHours;
         html = html + ` | ปีนี้: <span class="fw-bold">${yTotal.toFixed(2)}</span> ชม.`;
     }
 
