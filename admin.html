@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="admin.css?v=4.00">
+    <link rel="stylesheet" href="admin.css?v=4.01">
 </head>
 
 <body>
@@ -75,7 +75,7 @@
                         </li>
                     </ul>
                 </div>
-                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v4.00</span>
+                <span class="badge bg-light text-muted border" style="font-size:10px; font-weight:500;">v4.01</span>
                 <div class="dropdown">
                     <button class="btn btn-light rounded-pill border d-flex align-items-center gap-2 px-3"
                         data-bs-toggle="dropdown"><img id="adminProfilePic" src="https://via.placeholder.com/30"
@@ -174,6 +174,12 @@
                                         class="bi bi-chevron-right"></i></button>
                             </div>
                             <button onclick="loadData()" class="btn btn-primary">ค้นหา</button>
+                            <!-- v4.01 (owner pick A + B): the same day as a list, a timeline (in → out per person), or the month as a calendar of faces -->
+                            <div class="btn-group att-views" role="group" aria-label="มุมมอง">
+                                <button type="button" class="btn btn-outline-secondary active" data-v="list" onclick="setAttView('list')" title="รายการ"><i class="bi bi-list-ul"></i></button>
+                                <button type="button" class="btn btn-outline-secondary" data-v="day" onclick="setAttView('day')" title="เส้นเวลา เข้า → ออก"><i class="bi bi-bar-chart-steps"></i></button>
+                                <button type="button" class="btn btn-outline-secondary" data-v="month" onclick="setAttView('month')" title="ปฏิทินเดือน"><i class="bi bi-calendar3"></i></button>
+                            </div>
                             <div class="ms-auto d-flex gap-2">
                                 <button onclick="openManualEntry()" class="btn btn-outline-warning"
                                     title="ลงเวลาแทนพนักงาน">
@@ -186,7 +192,9 @@
                                 <button onclick="exportCSV()" class="btn btn-outline-success">Export</button>
                             </div>
                         </div>
-                        <div class="table-responsive">
+                        <div id="attDay" class="att-day" hidden></div>
+                        <div id="attMonth" class="att-month" hidden></div>
+                        <div id="attList" class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
@@ -1226,7 +1234,7 @@
         };
     </script>
 
-    <script type="module" src="admin.js?v=4.00"></script>
+    <script type="module" src="admin.js?v=4.01"></script>
 </body>
 
 </html>
