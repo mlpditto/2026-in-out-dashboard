@@ -1795,6 +1795,8 @@ window.loadData = async () => {
     }
 
     t.innerHTML = h || `<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูล</td></tr>`;
+    window.attDayCtx = { date: d, shifts: shiftsByUserDate };
+    renderAttView();
 
     // Load accumulative hours asynchronously in background
     if (window.currentData && window.currentData.length > 0) {
@@ -1844,6 +1846,125 @@ window.loadData = async () => {
             return imgHtml.replace('<img ', `<img title="${esc(u.name)} (${esc(u.dept || '')})" `);
         }).join('') + (activeProfiles.length > 8 ? `<span class="small text-white-50 ms-1">+${activeProfiles.length - 8}</span>` : '');
     }
+};
+
+// ── v4.01 (owner pick A + B): the attendance day as a timeline, the month as a calendar of faces ──────────────────────────
+// 📋 list = the table above (unchanged) · ▬ day = one row per person, a bar from เข้างาน to ออกงาน (dashed = not out yet,
+// or carried past midnight) · 📅 month = each day's faces + head count; tapping a day opens its timeline.
+const ATT_VIEWS = ['list', 'day', 'month'];
+let attView = (() => { try { const v = localStorage.getItem('attView'); return ATT_VIEWS.includes(v) ? v : 'list'; } catch (_) { return 'list'; } })();
+const attMonthCache = {};
+const tsOf = (v) => v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp.seconds * 1000);
+const hhmm = (dt) => dt.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+const isoDay = (dt) => dt.toLocaleDateString('sv');
+
+window.setAttView = (v) => {
+    attView = ATT_VIEWS.includes(v) ? v : 'list';
+    try { localStorage.setItem('attView', attView); } catch (_) { /* private mode */ }
+    renderAttView();
+};
+
+function renderAttView() {
+    document.querySelectorAll('.att-views button').forEach(b => b.classList.toggle('active', b.dataset.v === attView));
+    const list = document.getElementById('attList'), day = document.getElementById('attDay'), month = document.getElementById('attMonth');
+    if (!list || !day || !month) return;
+    list.hidden = attView !== 'list'; day.hidden = attView !== 'day'; month.hidden = attView !== 'month';
+    if (attView === 'day') renderAttDay();
+    if (attView === 'month') renderAttMonth();
+}
+
+// one person's day → bars [{from, to, open}] in hours (0–24) from the day's ordered เข้างาน / ออกงาน logs
+function attSegments(logs, dateStr) {
+    const segs = [], todayStr = isoDay(new Date()), nowH = new Date().getHours() + new Date().getMinutes() / 60;
+    let open = null;
+    logs.forEach(l => {
+        const h = l.ts.getHours() + l.ts.getMinutes() / 60;
+        if (l.type === 'เข้างาน') { if (open) segs.push({ from: open.h, to: h, open: true, inAt: open.ts }); open = { h, ts: l.ts }; }
+        else if (open) { segs.push({ from: open.h, to: h, inAt: open.ts, outAt: l.ts }); open = null; }
+        else segs.push({ from: 0, to: h, outAt: l.ts, carried: true });   // out with no in today: a night shift from yesterday
+    });
+    if (open) segs.push({ from: open.h, to: dateStr === todayStr ? Math.max(open.h, nowH) : 24, open: true, inAt: open.ts });
+    return segs;
+}
+
+function renderAttDay() {
+    const box = document.getElementById('attDay'), ctx = window.attDayCtx;
+    if (!box || !ctx) return;
+    const byUser = {};
+    (window.currentData || []).forEach(v => { (byUser[v.userId] = byUser[v.userId] || []).push({ type: v.type, ts: tsOf(v), name: v.name }); });
+    const rows = Object.entries(byUser).map(([uid, logs]) => {
+        const firstIn = logs.find(l => l.type === 'เข้างาน');
+        return { uid, name: window.allUserData[uid]?.name || logs[0].name || uid, segs: attSegments(logs, ctx.date),
+            late: firstIn ? calcLateMinutes(firstIn.ts, ctx.shifts[`${uid}_${ctx.date}`]) : 0, first: logs[0].ts };
+    }).sort((a, b) => a.first - b.first);
+    // scheduled that day but no record: leave (ลา…) or not checked in — only up to today
+    const missing = ctx.date <= isoDay(new Date()) ? Object.entries(ctx.shifts)
+        .filter(([k]) => k.endsWith('_' + ctx.date) && !byUser[k.slice(0, -11)])
+        .map(([k, shift]) => ({ uid: k.slice(0, -11), name: window.allUserData[k.slice(0, -11)]?.name || '', shift: String(shift || ''), kind: inferRosterShiftKey(shift) }))
+        .filter(m => m.name && m.shift && m.kind !== 'OFF') : [];   // a day off is not "missing"
+    const earliest = rows.reduce((m, r) => Math.min(m, ...r.segs.map(s => s.from)), 24);
+    const H0 = Math.min(6, Math.floor(earliest)), H1 = 24, span = H1 - H0, pct = (h) => ((Math.min(H1, Math.max(H0, h)) - H0) / span * 100).toFixed(2) + '%';
+    const ticks = []; for (let h = Math.ceil(H0 / 2) * 2; h <= H1; h += 2) ticks.push(h);
+    const isToday = ctx.date === isoDay(new Date()), nowH = new Date().getHours() + new Date().getMinutes() / 60;
+    const face = (uid) => window.getProfileImgHtml(uid, 30, 'att-face', `border-color:${getDeptCategoryColor(getUserDept(uid))}`);
+    const who = (uid, name, sub) => `<div class="att-who" onclick="viewUserStats('${escJs(uid)}')" title="ดูสถิติ">${face(uid)}<span><b>${esc(name)}</b><small>${esc(sub)}</small></span></div>`;
+    const leave = missing.filter(m => m.kind === 'LEAVE'), absent = missing.filter(m => m.kind !== 'LEAVE');
+    const head = `<div class="att-sum"><b>${rows.length}</b> มา${leave.length ? ` · <b>${leave.length}</b> ลา` : ''}${absent.length ? ` · <b class="text-danger">${absent.length}</b> ไม่มี check in` : ''}</div>`;
+    const axis = `<div class="att-row att-axis"><span></span><div class="att-track">${ticks.map(h => `<i style="left:${pct(h)}">${String(h).padStart(2, '0')}:00</i>`).join('')}</div></div>`;
+    const now = isToday && nowH > H0 ? `<i class="att-now" style="left:${pct(nowH)}" title="ตอนนี้"></i>` : '';
+    const bar = (s) => `<span class="att-bar${s.open || s.carried ? ' open' : ''}" style="left:${pct(s.from)};width:calc(${pct(s.to)} - ${pct(s.from)})" title="${s.inAt ? hhmm(s.inAt) : '…'} → ${s.outAt ? hhmm(s.outAt) : 'ยังไม่ออก'}">`
+        + `${s.inAt ? `<b class="l">${hhmm(s.inAt)}</b>` : ''}${s.outAt ? `<b class="r">${hhmm(s.outAt)}</b>` : ''}</span>`;
+    box.innerHTML = head + axis
+        + rows.map(r => `<div class="att-row">${who(r.uid, r.name, getUserDept(r.uid))}<div class="att-track">${r.segs.map(bar).join('')}${now}</div>${r.late ? `<span class="att-late">สาย ${r.late} น.</span>` : ''}</div>`).join('')
+        + leave.concat(absent).map(m => `<div class="att-row dim">${who(m.uid, m.name, getUserDept(m.uid))}<div class="att-track"><span class="att-note${m.kind === 'LEAVE' ? ' lv' : ''}">${m.kind === 'LEAVE' ? '🌴 ' + esc(m.shift) : '— ไม่มี check in · เวร ' + esc(m.shift)}</span>${now}</div></div>`).join('')
+        + (rows.length || missing.length ? '' : '<div class="text-center text-muted py-5">ไม่พบข้อมูล</div>');
+}
+
+async function renderAttMonth() {
+    const box = document.getElementById('attMonth'), d = document.getElementById('filterDate').value;
+    if (!box || !d) return;
+    const [y, m] = d.split('-').map(Number), key = `${y}-${String(m).padStart(2, '0')}`;
+    // the page reloads the day every minute; the month query is re-run at most every 10 min for the current month, never for a past one
+    const cached = attMonthCache[key], isNow = key === isoDay(new Date()).slice(0, 7);
+    if (!cached || (isNow && Date.now() - cached.at > 10 * 60 * 1000)) {
+        box.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        const s = new Date(y, m - 1, 1, 0, 0, 0), e = new Date(y, m, 0, 23, 59, 59, 999);
+        const snap = await getDocs(query(collection(db, "attendance"), where("timestamp", ">=", s), where("timestamp", "<=", e)));
+        const days = {};
+        snap.docs.map(x => x.data()).sort((a, b) => a.timestamp.seconds - b.timestamp.seconds).forEach(v => {
+            const ts = tsOf(v), k = isoDay(ts), u = ((days[k] = days[k] || {})[v.userId] = days[k][v.userId] || {});
+            if (v.type === 'เข้างาน' && !u.in) u.in = ts;
+            if (v.type === 'ออกงาน') u.out = ts;
+        });
+        attMonthCache[key] = { at: Date.now(), days };
+    }
+    if (attView !== 'month') return;
+    const days = attMonthCache[key].days, last = new Date(y, m, 0).getDate(), lead = (new Date(y, m - 1, 1).getDay() + 6) % 7;   // Monday first
+    const today = isoDay(new Date()), title = new Date(y, m - 1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+    const cells = [];
+    for (let i = 0; i < lead; i++) cells.push('<span></span>');
+    for (let n = 1; n <= last; n++) {
+        const ds = `${key}-${String(n).padStart(2, '0')}`, who = Object.keys(days[ds] || {}), wd = (lead + n - 1) % 7;
+        const faces = who.slice(0, 4).map(uid => window.getProfileImgHtml(uid, 22, 'att-mface', `border-color:${getDeptCategoryColor(getUserDept(uid))}`)).join('');
+        cells.push(`<button type="button" class="att-cell${wd >= 5 ? ' we' : ''}${ds === today ? ' today' : ''}${ds === d ? ' sel' : ''}" onclick="openAttDay('${ds}')" title="${who.length} คน — แตะเพื่อดูเส้นเวลา">`
+            + `<b>${n}</b>${who.length ? `<i class="att-n">${who.length}</i><span class="att-stack">${faces}${who.length > 4 ? `<em>+${who.length - 4}</em>` : ''}</span>` : ''}</button>`);
+    }
+    box.innerHTML = `<div class="att-mhead"><button type="button" class="btn btn-sm btn-light border" onclick="shiftAttMonth(-1)" aria-label="เดือนก่อน"><i class="bi bi-chevron-left"></i></button>`
+        + `<b>${title}</b><button type="button" class="btn btn-sm btn-light border" onclick="shiftAttMonth(1)" aria-label="เดือนถัดไป"><i class="bi bi-chevron-right"></i></button><small>แตะวันเพื่อดูเส้นเวลา</small></div>`
+        + `<div class="att-cal">${['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.'].map(w => `<span class="att-wd">${w}</span>`).join('')}${cells.join('')}</div>`;
+}
+
+window.openAttDay = (ds) => {
+    document.getElementById('filterDate').value = ds;
+    attView = 'day';
+    try { localStorage.setItem('attView', 'day'); } catch (_) { /* private mode */ }
+    loadData();
+};
+window.shiftAttMonth = (delta) => {
+    const el = document.getElementById('filterDate'), [y, m] = el.value.split('-').map(Number);
+    const t = new Date(y, m - 1 + delta, 1);
+    el.value = isoDay(t);
+    loadData();   // the list and the timeline follow the date too
 };
 
 // Global helper for profile image source with cache buster
